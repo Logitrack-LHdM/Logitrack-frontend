@@ -34,12 +34,12 @@ public class SecurityConfig {
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers(HttpMethod.PATCH, "/api/envios/**").hasRole("CHOFER")
                 .requestMatchers("/api/envios/**").permitAll()
                 .requestMatchers("/api/catalogos/**").permitAll()
                 .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                 .requestMatchers("/error").permitAll()
                 .requestMatchers("/api/chofer/**").hasRole("CHOFER")
-                .requestMatchers(HttpMethod.PATCH, "/api/envios/**").hasRole("CHOFER")
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
