@@ -40,5 +40,5 @@ public class ChoferController {//Define la clase ChoferController, que es el con
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(resumen);
-    }
+    }  
 }

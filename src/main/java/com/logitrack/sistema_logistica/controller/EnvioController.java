@@ -1,6 +1,8 @@
 package com.logitrack.sistema_logistica.controller;
 
 import com.logitrack.sistema_logistica.dto.ErrorResponseDTO;
+import com.logitrack.sistema_logistica.dto.EstadoUpdateRequestDTO;
+import com.logitrack.sistema_logistica.dto.EstadoUpdateResponseDTO;
 import com.logitrack.sistema_logistica.dto.EnvioRequestDTO;
 import com.logitrack.sistema_logistica.dto.HistorialResponseDTO;
 import com.logitrack.sistema_logistica.model.Envio;
@@ -24,6 +26,8 @@ import org.springframework.data.domain.Pageable;
 
 import com.logitrack.sistema_logistica.repository.EnvioRepository;
 import com.logitrack.sistema_logistica.repository.UsuarioRepository;
+
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 
 @RestController
@@ -239,6 +243,30 @@ public class EnvioController {
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
+    }
+
+
+    @PatchMapping("/{idEnvio}/estado")
+    @PreAuthorize("hasRole('CHOFER')")
+    public ResponseEntity<EstadoUpdateResponseDTO> actualizarEstado(
+            @PathVariable String idEnvio,
+            @RequestBody EstadoUpdateRequestDTO dto,
+            Authentication auth) {
+
+        // Extraemos el username del JWT
+        String username = auth.getName();
+
+        // Ejecutamos la lógica
+        Envio envioActualizado = envioService.actualizarEstadoChofer(idEnvio, dto.getNuevoEstado(), username);
+
+        // Construimos la respuesta según el contrato
+        EstadoUpdateResponseDTO response = EstadoUpdateResponseDTO.builder()
+                .mensaje("Estado actualizado correctamente")
+                .estado_actual(envioActualizado.getEstado_actual().name())
+                .fecha_actualizacion(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity.ok(response);
     }
 
 

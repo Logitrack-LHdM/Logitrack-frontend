@@ -96,6 +96,36 @@ public class EnvioService {
         return envioRepository.findByChoferUsername(username);
     }       
 
+        //#114: Actualización de estado por parte del chofer con validaciones estrictas
+        @Transactional
+        public Envio actualizarEstadoChofer(String idEnvio, String nuevoEstadoStr, String username) {
+                // 1. Buscar el envío
+                Envio envio = envioRepository.findById(idEnvio)
+                        .orElseThrow(() -> new RuntimeException("Envío no encontrado"));
+
+                // 2. Validación de Identidad: ¿Es su envío asignado? 
+                String usernameAsignado = envio.getChofer().getPersona_asociada().getId_usuario().getUsername();
+                if (!usernameAsignado.equals(username)) {
+                        throw new RuntimeException("Acceso denegado: Este envío no te pertenece");
+                }
+
+                // 3. Máquina de Estados: Validar flujo lógico [cite: 49, 111]
+                Estado_Envio actual = envio.getEstado_actual();
+                Estado_Envio siguiente = Estado_Envio.valueOf(nuevoEstadoStr);
+
+                // NUEVO: Si el estado es el mismo, no hacemos nada y devolvemos el envío tal cual
+                if (actual == siguiente) {
+                        return envio; 
+                }
+
+                if (!esTransicionValida(actual, siguiente)) {
+                        throw new RuntimeException("Flujo inválido: No se puede pasar de " + actual + " a " + siguiente);
+        }
+
+                // 4. Actualizar (Manteniendo la prioridad intacta) 
+                Usuario usuario = usuarioRepository.findByUsername(username).get();
+                return actualizarEstadoYPrioridad(idEnvio, nuevoEstadoStr, envio.getPrioridad_ia(), usuario);
+        }
 
     /**
      * Obtiene el historial de eventos de un envío por su identificador.
@@ -116,55 +146,59 @@ public class EnvioService {
                 .collect(Collectors.toList());
     }
 
-    @Transactional // Garantiza que si falla el historial, no se guarde el envío a medias
-        public Envio actualizarEstadoYPrioridad(String idEnvio, String nuevoEstadoStr, String nuevaPrioridad,
-                        Usuario usuarioModificador) {
 
-                // 1. Buscar el envío existente por su ID principal (LT-XXXXXX)
-                Envio envio = envioRepository.findById(idEnvio)
-                                .orElseThrow(() -> new RuntimeException("No se encontró el envío con ID: " + idEnvio));
+    /**
+     * #114: Validación de Flujo Lógico para Actualización de Estado
+     * Método de apoyo: Valida que el chofer siga el flujo lógico 
+     * sin saltarse pasos ni retroceder.
+     */
+    private boolean esTransicionValida(Estado_Envio actual, Estado_Envio siguiente) {
+        return switch (actual) {
+            case PENDIENTE -> siguiente == Estado_Envio.EN_TRANSITO;
+            case EN_TRANSITO -> siguiente == Estado_Envio.EN_PUNTO_DE_RECOLECCION;
+            case EN_PUNTO_DE_RECOLECCION -> siguiente == Estado_Envio.EN_REPARTO;
+            case EN_REPARTO -> siguiente == Estado_Envio.ENTREGADO;
+            default -> false; // El chofer no puede cancelar ni modificar estados finales
+        };
+    }
 
-                // 2. Capturar el estado actual antes de modificarlo para el historial
-                Estado_Envio estadoAnterior = envio.getEstado_actual();
+    /**
+     * #114: Método centralizado para actualizar el estado y la prioridad de un envío,
+     * Método de apoyo: Centraliza la actualización del envío y 
+     * la creación automática del registro de historial.
+     */
+    @Transactional
+    public Envio actualizarEstadoYPrioridad(String idEnvio, String nuevoEstadoStr, String nuevaPrioridad, 
+                                            Usuario usuarioModificador) {
+        
+        // 1. Buscamos el envío nuevamente para asegurar consistencia
+        Envio envio = envioRepository.findById(idEnvio)
+                .orElseThrow(() -> new RuntimeException("No se encontró el envío con ID: " + idEnvio));
 
-                // Convertir el String que viene del DTO/Frontend al Enum de Java
-                Estado_Envio estadoNuevo = Estado_Envio.valueOf(nuevoEstadoStr);
+        Estado_Envio estadoAnterior = envio.getEstado_actual();
+        Estado_Envio estadoNuevo = Estado_Envio.valueOf(nuevoEstadoStr);
 
-                // 3. Verificar qué datos cambiaron realmente
-                boolean estadoCambio = !estadoAnterior.equals(estadoNuevo);
-                boolean prioridadCambio = (nuevaPrioridad != null && !nuevaPrioridad.equals(envio.getPrioridad_ia()));
+        // 2. Actualizamos los campos en la entidad
+        envio.setEstado_actual(estadoNuevo);
+        envio.setPrioridad_ia(nuevaPrioridad); // Aquí el chofer mantiene la que ya tenía
 
-                // Si no hubo cambios reales, simplemente devolvemos el envío tal cual
-                if (!estadoCambio && !prioridadCambio) {
-                        return envio;
-                }
+        // 3. Guardamos el envío
+        Envio envioGuardado = envioRepository.save(envio);
 
-                // 4. Actualizar los valores en el objeto Envio
-                if (estadoCambio) {
-                        envio.setEstado_actual(estadoNuevo);
-                }
-                if (prioridadCambio) {
-                        envio.setPrioridad_ia(nuevaPrioridad);
-                }
+        // 4. GENERAMOS EL HISTORIAL (Auditoría)
+        Historial_Estados historial = Historial_Estados.builder()
+                .envio(envioGuardado)
+                .usuario(usuarioModificador)
+                .estado_anterior(estadoAnterior)
+                .estado_nuevo(estadoNuevo)
+                .build();
 
-                // 5. Guardar el envío actualizado
-                Envio envioGuardado = envioRepository.save(envio);
+        historialEstadosRepository.save(historial);
 
-                // 6. Generar el registro de Auditoría SOLO si el estado logístico cambió
-                if (estadoCambio) {
-                        Historial_Estados historial = Historial_Estados.builder()
-                                        .envio(envioGuardado)
-                                        .usuario(usuarioModificador)
-                                        .estado_anterior(estadoAnterior)
-                                        .estado_nuevo(estadoNuevo)
-                                        // La fecha_hora se genera sola por el @PrePersist en tu modelo
-                                        .build();
+        return envioGuardado;
+    }
 
-                        historialEstadosRepository.save(historial);
-                }
-
-                return envioGuardado;
-        }
+ 
         ////////////////////////////////////////////////////////////////////////////////////////////////
 }
   
