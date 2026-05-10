@@ -36,38 +36,39 @@ export function getEstadoConfig(estado: EstadoEnvio) {
 }
 
 /**
- * Formatea una fecha ISO a formato legible
+ * Fuerza interpretación UTC agregando 'Z' si el backend no lo incluye,
+ * luego convierte a hora de Argentina (UTC-3).
  */
+function parsearFechaUTC(fechaISO: string): Date {
+  if (!fechaISO) return new Date();
+  // Si ya tiene zona horaria (Z, +00:00, -03:00, etc.), no tocar
+  const tieneZona = /Z|[+-]\d{2}:\d{2}$/.test(fechaISO);
+  return new Date(tieneZona ? fechaISO : fechaISO + 'Z');
+}
+
 export function formatearFecha(fechaISO: string): string {
   if (!fechaISO) return '-';
-  const fecha = new Date(fechaISO);
-  return fecha.toLocaleDateString('es-AR', {
+  return parsearFechaUTC(fechaISO).toLocaleDateString('es-AR', {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
+    timeZone: 'America/Argentina/Buenos_Aires',
   });
 }
 
-/**
- * Formatea una fecha ISO a hora legible
- */
 export function formatearHora(fechaISO: string): string {
   if (!fechaISO) return '-';
-  const fecha = new Date(fechaISO);
-  return fecha.toLocaleTimeString('es-AR', {
+  return parsearFechaUTC(fechaISO).toLocaleTimeString('es-AR', {
     hour: '2-digit',
     minute: '2-digit',
+    timeZone: 'America/Argentina/Buenos_Aires',
   });
 }
 
-/**
- * Formatea fecha y hora completas
- */
 export function formatearFechaHora(fechaISO: string): string {
   if (!fechaISO) return '-';
   return `${formatearFecha(fechaISO)} ${formatearHora(fechaISO)}`;
 }
-
 /**
  * Obtiene el nombre completo del chofer
  */
@@ -83,3 +84,4 @@ export function formatearPeso(kg: number): string {
   if (!kg) return '0 kg';
   return `${kg.toLocaleString('es-AR')} kg`;
 }
+
