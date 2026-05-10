@@ -30,7 +30,7 @@ public class EnvioDetalleResponseDTO {
     private String chofer_nombre;
     private String chofer_apellido;
 
-    // --- Campos para #121 y #122 ---
+    // --- Campos para #121 y #122 --
     private LocalDateTime fecha_salida;
     private Double distancia_km;
     private LocalDateTime Fecha_estimada_llegada; // Hora Estimada de Llegada calculada

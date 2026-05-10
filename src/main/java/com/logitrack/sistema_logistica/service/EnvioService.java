@@ -256,6 +256,7 @@ public class EnvioService {
     *   Usado por el endpoint GET /api/envios/{id}
     */ 
 
+    
     @Transactional(readOnly = true)
     public EnvioDetalleResponseDTO obtenerDetalleConETA(String idEnvio) {
         Envio envio = envioRepository.findById(idEnvio)

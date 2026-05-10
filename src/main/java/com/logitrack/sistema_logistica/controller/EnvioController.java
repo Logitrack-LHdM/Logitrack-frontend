@@ -213,7 +213,7 @@ public class EnvioController {
     @GetMapping("/{idEnvio}")
     public ResponseEntity<?> obtenerEnvioPorId(@PathVariable String idEnvio) {
         try {
-            // #122 — Ahora devuelve el DTO con ETA calculado en lugar del objeto crudo
+            // #122 — Ahora devuelve el DTO con ETA calculado
             EnvioDetalleResponseDTO envio = envioService.obtenerDetalleConETA(idEnvio);
             return ResponseEntity.ok(envio);
         } catch (RuntimeException e) {
