@@ -226,7 +226,7 @@ export default function DetalleEnvioPage({
                     onValueChange={(v) => setNuevoEstado(v as EstadoEnvio)}
                     disabled={!permisos?.editarEstado || isUpdating}
                   >
-                    <SelectTrigger className="h-11 bg-white border-0 shadow-sm focus:ring-amber-500">
+                    <SelectTrigger className="w-full h-11 bg-white border-0 shadow-sm focus:ring-amber-500">
                       <SelectValue placeholder="Seleccionar estado" />
                     </SelectTrigger>
                     <SelectContent>
@@ -246,7 +246,7 @@ export default function DetalleEnvioPage({
                     onValueChange={(v) => setNuevaPrioridad(v as Prioridad)}
                     disabled={!permisos?.editarPrioridad || isUpdating}
                   >
-                    <SelectTrigger className="h-11 bg-white border-0 shadow-sm focus:ring-amber-500">
+                    <SelectTrigger className="w-full h-11 bg-white border-0 shadow-sm focus:ring-amber-500">
                       <SelectValue placeholder="Seleccionar prioridad" />
                     </SelectTrigger>
                     <SelectContent>

@@ -190,7 +190,7 @@ export function EnvioForm() {
                       onValueChange={(v) => field.onChange(parseInt(v, 10))}
                       disabled={!clienteCuit || loadingEstablecimientos}
                     >
-                      <SelectTrigger className={`bg-muted/30 border-0 shadow-sm h-11 ${errors.id_origen ? 'ring-2 ring-destructive' : ''}`}>
+                      <SelectTrigger className={`w-full bg-muted/30 border-0 shadow-sm h-11 ${errors.id_origen ? 'ring-2 ring-destructive' : ''}`}>
                         <SelectValue placeholder="Seleccione un cliente primero..." />
                       </SelectTrigger>
                       <SelectContent>
@@ -222,7 +222,7 @@ export function EnvioForm() {
                       onValueChange={(v) => field.onChange(parseInt(v, 10))}
                       disabled={!clienteCuit || loadingEstablecimientos}
                     >
-                      <SelectTrigger className={`bg-muted/30 border-0 shadow-sm h-11 ${errors.id_destino ? 'ring-2 ring-destructive' : ''}`}>
+                      <SelectTrigger className={`w-full bg-muted/30 border-0 shadow-sm h-11 ${errors.id_destino ? 'ring-2 ring-destructive' : ''}`}>
                         <SelectValue placeholder="Seleccione un cliente primero..." />
                       </SelectTrigger>
                       <SelectContent>
@@ -286,7 +286,7 @@ export function EnvioForm() {
                   control={control}
                   render={({ field }) => (
                     <Select value={field.value?.toString() || ''} onValueChange={(v) => field.onChange(parseInt(v, 10))}>
-                      <SelectTrigger className={`bg-muted/30 border-0 shadow-sm h-11 ${errors.id_chofer ? 'ring-2 ring-destructive' : ''}`}>
+                      <SelectTrigger className={`w-full bg-muted/30 border-0 shadow-sm h-11 ${errors.id_chofer ? 'ring-2 ring-destructive' : ''}`}>
                         <SelectValue placeholder="Cargando choferes..." />
                       </SelectTrigger>
                       <SelectContent>
@@ -310,7 +310,7 @@ export function EnvioForm() {
                   control={control}
                   render={({ field }) => (
                     <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger className={`bg-muted/30 border-0 shadow-sm h-11 ${errors.patente_camion ? 'ring-2 ring-destructive' : ''}`}>
+                      <SelectTrigger className={`w-full bg-muted/30 border-0 shadow-sm h-11 ${errors.patente_camion ? 'ring-2 ring-destructive' : ''}`}>
                         <SelectValue placeholder="Cargando flota..." />
                       </SelectTrigger>
                       <SelectContent>

@@ -60,7 +60,7 @@ export function SearchFilters({
           <div className="md:col-span-4 space-y-1">
             <Label className="text-xs font-bold uppercase text-muted-foreground">Estado Operativo</Label>
             <Select value={estado || 'all'} onValueChange={(v) => onEstadoChange(v === 'all' ? '' : v as EstadoEnvio)}>
-              <SelectTrigger className="h-11 bg-muted/30 border-0 shadow-sm focus:ring-[#198754]">
+              <SelectTrigger className="w-full h-11 bg-muted/30 border-0 shadow-sm focus:ring-[#198754]">
                 <SelectValue placeholder="Cualquier Estado" />
               </SelectTrigger>
               <SelectContent>
