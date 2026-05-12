@@ -101,8 +101,13 @@ class ApiClient {
       `/envios/search?${searchParams.toString()}`
     );
   }
+
   async getEnvio(id: string | number): Promise<Envio> {
     return this.request<Envio>(`/envios/${id}`);
+  }
+
+  async getEnvioCompleto(id: string | number): Promise<Envio> {
+    return this.request<Envio>(`/envios/buscar/${id}`);
   }
 
   async crearEnvio(envio: EnvioRequestDTO): Promise<Envio> {

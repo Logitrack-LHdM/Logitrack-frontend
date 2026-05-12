@@ -87,6 +87,25 @@ export interface Envio {
   camion: Camion;
 }
 
+// export interface EnvioDetalleResponseDTO {
+//   id_envio: string | number;
+//   cpe: string;
+//   estado_actual: EstadoEnvio;
+//   tipo_grano: TipoGrano;
+//   kg_origen: number;
+//   prioridad_ia: Prioridad;
+
+//   // Datos de origen y destino
+//   origen_nombre: string;
+//   origen_direccion: string;
+//   destino_nombre: string;
+//   destino_direccion: string;
+
+//   // Datos del chofer
+//   chofer_nombre: string;
+//   chofer_apellido: string;
+// }
+
 export interface RegistroHistorial {
   id_historial: number;
   id_envio: string;
@@ -112,7 +131,7 @@ export interface EnvioRequestDTO {
 
 export interface EnvioUpdateDTO {
   estado?: EstadoEnvio;
-  prioridad?: Prioridad;
+  prioridad_ia?: Prioridad;
 }
 export interface IncidenciaDTO {
   descripcion: string;

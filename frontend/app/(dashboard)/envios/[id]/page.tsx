@@ -61,7 +61,7 @@ export default function DetalleEnvioPage({
       // Usamos los nombres que espera el DTO de Java
       await actualizarEnvio({
         estado: nuevoEstado,
-        prioridad: nuevaPrioridad
+        prioridad_ia: nuevaPrioridad
       });
       // IMPORTANTE: Recargamos la página igual que en detalleEnvio.js para actualizar el historial
       toast.success('Operación actualizada con éxito');
