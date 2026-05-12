@@ -270,29 +270,51 @@ public class EnvioController {
 
     @PatchMapping("/{idEnvio}/estado")
     @PreAuthorize("hasRole('CHOFER')")
-    public ResponseEntity<EstadoUpdateResponseDTO> actualizarEstado(
-
+    public ResponseEntity<?> actualizarEstadoChofer(
             @PathVariable String idEnvio,
+            @RequestParam String nuevoEstado,
+            Authentication authentication) {
+        try {
+            // Extraemos el username del JWT
+            String username = authentication.getName();
 
-            @RequestBody EstadoUpdateRequestDTO dto,
-            Authentication auth) {
+            // Ejecutamos la lógica
+            Envio envioActualizado = envioService.actualizarEstadoChofer(
+                    idEnvio, nuevoEstado, username);
 
-        // Extraemos el username del JWT
-        String username = auth.getName();
-
-        // Ejecutamos la lógica
-        Envio envioActualizado = envioService.actualizarEstadoChofer(idEnvio,
-                dto.getNuevoEstado(), username);
-
-        // Construimos la respuesta según el contrato
-        EstadoUpdateResponseDTO response = EstadoUpdateResponseDTO.builder()
-                .mensaje("Estado actualizado correctamente")
-                .estado_actual(envioActualizado.getEstado_actual().name())
-                .fecha_actualizacion(LocalDateTime.now())
-                .build();
-
-        return ResponseEntity.ok(response);
+            return ResponseEntity.ok(envioActualizado);
+        } catch (RuntimeException e) {
+            ErrorResponseDTO error = new ErrorResponseDTO();
+            error.setMessage(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+        }
     }
+
+    // @PatchMapping("/{idEnvio}/estado")
+    // @PreAuthorize("hasRole('CHOFER')")
+    // public ResponseEntity<EstadoUpdateResponseDTO> actualizarEstado(
+
+    // @PathVariable String idEnvio,
+
+    // @RequestBody EstadoUpdateRequestDTO dto,
+    // Authentication auth) {
+
+    // // Extraemos el username del JWT
+    // String username = auth.getName();
+
+    // // Ejecutamos la lógica
+    // Envio envioActualizado = envioService.actualizarEstadoChofer(idEnvio,
+    // dto.getNuevoEstado(), username);
+
+    // // Construimos la respuesta según el contrato
+    // EstadoUpdateResponseDTO response = EstadoUpdateResponseDTO.builder()
+    // .mensaje("Estado actualizado correctamente")
+    // .estado_actual(envioActualizado.getEstado_actual().name())
+    // .fecha_actualizacion(LocalDateTime.now())
+    // .build();
+
+    // return ResponseEntity.ok(response);
+    // }
 
     // endopitn cancelar envio
     @PreAuthorize("hasAnyRole('OPERADOR', 'SUPERVISOR')") // Descomentar cuando
