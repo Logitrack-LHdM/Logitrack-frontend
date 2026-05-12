@@ -125,6 +125,19 @@ class ApiClient {
     });
   }
 
+  async getHistorialEnvio(id: string | number): Promise<RegistroHistorial[]> {
+    return this.request<RegistroHistorial[]>(`/envios/${id}/historial`);
+  }
+
+  async getHistorialCompleto(): Promise<RegistroHistorial[]> {
+    return this.request<RegistroHistorial[]>('/envios/historial-completo');
+  }
+
+  // === CHOFER ===
+  async getMisAsignaciones(): Promise<EnvioChofer[]> {
+    return this.request<EnvioChofer[]>('/chofer/envios');
+  }
+
   async cambiarEstadoChofer(id: string | number, nuevoEstado: string): Promise<Envio> {
     return this.request<Envio>(`/envios/${id}/estado?nuevoEstado=${nuevoEstado}`, {
       method: 'PATCH',
@@ -138,17 +151,6 @@ class ApiClient {
     });
   }
 
-  async getHistorialEnvio(id: string | number): Promise<RegistroHistorial[]> {
-    return this.request<RegistroHistorial[]>(`/envios/${id}/historial`);
-  }
-
-  async getHistorialCompleto(): Promise<RegistroHistorial[]> {
-    return this.request<RegistroHistorial[]>('/envios/historial-completo');
-  }
-
-  async getMisAsignaciones(): Promise<EnvioChofer[]> {
-    return this.request<EnvioChofer[]>('/chofer/envios');
-  }
 
   // === CATALOGOS ===
   async getMetadatos(): Promise<MetadatosCatalogo> {
