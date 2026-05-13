@@ -170,7 +170,6 @@ export interface LugarResumen {
 
 export interface EnvioChofer {
   id_envio: string;
-  // tracking_ctg: string;
   cpe: string;
   estado_actual: EstadoEnvio;
   tipo_grano: TipoGrano;
@@ -178,6 +177,5 @@ export interface EnvioChofer {
   origen: LugarResumen;
   destino: LugarResumen;
   patente_camion: string;
-  // nombre_chofer: string;
-  prioridad_ia: Prioridad;   // ← agregar
+  prioridad_ia: Prioridad; 
 }
