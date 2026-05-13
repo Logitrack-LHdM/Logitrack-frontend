@@ -117,9 +117,16 @@ class ApiClient {
     });
   }
 
+  // async actualizarEnvio(id: string | number, data: EnvioUpdateDTO): Promise<Envio> {
+  //   return this.request<Envio>(`/envios/${id}`, {
+  //     method: 'PUT',
+  //     body: JSON.stringify(data),
+  //   });
+  // }
+
   async actualizarEnvio(id: string | number, data: EnvioUpdateDTO): Promise<Envio> {
-    return this.request<Envio>(`/envios/${id}`, {
-      method: 'PUT',
+    return this.request<Envio>(`/envios/${id}/operativo`, {
+      method: 'PATCH',
       body: JSON.stringify(data),
     });
   }

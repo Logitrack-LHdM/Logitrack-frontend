@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.logitrack.sistema_logistica.dto.EnvioDetalleResponseDTO;
+import com.logitrack.sistema_logistica.dto.EnvioOperativoDTO;
 import com.logitrack.sistema_logistica.model.Camion;
 import com.logitrack.sistema_logistica.model.Chofer_Detalle;
 import com.logitrack.sistema_logistica.model.Envio;
@@ -43,6 +44,8 @@ import com.logitrack.sistema_logistica.dto.AsignarTransporteDTO;
 
 import com.logitrack.sistema_logistica.model.Empresa_Cliente;
 import com.logitrack.sistema_logistica.repository.Empresa_ClienteRepository;
+
+import org.springframework.security.core.Authentication;
 
 @Service
 public class EnvioService {
@@ -479,6 +482,54 @@ public class EnvioService {
                 envio.setCamion(camion);
 
                 return envioRepository.save(envio);
+        }
+
+        // SOLUCIÓN TEMPORAL para editar los estados de un envío desde la vista de
+        // operador/supervisor
+        @Transactional
+        public Envio actualizarEstadoOperativo(String idEnvio, EnvioOperativoDTO dto, Authentication auth) {
+                Envio envioExistente = envioRepository.findById(idEnvio)
+                                .orElseThrow(() -> new RuntimeException("No se encontró el envío con ID: " + idEnvio));
+
+                Estado_Envio estadoAnterior = envioExistente.getEstado_actual();
+                boolean estadoCambiado = false;
+
+                // 1. Actualización de Estado (Permitido para Operador y Supervisor)
+                if (dto.getEstado() != null && dto.getEstado() != estadoAnterior) {
+                        envioExistente.setEstado_actual(dto.getEstado());
+                        estadoCambiado = true;
+                }
+
+                // 2. Actualización de Prioridad (Estrictamente restringido a Supervisor)
+                if (dto.getPrioridad_ia() != null && !dto.getPrioridad_ia().equals(envioExistente.getPrioridad_ia())) {
+                        boolean esSupervisor = auth.getAuthorities().stream()
+                                        .anyMatch(a -> a.getAuthority().equals("ROLE_SUPERVISOR"));
+
+                        if (!esSupervisor) {
+                                throw new RuntimeException(
+                                                "La prioridad del envío solo puede ser modificada por un supervisor.");
+                        }
+                        envioExistente.setPrioridad_ia(dto.getPrioridad_ia());
+                }
+
+                Envio envioGuardado = envioRepository.save(envioExistente);
+
+                // 3. Generar el historial solo si el estado realmente cambió
+                if (estadoCambiado) {
+                        Usuario usuarioModificador = usuarioRepository.findByUsername(auth.getName())
+                                        .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+                        Historial_Estados historial = Historial_Estados.builder()
+                                        .envio(envioGuardado)
+                                        .usuario(usuarioModificador)
+                                        .estado_anterior(estadoAnterior)
+                                        .estado_nuevo(envioGuardado.getEstado_actual())
+                                        .build();
+
+                        historialEstadosRepository.save(historial);
+                }
+
+                return envioGuardado;
         }
 
 }
