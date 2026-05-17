@@ -1,8 +1,33 @@
-### VS Code ###
+# Editor directories and files
 .vscode/
 
-### React ###
-/frontend/node_modules/
-/frontend/.next/
-frontend/pnpm-workspace.yaml
-frontend/next-env.d.ts
+### Node / Next.js ###
+/node_modules/
+/.next/
+/out/
+
+# Next.js build output
+/.next/
+
+# Production
+/build/
+
+# misc
+.DS_Store
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# pnpm local store
+.pnpm-store/
+
+# local env files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# TypeScript
+*.tsbuildinfo
