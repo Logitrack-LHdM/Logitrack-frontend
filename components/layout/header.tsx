@@ -35,7 +35,7 @@ export function Header() {
               <Wheat className="h-7 w-7" />
             </div> */}
             <div className="relative w-[50px] h-[50px]">
-              <Image src="/images/logo-white.png" alt="Logo" fill style={{ objectFit: 'contain' }} />
+              <Image src="/images/logo-white-100.png" alt="Logo" fill style={{ objectFit: 'contain' }} />
             </div>
             <div className="hidden sm:block">
               <span className="text-xl font-bold tracking-tight">LogiTrack</span>
