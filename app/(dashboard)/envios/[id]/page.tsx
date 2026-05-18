@@ -27,7 +27,7 @@ import { useAuth } from '@/contexts/auth-context';
 import { ESTADO_CONFIG, PRIORIDAD_CONFIG } from '@/lib/constants';
 import type { EstadoEnvio, Prioridad } from '@/types';
 import { normalizarEnum } from '@/lib/utils';
-import { useProgresoEnvio } from '@/hooks/use-progress';
+// import { useProgresoEnvio } from '@/hooks/use-progress';
 
 export default function DetalleEnvioPage({
   params,
@@ -62,11 +62,11 @@ export default function DetalleEnvioPage({
   */
 
   // Mock activo:
-  const porcentajeTiempo = useProgresoEnvio(
-    envio?.estadoActual || 'PENDIENTE',
-    '2026-05-17T23:20:00', // fechaSalida
-    '2026-05-19T23:40:00'  // fechaEstimadaLlegada
-  );
+  // const porcentajeTiempo = useProgresoEnvio(
+  //   envio?.estadoActual || 'PENDIENTE',
+  //   '2026-05-17T23:20:00', // fechaSalida
+  //   '2026-05-19T23:40:00'  // fechaEstimadaLlegada
+  // );
 
   // Verificar si hay cambios reales para habilitar el botón de guardado
   const hayCambios = envio && (nuevoEstado !== envio.estadoActual || nuevaPrioridad !== envio.prioridadIa);
@@ -107,17 +107,17 @@ export default function DetalleEnvioPage({
 
   const pesoTn = envio.kgOrigen ? (envio.kgOrigen / 1000).toFixed(1) : '0';
 
-  // Función para formatear las fechas al estilo argentino (ej: 17 may, 17:00 hs)
-  const formatearHora = (fechaString?: string) => {
-    if (!fechaString) return '--:--';
-    const fecha = new Date(fechaString);
-    return new Intl.DateTimeFormat('es-AR', {
-      day: '2-digit',
-      month: 'short',
-      hour: '2-digit',
-      minute: '2-digit'
-    }).format(fecha).replace(',', ' -') + ' hs';
-  };
+  // // Función para formatear las fechas al estilo argentino (ej: 17 may, 17:00 hs)
+  // const formatearHora = (fechaString?: string) => {
+  //   if (!fechaString) return '--:--';
+  //   const fecha = new Date(fechaString);
+  //   return new Intl.DateTimeFormat('es-AR', {
+  //     day: '2-digit',
+  //     month: 'short',
+  //     hour: '2-digit',
+  //     minute: '2-digit'
+  //   }).format(fecha).replace(',', ' -') + ' hs';
+  // };
 
   return (
     <div className="w-full max-w-5xl mx-auto p-4 md:p-6 lg:py-8">
@@ -238,12 +238,12 @@ export default function DetalleEnvioPage({
           </div>
 
           {/* Panel Avanzado de Progreso de Viaje*/}
-          {envio.estadoActual !== 'PENDIENTE' && envio.estadoActual !== 'CANCELADO' && (
+          {/* {envio.estadoActual !== 'PENDIENTE' && envio.estadoActual !== 'CANCELADO' && (
             <div className="mb-12">
-              <div className="mt-8 bg-white border border-slate-200 shadow-sm rounded-2xl p-5 md:p-6">
+              <div className="mt-8 bg-white border border-slate-200 shadow-sm rounded-2xl p-5 md:p-6"> */}
 
-                {/* Texto indicativo*/}
-                <div className="flex flex-col md:flex-row md:justify-between md:items-end mb-4 gap-2">
+          {/* Texto indicativo*/}
+          {/* <div className="flex flex-col md:flex-row md:justify-between md:items-end mb-4 gap-2">
                   <div className="mb-1">
                     <h6 className="text-sm font-bold text-slate-800 uppercase tracking-wide flex items-center gap-2">
                       Progreso del Recorrido
@@ -260,19 +260,19 @@ export default function DetalleEnvioPage({
                       {porcentajeTiempo}%
                     </span>
                   </div>
-                </div>
+                </div> */}
 
-                {/* Barra de progreso */}
-                <div className="relative w-full bg-slate-100 rounded-full h-3 overflow-hidden shadow-inner mb-3">
+          {/* Barra de progreso */}
+          {/* <div className="relative w-full bg-slate-100 rounded-full h-3 overflow-hidden shadow-inner mb-3">
                   <div
                     className={`h-full rounded-full transition-all duration-1000 ease-out ${porcentajeTiempo === 99 ? 'bg-amber-500' : 'bg-blue-600'
                       }`}
                     style={{ width: `${porcentajeTiempo}%` }}
                   />
-                </div>
+                </div> */}
 
-                {/* Hitos temporales en los extremos */}
-                <div className="flex justify-between items-center text-xs font-semibold text-slate-400">
+          {/* Hitos temporales en los extremos */}
+          {/* <div className="flex justify-between items-center text-xs font-semibold text-slate-400">
                   <div className="flex flex-col">
                     <span className="uppercase text-[10px] tracking-wider mb-0.5">Salida</span>
                     <span className="text-slate-600">{formatearHora(envio.fechaSalida)}</span>
@@ -297,15 +297,15 @@ export default function DetalleEnvioPage({
 
               </div>
             </div>
-          )}
+          )} */}
 
           {/* Panel Simple de Progreso de Viaje*/}
-          {envio.estadoActual !== 'PENDIENTE' && envio.estadoActual !== 'CANCELADO' && (
+          {/* {envio.estadoActual !== 'PENDIENTE' && envio.estadoActual !== 'CANCELADO' && (
             <div className="mb-12">
-              <div className="mt-8 bg-slate-50 rounded-xl p-4 border border-slate-100">
+              <div className="mt-8 bg-slate-50 rounded-xl p-4 border border-slate-100"> */}
 
-                {/* Texto indicativo*/}
-                <div className="flex justify-between items-center mb-2">
+          {/* Texto indicativo*/}
+          {/* <div className="flex justify-between items-center mb-2">
 
                   <h6 className="text-sm font-bold text-slate-800 uppercase tracking-wide flex items-center gap-2">
                     Progreso del Recorrido
@@ -318,25 +318,25 @@ export default function DetalleEnvioPage({
                   </h6>
 
                   <span className="text-sm font-bold text-blue-600">{porcentajeTiempo}%</span>
-                </div>
+                </div> */}
 
-                {/* Barra de progreso */}
-                <div className="w-full bg-slate-200 rounded-full h-2">
+          {/* Barra de progreso */}
+          {/* <div className="w-full bg-slate-200 rounded-full h-2">
                   <div
                     className="bg-blue-600 h-2 rounded-full transition-all duration-1000"
                     style={{ width: `${porcentajeTiempo}%` }}
                   ></div>
-                </div>
+                </div> */}
 
-                {/* Mensaje de demora */}
-                {porcentajeTiempo === 99 && (
+          {/* Mensaje de demora */}
+          {/* {porcentajeTiempo === 99 && (
                   <p className="text-xs text-amber-600 mt-2 font-medium">
                     El envío presenta una demora respecto a la fecha estimada original.
                   </p>
                 )}
               </div>
             </div>
-          )}
+          )} */}
 
 
           {/* Gestión Operativa (Roles y Permisos) */}
