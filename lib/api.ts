@@ -67,10 +67,25 @@ class ApiClient {
     }
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `Error ${response.status}`);
-    }
+      // 1. Leemos el cuerpo de la respuesta como texto crudo primero
+      const errorText = await response.text();
+      let errorMessage = `Error ${response.status}`;
 
+      try {
+        // 2. Intentamos parsearlo como JSON (si el backend mandó JSON)
+        if (errorText) {
+          const errorData = JSON.parse(errorText);
+          // Buscamos la propiedad message o error
+          errorMessage = errorData.message || errorData.error || errorMessage;
+        }
+      } catch (e) {
+        // 3. Si falla el parseo, significa que el backend mandó texto plano
+        // Usamos el texto plano directamente como mensaje
+        errorMessage = errorText || errorMessage;
+      }
+
+      throw new Error(errorMessage);
+    }
     // Verificar si hay contenido para parsear
     const contentType = response.headers.get('content-type');
     if (contentType && contentType.includes('application/json')) {
@@ -181,8 +196,16 @@ class ApiClient {
     return this.request<Chofer[]>('/catalogos/choferes');
   }
 
+  async getChoferesDisponible(): Promise<Chofer[]> {
+    return this.request<Chofer[]>('/catalogos/choferesDisponibles');
+  }
+
   async getCamiones(): Promise<Camion[]> {
     return this.request<Camion[]>('/catalogos/camiones');
+  }
+
+  async getCamionesDisponibles(): Promise<Camion[]> {
+    return this.request<Camion[]>('/catalogos/camionesDisponibles');
   }
 
   // Envíos pendientes de asignación (sin chofer ni camión)
