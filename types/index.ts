@@ -80,6 +80,8 @@ export interface Envio {
   tipoGrano: TipoGrano;
   kgOrigen: number;
   fechaCreacion: string;
+  fechaSalida?: string;
+  fechaLlegada?: string;
   fechaEstimadaLlegada?: string;
   origen: Establecimiento;
   destino: Establecimiento;
