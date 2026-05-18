@@ -108,16 +108,16 @@ export default function DetalleEnvioPage({
   const pesoTn = envio.kgOrigen ? (envio.kgOrigen / 1000).toFixed(1) : '0';
 
   // // Función para formatear las fechas al estilo argentino (ej: 17 may, 17:00 hs)
-  // const formatearHora = (fechaString?: string) => {
-  //   if (!fechaString) return '--:--';
-  //   const fecha = new Date(fechaString);
-  //   return new Intl.DateTimeFormat('es-AR', {
-  //     day: '2-digit',
-  //     month: 'short',
-  //     hour: '2-digit',
-  //     minute: '2-digit'
-  //   }).format(fecha).replace(',', ' -') + ' hs';
-  // };
+  const formatearHora = (fechaString?: string) => {
+    if (!fechaString) return '--:--';
+    const fecha = new Date(fechaString);
+    return new Intl.DateTimeFormat('es-AR', {
+      day: '2-digit',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(fecha).replace(',', ' -') + ' hs';
+  };
 
   return (
     <div className="w-full max-w-5xl mx-auto p-4 md:p-6 lg:py-8">
@@ -221,6 +221,67 @@ export default function DetalleEnvioPage({
                 disabled
                 className="w-full bg-transparent border-b border-dashed border-gray-300 pb-2 text-gray-700 font-medium outline-none"
                 value={normalizarEnum(envio.tipoGrano) || "General"}
+              />
+            </div>
+          </div>
+
+          {/* Documentación y Transporte */}
+          <h6 className="font-bold text-[#198754] mb-4 border-b border-[#198754]/20 pb-2">
+            Documentación y Transporte
+          </h6>
+          <div className="grid md:grid-cols-2 gap-6 mb-10">
+            <div>
+              <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">
+                CPE (Carta de Porte)
+              </label>
+              <input
+                disabled
+                className="w-full bg-transparent border-b border-dashed border-gray-300 pb-2 text-gray-700 font-medium outline-none"
+                value={envio.cpe || 'No especificado'}
+              />
+            </div>
+            <div>
+              <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">
+                Chofer Asignado
+              </label>
+              <input
+                disabled
+                className="w-full bg-transparent border-b border-dashed border-gray-300 pb-2 text-gray-700 font-medium outline-none"
+                value={
+                  envio.chofer
+                    ? `${envio.chofer.personaAsociada.nombre} ${envio.chofer.personaAsociada.apellido}`
+                    : 'Sin asignar'
+                }
+              />
+            </div>
+            <div>
+              <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">
+                Fecha de Salida
+              </label>
+              <input
+                disabled
+                className="w-full bg-transparent border-b border-dashed border-gray-300 pb-2 text-gray-700 font-medium outline-none"
+                value={formatearHora(envio.fechaSalida)}
+              />
+            </div>
+            <div>
+              <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">
+                Fecha Estimada de Llegada
+              </label>
+              <input
+                disabled
+                className="w-full bg-transparent border-b border-dashed border-gray-300 pb-2 text-gray-700 font-medium outline-none"
+                value={formatearHora(envio.fechaEstimadaLlegada)}
+              />
+            </div>
+            <div>
+              <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">
+                Distancia Estimada
+              </label>
+              <input
+                disabled
+                className="w-full bg-transparent border-b border-dashed border-gray-300 pb-2 text-gray-700 font-medium outline-none"
+                value={envio.distanciaKm ? `${envio.distanciaKm.toFixed(1)} km` : 'No disponible'}
               />
             </div>
           </div>

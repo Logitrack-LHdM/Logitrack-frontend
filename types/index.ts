@@ -87,6 +87,7 @@ export interface Envio {
   destino: Establecimiento;
   chofer: Chofer;
   camion: Camion;
+  distanciaKm?: number; //viene de EnvioDetalleResponseDTO
 }
 
 export interface RegistroHistorial {
