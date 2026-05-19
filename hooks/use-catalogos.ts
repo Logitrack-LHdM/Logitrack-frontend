@@ -80,7 +80,7 @@ export function useCatalogos() {
   // Buscar empresas por texto (para autocomplete)
   const buscarEmpresas = useCallback(
     (texto: string): Empresa[] => {
-      if (!texto || texto.length < 2) return [];
+      if (!texto || texto.length < 1) return [];
       const textoLower = texto.toLowerCase();
       return state.empresas.filter(
         (e) =>
