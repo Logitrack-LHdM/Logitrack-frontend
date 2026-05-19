@@ -87,7 +87,7 @@ export function AsignacionesTable() {
       cerrarModal();
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Error al asignar el transporte';
-      toast.error('No se pudo asignar', { description: message });
+      toast.error('Error al asignar transporte', { description: message });
     } finally {
       setGuardando(false);
     }

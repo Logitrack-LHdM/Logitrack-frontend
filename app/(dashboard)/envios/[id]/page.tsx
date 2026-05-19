@@ -67,7 +67,8 @@ export default function DetalleEnvioPage({
       toast.success('Operación actualizada con éxito');
       // setTimeout(() => window.location.reload(), 1000);
     } catch (err) {
-      toast.error('Error al actualizar los datos');
+      const message = err instanceof Error ? err.message : 'Error inesperado';
+      toast.error('No se pudo actualizar el envío', { description: message });
     }
   };
 
@@ -82,7 +83,12 @@ export default function DetalleEnvioPage({
   if (error || !envio) {
     return (
       <div className="w-full max-w-5xl mx-auto p-4 md:p-6 lg:py-8 text-center pt-20">
-        <p className="text-destructive font-bold text-lg mb-4">{error || 'Envío no encontrado'}</p>
+        <p className="text-destructive font-bold text-lg mb-4">
+          {error || 'Envío no encontrado'}
+        </p>
+        <p className="text-muted-foreground text-sm mt-1">
+          Si el problema persiste, contacte al soporte.
+        </p>
         <Button variant="outline" onClick={() => router.push('/busqueda')}>Volver a Rastreo</Button>
       </div>
     );

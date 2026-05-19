@@ -67,8 +67,14 @@ class ApiClient {
     }
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `Error ${response.status}`);
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || errorData.error || `Error ${response.status}`);
+      } else {
+        const errorText = await response.text().catch(() => '');
+        throw new Error(errorText || `Error ${response.status}`);
+      }
     }
 
     // Verificar si hay contenido para parsear

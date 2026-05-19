@@ -63,7 +63,7 @@ export function EnvioForm({ modo = 'crear', envioInicial, envioId }: EnvioFormPr
   });
 
   const clienteCuit = watch('clienteCuit');
-  const aceptaTerminos = watch('aceptaTerminos'); 
+  const aceptaTerminos = watch('aceptaTerminos');
 
   // Cargar establecimientos al montar en modo edición
   useEffect(() => {
@@ -121,7 +121,7 @@ export function EnvioForm({ modo = 'crear', envioInicial, envioId }: EnvioFormPr
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Error inesperado';
       toast.error(
-        esEdicion ? 'No se pudo actualizar el envío' : 'No se pudo registrar el viaje',
+        esEdicion ? 'No se pudo actualizar el envío' : 'Error al registrar el viaje',
         { description: message }
       );
     }
