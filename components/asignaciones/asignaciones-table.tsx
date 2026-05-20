@@ -105,6 +105,12 @@ export function AsignacionesTable() {
 
   const puedeConfirmar = !!choferSeleccionado && !!camionSeleccionado && !guardando;
 
+  // ── Camiones aptos para la carga del envío seleccionado ────────────────────
+  const kgCarga = envioSeleccionado?.kgOrigen ?? 0;
+  const camionesAptos = camiones.filter(
+    (camion) => (camion.capacidadCargaKg ?? 0) >= kgCarga
+  );
+
   // ── Loading ────────────────────────────────────────────────────────────────
   if (loadingDatos) {
     return (
@@ -346,13 +352,30 @@ export function AsignacionesTable() {
                   <SelectValue placeholder="Seleccione un camión..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {camiones.map((camion) => (
-                    <SelectItem key={camion.patente} value={camion.patente}>
-                      Patente: {camion.patente} — Tara: {camion.taraVacioKg} kg
-                    </SelectItem>
-                  ))}
+                  {camionesAptos.length === 0 ? (
+                    <div className="flex items-center gap-2 px-3 py-4 text-sm text-muted-foreground">
+                      <AlertCircle className="h-4 w-4 text-amber-500 shrink-0" />
+                      No hay camiones con capacidad suficiente para esta carga
+                      ({(kgCarga / 1000).toFixed(1)} Tn).
+                    </div>
+                  ) : (
+                    camionesAptos.map((camion) => (
+                      <SelectItem key={camion.patente} value={camion.patente}>
+                        {camion.patente} — Cap: {(camion.capacidadCargaKg / 1000).toFixed(1)} Tn
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
+              {kgCarga > 0 && (
+                <p className="text-xs text-muted-foreground">
+                  Se muestran solo camiones con capacidad ≥{' '}
+                  <span className="font-semibold text-gray-700">
+                    {(kgCarga / 1000).toFixed(1)} Tn
+                  </span>
+                  {' '}({camionesAptos.length} de {camiones.length} disponibles).
+                </p>
+              )}
             </div>
           </div>
 
