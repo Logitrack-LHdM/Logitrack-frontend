@@ -66,17 +66,37 @@ class ApiClient {
       throw new Error('Sesión expirada');
     }
 
-    if (!response.ok) {
-      const contentType = response.headers.get('content-type');
-      if (contentType && contentType.includes('application/json')) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || errorData.error || `Error ${response.status}`);
-      } else {
-        const errorText = await response.text().catch(() => '');
-        throw new Error(errorText || `Error ${response.status}`);
-      }
-    }
+      if (!response.ok) {
+      // Cambio proveniente de rama #147-Manejo-de-Errores-de-Validación
+      //   const contentType = response.headers.get('content-type');
+      //   if (contentType && contentType.includes('application/json')) {
+      //     const errorData = await response.json().catch(() => ({}));
+      //     throw new Error(errorData.message || errorData.error || `Error ${response.status}`);
+      //   } else {
+      //     const errorText = await response.text().catch(() => '');
+      //     throw new Error(errorText || `Error ${response.status}`);
+      //   }
+      // }
 
+      // 1. Leemos el cuerpo de la respuesta como texto crudo primero
+      const errorText = await response.text();
+      let errorMessage = `Error ${response.status}`;
+
+      try {
+        // 2. Intentamos parsearlo como JSON (si el backend mandó JSON)
+        if (errorText) {
+          const errorData = JSON.parse(errorText);
+          // Buscamos la propiedad message o error
+          errorMessage = errorData.message || errorData.error || errorMessage;
+        }
+      } catch (e) {
+        // 3. Si falla el parseo, significa que el backend mandó texto plano
+        // Usamos el texto plano directamente como mensaje
+        errorMessage = errorText || errorMessage;
+      }
+
+      throw new Error(errorMessage);
+    }
     // Verificar si hay contenido para parsear
     const contentType = response.headers.get('content-type');
     if (contentType && contentType.includes('application/json')) {
@@ -187,8 +207,16 @@ class ApiClient {
     return this.request<Chofer[]>('/catalogos/choferes');
   }
 
+  async getChoferesDisponibles(): Promise<Chofer[]> {
+    return this.request<Chofer[]>('/catalogos/choferesDisponibles');
+  }
+
   async getCamiones(): Promise<Camion[]> {
     return this.request<Camion[]>('/catalogos/camiones');
+  }
+
+  async getCamionesDisponibles(): Promise<Camion[]> {
+    return this.request<Camion[]>('/catalogos/camionesDisponibles');
   }
 
   // Envíos pendientes de asignación (sin chofer ni camión)
@@ -205,6 +233,20 @@ class ApiClient {
       method: 'PATCH',
       body: JSON.stringify(data),
     });
+  }
+  
+  async buscarEnviosAsignadosAvanzado(params: BusquedaEnviosParams): Promise<PaginatedResponse<Envio>> {
+    const searchParams = new URLSearchParams();
+    if (params.query) searchParams.append('query', params.query);
+    if (params.estado) searchParams.append('estado', params.estado);
+    if (params.fecha) searchParams.append('fecha', params.fecha);
+    searchParams.append('page', params.page.toString());
+    searchParams.append('size', params.size.toString());
+    searchParams.append('asignado', 'true');   // filtro para solo asignados
+
+    return this.request<PaginatedResponse<Envio>>(
+      `/envios/search?${searchParams.toString()}`
+    );
   }
 }
 

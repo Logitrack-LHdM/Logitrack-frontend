@@ -68,6 +68,7 @@ export interface Chofer {
 
 export interface Camion {
   patente: string;
+  capacidadCargaKg: number;
   taraVacioKg: number;
 }
 
@@ -80,6 +81,8 @@ export interface Envio {
   tipoGrano: TipoGrano;
   kgOrigen: number;
   fechaCreacion: string;
+  fechaSalida?: string;
+  fechaLlegada?: string;
   fechaEstimadaLlegada?: string;
   origen: Establecimiento;
   destino: Establecimiento;
