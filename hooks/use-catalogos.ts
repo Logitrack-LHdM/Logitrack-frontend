@@ -1,14 +1,12 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import type { Empresa, Establecimiento, Chofer, Camion, TipoGrano } from '@/types';
+import type { Empresa, Establecimiento, TipoGrano } from '@/types';
 import { api } from '@/lib/api';
 import { TIPOS_GRANO } from '@/lib/constants';
 
 interface UseCatalogosState {
   empresas: Empresa[];
-  choferes: Chofer[];
-  camiones: Camion[];
   tiposGrano: TipoGrano[];
   isLoading: boolean;
   error: string | null;
@@ -17,8 +15,6 @@ interface UseCatalogosState {
 export function useCatalogos() {
   const [state, setState] = useState<UseCatalogosState>({
     empresas: [],
-    choferes: [],
-    camiones: [],
     tiposGrano: [...TIPOS_GRANO],
     isLoading: true,
     error: null,
@@ -31,16 +27,12 @@ export function useCatalogos() {
   useEffect(() => {
     const cargarCatalogos = async () => {
       try {
-        const [empresasData, choferesData, camionesData] = await Promise.all([
+        const [empresasData] = await Promise.all([
           api.getEmpresas(),
-          api.getChoferes(),
-          api.getCamiones(),
         ]);
 
         setState({
           empresas: empresasData,
-          choferes: choferesData,
-          camiones: camionesData,
           tiposGrano: [...TIPOS_GRANO],
           isLoading: false,
           error: null,

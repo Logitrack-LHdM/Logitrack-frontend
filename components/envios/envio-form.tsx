@@ -34,7 +34,7 @@ export function EnvioForm({ modo = 'crear', envioInicial, envioId }: EnvioFormPr
   const router = useRouter();
 
   const {
-    empresas, choferes, camiones, tiposGrano, establecimientos,
+    empresas, tiposGrano, establecimientos,
     loadingEstablecimientos, isLoading: loadingCatalogos,
     cargarEstablecimientos, buscarEmpresas, buscarGranos,
   } = useCatalogos();
