@@ -66,7 +66,18 @@ class ApiClient {
       throw new Error('Sesión expirada');
     }
 
-    if (!response.ok) {
+      if (!response.ok) {
+      // Cambio proveniente de rama #147-Manejo-de-Errores-de-Validación
+      //   const contentType = response.headers.get('content-type');
+      //   if (contentType && contentType.includes('application/json')) {
+      //     const errorData = await response.json().catch(() => ({}));
+      //     throw new Error(errorData.message || errorData.error || `Error ${response.status}`);
+      //   } else {
+      //     const errorText = await response.text().catch(() => '');
+      //     throw new Error(errorText || `Error ${response.status}`);
+      //   }
+      // }
+
       // 1. Leemos el cuerpo de la respuesta como texto crudo primero
       const errorText = await response.text();
       let errorMessage = `Error ${response.status}`;
@@ -196,7 +207,7 @@ class ApiClient {
     return this.request<Chofer[]>('/catalogos/choferes');
   }
 
-  async getChoferesDisponible(): Promise<Chofer[]> {
+  async getChoferesDisponibles(): Promise<Chofer[]> {
     return this.request<Chofer[]>('/catalogos/choferesDisponibles');
   }
 

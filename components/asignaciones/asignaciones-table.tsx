@@ -34,17 +34,24 @@ export function AsignacionesTable() {
   const [guardando, setGuardando] = useState(false);
   const [modoModal, setModoModal] = useState<'asignar' | 'reasignar'>('asignar');
 
-  // ── Carga inicial ──────────────────────────────────────────────────────────
+  // ── Carga inicial ─ Temporal ─────────────────────────────────────────────────────
   const cargarDatos = useCallback(async () => {
     setLoadingDatos(true);
     try {
-      const [enviosData, choferesData, camionesData] = await Promise.all([
-        api.getEnviosSinAsignar(),
-        api.getChoferes(),
-        api.getCamiones(),
-        //api.getChoferesDisponible(),
-        //api.getCamionesDisponibles(),
-      ]);
+      // Intentar con los endpoints de disponibles primero.
+      // Si cualquiera falla, hacer fallback silencioso a los endpoints generales.
+      const [choferesData, camionesData] = await Promise.all([
+        api.getChoferesDisponibles(),
+        api.getCamionesDisponibles(),
+      ]).catch(() =>
+        Promise.all([
+          api.getChoferes(),
+          api.getCamiones(),
+        ])
+      );
+
+      const enviosData = await api.getEnviosSinAsignar();
+
       setEnvios(enviosData);
       setChoferes(choferesData);
       setCamiones(camionesData);
@@ -54,6 +61,26 @@ export function AsignacionesTable() {
       setLoadingDatos(false);
     }
   }, []);
+
+
+  // ── Carga inicial ─ A implementar ─────────────────────────────────────────────────────────
+  // const cargarDatos = useCallback(async () => {
+  //   setLoadingDatos(true);
+  //   try {
+  //     const [enviosData, choferesData, camionesData] = await Promise.all([
+  //       api.getEnviosSinAsignar(),
+  //       api.getChoferesDisponibles(),
+  //       api.getCamionesDisponibles(),
+  //     ]);
+  //     setEnvios(enviosData);
+  //     setChoferes(choferesData);
+  //     setCamiones(camionesData);
+  //   } catch (error) {
+  //     toast.error('Error al cargar los datos');
+  //   } finally {
+  //     setLoadingDatos(false);
+  //   }
+  // }, []);
 
   useEffect(() => {
     cargarDatos();
@@ -97,13 +124,19 @@ export function AsignacionesTable() {
       cerrarModal();
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Error al asignar el transporte';
-      toast.error('No se pudo asignar', { description: message });
+      toast.error('Error al asignar transporte', { description: message });
     } finally {
       setGuardando(false);
     }
   };
 
   const puedeConfirmar = !!choferSeleccionado && !!camionSeleccionado && !guardando;
+
+  // ── Camiones aptos para la carga del envío seleccionado ────────────────────
+  const kgCarga = envioSeleccionado?.kgOrigen ?? 0;
+  const camionesAptos = camiones.filter(
+    (camion) => (camion.capacidadCargaKg ?? 0) >= kgCarga
+  );
 
   // ── Loading ────────────────────────────────────────────────────────────────
   if (loadingDatos) {
@@ -346,13 +379,30 @@ export function AsignacionesTable() {
                   <SelectValue placeholder="Seleccione un camión..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {camiones.map((camion) => (
-                    <SelectItem key={camion.patente} value={camion.patente}>
-                      Patente: {camion.patente} — Tara: {camion.taraVacioKg} kg
-                    </SelectItem>
-                  ))}
+                  {camionesAptos.length === 0 ? (
+                    <div className="flex items-center gap-2 px-3 py-4 text-sm text-muted-foreground">
+                      <AlertCircle className="h-4 w-4 text-amber-500 shrink-0" />
+                      No hay camiones con capacidad suficiente para esta carga
+                      ({(kgCarga / 1000).toFixed(1)} Tn).
+                    </div>
+                  ) : (
+                    camionesAptos.map((camion) => (
+                      <SelectItem key={camion.patente} value={camion.patente}>
+                        {camion.patente} — Cap: {(camion.capacidadCargaKg / 1000).toFixed(1)} Tn
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
+              {kgCarga > 0 && (
+                <p className="text-xs text-muted-foreground">
+                  Se muestran solo camiones con capacidad ≥{' '}
+                  <span className="font-semibold text-gray-700">
+                    {(kgCarga / 1000).toFixed(1)} Tn
+                  </span>
+                  {' '}({camionesAptos.length} de {camiones.length} disponibles).
+                </p>
+              )}
             </div>
           </div>
 
