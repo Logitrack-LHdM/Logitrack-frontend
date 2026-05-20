@@ -68,6 +68,7 @@ export interface Chofer {
 
 export interface Camion {
   patente: string;
+  capacidadCargaKg: number;
   taraVacioKg: number;
 }
 
