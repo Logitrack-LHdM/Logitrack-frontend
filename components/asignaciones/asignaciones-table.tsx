@@ -34,17 +34,24 @@ export function AsignacionesTable() {
   const [guardando, setGuardando] = useState(false);
   const [modoModal, setModoModal] = useState<'asignar' | 'reasignar'>('asignar');
 
-  // ── Carga inicial ──────────────────────────────────────────────────────────
+  // ── Carga inicial ─ Temporal ─────────────────────────────────────────────────────
   const cargarDatos = useCallback(async () => {
     setLoadingDatos(true);
     try {
-      const [enviosData, choferesData, camionesData] = await Promise.all([
-        api.getEnviosSinAsignar(),
-        // api.getChoferes(),
-        // api.getCamiones(),
-        api.getChoferesDisponible(),
+      // Intentar con los endpoints de disponibles primero.
+      // Si cualquiera falla, hacer fallback silencioso a los endpoints generales.
+      const [choferesData, camionesData] = await Promise.all([
+        api.getChoferesDisponibles(),
         api.getCamionesDisponibles(),
-      ]);
+      ]).catch(() =>
+        Promise.all([
+          api.getChoferes(),
+          api.getCamiones(),
+        ])
+      );
+
+      const enviosData = await api.getEnviosSinAsignar();
+
       setEnvios(enviosData);
       setChoferes(choferesData);
       setCamiones(camionesData);
@@ -54,6 +61,26 @@ export function AsignacionesTable() {
       setLoadingDatos(false);
     }
   }, []);
+
+
+  // ── Carga inicial ─ A implementar ─────────────────────────────────────────────────────────
+  // const cargarDatos = useCallback(async () => {
+  //   setLoadingDatos(true);
+  //   try {
+  //     const [enviosData, choferesData, camionesData] = await Promise.all([
+  //       api.getEnviosSinAsignar(),
+  //       api.getChoferesDisponibles(),
+  //       api.getCamionesDisponibles(),
+  //     ]);
+  //     setEnvios(enviosData);
+  //     setChoferes(choferesData);
+  //     setCamiones(camionesData);
+  //   } catch (error) {
+  //     toast.error('Error al cargar los datos');
+  //   } finally {
+  //     setLoadingDatos(false);
+  //   }
+  // }, []);
 
   useEffect(() => {
     cargarDatos();

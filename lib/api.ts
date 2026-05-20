@@ -196,7 +196,7 @@ class ApiClient {
     return this.request<Chofer[]>('/catalogos/choferes');
   }
 
-  async getChoferesDisponible(): Promise<Chofer[]> {
+  async getChoferesDisponibles(): Promise<Chofer[]> {
     return this.request<Chofer[]>('/catalogos/choferesDisponibles');
   }
 
