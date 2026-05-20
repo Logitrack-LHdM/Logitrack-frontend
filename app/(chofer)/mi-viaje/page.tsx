@@ -1,7 +1,7 @@
 'use client';
 
 import { toast } from 'sonner';
-import { Package, RefreshCw } from 'lucide-react';
+import { Loader2, Package, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import {
@@ -107,6 +107,8 @@ export default function MiViajePage() {
         <ViajeCard viaje={viaje} />
 
         {/* Acciones */}
+
+        {/* Si aún el viaje no está completado */}
         {!isCompleted && (
           <div className="space-y-3">
             {/* Boton de accion principal con confirmacion */}
@@ -131,9 +133,17 @@ export default function MiViajePage() {
                   <AlertDialogCancel>Cancelar</AlertDialogCancel>
                   <AlertDialogAction
                     onClick={handleAvanzarEstado}
-                    className="bg-gradient-to-r from-[#1b4332] to-[#2d6a4f]"
+                    disabled={isUpdating}
+                    className="bg-gradient-to-r from-[#1b4332] to-[#2d6a4f] disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Confirmar
+                    {isUpdating ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Procesando...
+                      </>
+                    ) : (
+                      'Confirmar'
+                    )}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
