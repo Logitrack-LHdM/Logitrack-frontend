@@ -27,6 +27,12 @@ export default function DashboardLayout({
     return null;
   }
 
+  // Si es administrador, el AuthContext redirigira a /admin/dashboard
+  if (usuario.rol === 'ROLE_ADMINISTRADOR') {
+    return null;
+  }
+
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />

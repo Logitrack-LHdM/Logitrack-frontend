@@ -21,7 +21,7 @@ export type TipoGrano =
 export type RolUsuario =
   | 'ROLE_OPERADOR'
   | 'ROLE_SUPERVISOR'
-  | 'ROLE_ADMIN'
+  | 'ROLE_ADMINISTRADOR'
   | 'ROLE_CHOFER';
 
 // === AUTH ===

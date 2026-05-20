@@ -77,6 +77,7 @@ export const PERMISOS_POR_ROL: Record<
     panelChofer: boolean;
     verMenu: boolean;
     asignarTransporte: boolean;
+    panelAdmin: boolean;
   }
 > = {
   ROLE_OPERADOR: {
@@ -87,6 +88,7 @@ export const PERMISOS_POR_ROL: Record<
     panelChofer: false,
     verMenu: true,
     asignarTransporte: true,
+    panelAdmin: false,
   },
   ROLE_SUPERVISOR: {
     crearEnvio: true,
@@ -96,15 +98,17 @@ export const PERMISOS_POR_ROL: Record<
     panelChofer: false,
     verMenu: true,
     asignarTransporte: true,
+    panelAdmin: false,
   },
-  ROLE_ADMIN: {
-    crearEnvio: true,
-    editarEstado: true,
-    editarPrioridad: true,
+  ROLE_ADMINISTRADOR: {
+    crearEnvio: false,
+    editarEstado: false,
+    editarPrioridad: false,
     verAuditoria: true,
     panelChofer: false,
-    verMenu: true,
-    asignarTransporte: true,
+    verMenu: false,
+    asignarTransporte: false,
+    panelAdmin: true,
   },
   ROLE_CHOFER: {
     crearEnvio: false,
@@ -114,6 +118,7 @@ export const PERMISOS_POR_ROL: Record<
     panelChofer: true,
     verMenu: false,
     asignarTransporte: false,
+    panelAdmin: false,
   },
 };
 

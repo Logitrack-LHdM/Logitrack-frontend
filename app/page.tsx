@@ -20,6 +20,8 @@ export default function Home() {
     // Redirigir segun rol
     if (usuario?.rol === 'ROLE_CHOFER') {
       router.replace('/mi-viaje');
+    } else if (usuario?.rol === 'ROLE_ADMINISTRADOR') {
+      router.push('/admin/dashboard');
     } else {
       router.replace('/menu');
     }
