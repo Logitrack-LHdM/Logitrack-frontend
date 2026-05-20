@@ -66,37 +66,61 @@ class ApiClient {
       throw new Error('Sesión expirada');
     }
 
-      if (!response.ok) {
-      // Cambio proveniente de rama #147-Manejo-de-Errores-de-Validación
-      //   const contentType = response.headers.get('content-type');
-      //   if (contentType && contentType.includes('application/json')) {
-      //     const errorData = await response.json().catch(() => ({}));
-      //     throw new Error(errorData.message || errorData.error || `Error ${response.status}`);
-      //   } else {
-      //     const errorText = await response.text().catch(() => '');
-      //     throw new Error(errorText || `Error ${response.status}`);
-      //   }
-      // }
+    // if (!response.ok) {
+    //   const contentType = response.headers.get('content-type');
+    //   if (contentType && contentType.includes('application/json')) {
+    //     const errorData = await response.json().catch(() => ({}));
+    //     throw new Error(errorData.message || errorData.error || `Error ${response.status}`);
+    //   } else {
+    //     const errorText = await response.text().catch(() => '');
+    //     throw new Error(errorText || `Error ${response.status}`);
+    //   }
+    // }
 
-      // 1. Leemos el cuerpo de la respuesta como texto crudo primero
-      const errorText = await response.text();
+    // if (!response.ok) {
+    //   // 1. Leemos el cuerpo de la respuesta como texto crudo primero
+    //   const errorText = await response.text();
+    //   let errorMessage = `Error ${response.status}`;
+
+    //   try {
+    //     // 2. Intentamos parsearlo como JSON (si el backend mandó JSON)
+    //     if (errorText) {
+    //       const errorData = JSON.parse(errorText);
+    //       // Buscamos la propiedad message o error
+    //       errorMessage = errorData.message || errorData.error || errorMessage;
+    //     }
+    //   } catch (e) {
+    //     // 3. Si falla el parseo, significa que el backend mandó texto plano
+    //     // Usamos el texto plano directamente como mensaje
+    //     errorMessage = errorText || errorMessage;
+    //   }
+
+    //   throw new Error(errorMessage);
+    // }
+
+    // Forma superadora de capturar errores que comnbina las dos anteriores
+    if (!response.ok) {
+      const contentType = response.headers.get('content-type');
+      const errorText = await response.text().catch(() => '');
       let errorMessage = `Error ${response.status}`;
 
-      try {
-        // 2. Intentamos parsearlo como JSON (si el backend mandó JSON)
-        if (errorText) {
+      const isJson = contentType?.includes('application/json') ||
+        (errorText.trimStart().startsWith('{') || errorText.trimStart().startsWith('['));
+
+      if (isJson && errorText) {
+        try {
           const errorData = JSON.parse(errorText);
-          // Buscamos la propiedad message o error
           errorMessage = errorData.message || errorData.error || errorMessage;
+        } catch {
+          errorMessage = errorText || errorMessage;
         }
-      } catch (e) {
-        // 3. Si falla el parseo, significa que el backend mandó texto plano
-        // Usamos el texto plano directamente como mensaje
+      } else {
         errorMessage = errorText || errorMessage;
       }
 
       throw new Error(errorMessage);
     }
+
     // Verificar si hay contenido para parsear
     const contentType = response.headers.get('content-type');
     if (contentType && contentType.includes('application/json')) {
@@ -234,7 +258,7 @@ class ApiClient {
       body: JSON.stringify(data),
     });
   }
-  
+
   async buscarEnviosAsignadosAvanzado(params: BusquedaEnviosParams): Promise<PaginatedResponse<Envio>> {
     const searchParams = new URLSearchParams();
     if (params.query) searchParams.append('query', params.query);
