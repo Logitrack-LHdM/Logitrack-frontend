@@ -8,6 +8,7 @@ import {
   ArrowLeftCircle,
   FileText,
   MapPin,
+  MapPinOff,
   ClipboardList
 } from 'lucide-react';
 import { EstadoTimeline } from '@/components/envios/estado-timeline';
@@ -205,21 +206,33 @@ export default function DetalleEnvioPage({
             </div>
           </div>
 
-          {/* Geolocalización*/}
+          {/* Geolocalización con tolerancia a fallos*/}
           <h6 className="font-bold text-[#198754] mb-4 border-b border-[#198754]/20 pb-2 flex items-center gap-2">
             <MapPin className="h-4 w-4" /> Geolocalización del Recorrido
           </h6>
           <div className="mb-10">
             <div className="w-full h-[320px] md:h-[480px] bg-gray-50 border border-gray-100 rounded-2xl overflow-hidden shadow-sm relative">
 
-              <MapaEnvio
-                origenLat={envio.origen?.latitud}
-                origenLng={envio.origen?.longitud}
-                destinoLat={envio.destino?.latitud}
-                destinoLng={envio.destino?.longitud}
-                origenNombre={envio.origen?.nombreLugar}
-                destinoNombre={envio.destino?.nombreLugar}
-              />
+              {/* Evaluamos si tenemos la data geográfica completa */}
+              {envio.origen?.latitud && envio.origen?.longitud && envio.destino?.latitud && envio.destino?.longitud ? (
+                <MapaEnvio
+                  origenLat={envio.origen.latitud}
+                  origenLng={envio.origen.longitud}
+                  destinoLat={envio.destino.latitud}
+                  destinoLng={envio.destino.longitud}
+                  origenNombre={envio.origen.nombreLugar}
+                  destinoNombre={envio.destino.nombreLugar}
+                />
+              ) : (
+                /* Empty State: UI amigable cuando no hay coordenadas */
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground p-6 text-center bg-gray-50/50">
+                  <MapPinOff className="h-12 w-12 mb-4 opacity-20 text-gray-500" />
+                  <p className="font-bold text-lg text-gray-700">Coordenadas no disponibles</p>
+                  <p className="text-sm mt-1 max-w-sm">
+                    El sistema no pudo recuperar la información geográfica de los establecimientos para este viaje.
+                  </p>
+                </div>
+              )}
 
             </div>
           </div>
