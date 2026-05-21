@@ -50,9 +50,11 @@ export interface Empresa {
 
 export interface Establecimiento {
   idEstablecimiento: number;
+  empresa: Empresa;
   nombreLugar: string;
   direccion: string;
-  empresa: Empresa;
+  latitud: number;
+  longitud: number;
 }
 
 export interface PersonaAsociada {
