@@ -209,9 +209,12 @@ export default function DetalleEnvioPage({
             <MapPin className="h-4 w-4" /> Geolocalización del Recorrido
           </h6>
           <div className="mb-10">
-            {/* Marcador de posición temporal */}
-            <div className="p-8 bg-gray-50 border border-dashed border-gray-300 rounded-2xl text-center text-sm text-muted-foreground">
-              Espacio reservado para el mapa de origen y destino
+            <div className="w-full h-[320px] md:h-[480px] bg-gray-50 border border-gray-100 rounded-2xl overflow-hidden shadow-sm relative">
+              {/* Aquí irá nuestro componente de Leaflet en la siguiente fase */}
+              <div className="absolute inset-0 flex items-center justify-center text-sm text-muted-foreground bg-gray-50 animate-pulse">
+                Preparando visor de mapa...
+              </div>
+
             </div>
           </div>
 
