@@ -211,8 +211,16 @@ export default function DetalleEnvioPage({
           </h6>
           <div className="mb-10">
             <div className="w-full h-[320px] md:h-[480px] bg-gray-50 border border-gray-100 rounded-2xl overflow-hidden shadow-sm relative">
-              {/* Renderizamos el mapa de Leaflet. Al ser dynamic import, mostrará un Skeleton mientras carga */}
-              <MapaEnvio />
+
+              <MapaEnvio
+                origenLat={envio.origen?.latitud}
+                origenLng={envio.origen?.longitud}
+                destinoLat={envio.destino?.latitud}
+                destinoLng={envio.destino?.longitud}
+                origenNombre={envio.origen?.nombreLugar}
+                destinoNombre={envio.destino?.nombreLugar}
+              />
+
             </div>
           </div>
 

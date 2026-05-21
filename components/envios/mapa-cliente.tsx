@@ -4,22 +4,43 @@ import { useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import { fixLeafletIcons } from '@/lib/leaflet-setup';
 
-export default function MapaCliente() {
-    // Ejecutamos el parche de los íconos una sola vez al montar el componente
+// Definimos las props que el mapa necesita recibir
+interface MapaClienteProps {
+    origenLat?: number;
+    origenLng?: number;
+    destinoLat?: number;
+    destinoLng?: number;
+    origenNombre?: string;
+    destinoNombre?: string;
+}
+
+export default function MapaCliente({
+    origenLat,
+    origenLng,
+    destinoLat,
+    destinoLng,
+    origenNombre = 'Origen',
+    destinoNombre = 'Destino',
+}: MapaClienteProps) {
+
     useEffect(() => {
         fixLeafletIcons();
     }, []);
 
-    // Coordenadas de prueba (ej. Buenos Aires)
-    const posicionPrueba: [number, number] = [-34.6037, -58.3816];
+    // Coordenadas por defecto (Buenos Aires) como plan de contingencia
+    const centroPorDefecto: [number, number] = [-34.6037, -58.3816];
+
+    // Si tenemos las coordenadas de origen, centramos ahí inicialmente
+    const tieneOrigen = origenLat !== undefined && origenLng !== undefined;
+    const centroInicial: [number, number] = tieneOrigen
+        ? [origenLat!, origenLng!]
+        : centroPorDefecto;
 
     return (
-        // Es crucial el z-[1] para que el mapa no se superponga por encima de 
-        // tus modales (Dialogs) o selects (SelectContent) en la UI.
         <div className="h-full w-full rounded-xl overflow-hidden relative z-[1]">
             <MapContainer
-                center={posicionPrueba}
-                zoom={13}
+                center={centroInicial}
+                zoom={11}
                 scrollWheelZoom={false}
                 className="h-full w-full"
             >
@@ -27,9 +48,24 @@ export default function MapaCliente() {
                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
-                <Marker position={posicionPrueba}>
-                    <Popup>Ubicación de prueba</Popup>
-                </Marker>
+
+                {/* Marcador de Origen (solo se dibuja si existen las coordenadas) */}
+                {origenLat !== undefined && origenLng !== undefined && (
+                    <Marker position={[origenLat, origenLng]}>
+                        <Popup>
+                            <span className="font-bold text-[#198754]">Origen:</span> {origenNombre}
+                        </Popup>
+                    </Marker>
+                )}
+
+                {/* Marcador de Destino (solo se dibuja si existen las coordenadas) */}
+                {destinoLat !== undefined && destinoLng !== undefined && (
+                    <Marker position={[destinoLat, destinoLng]}>
+                        <Popup>
+                            <span className="font-bold text-blue-600">Destino:</span> {destinoNombre}
+                        </Popup>
+                    </Marker>
+                )}
             </MapContainer>
         </div>
     );
