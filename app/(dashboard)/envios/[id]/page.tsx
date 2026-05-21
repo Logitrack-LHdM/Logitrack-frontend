@@ -27,6 +27,7 @@ import { useAuth } from '@/contexts/auth-context';
 import { ESTADO_CONFIG, PRIORIDAD_CONFIG } from '@/lib/constants';
 import type { EstadoEnvio, Prioridad } from '@/types';
 import { normalizarEnum } from '@/lib/utils';
+import { MapaEnvio } from '@/components/envios/mapa-envio';
 // import { useProgresoEnvio } from '@/hooks/use-progress';
 
 export default function DetalleEnvioPage({
@@ -204,6 +205,17 @@ export default function DetalleEnvioPage({
             </div>
           </div>
 
+          {/* Geolocalización*/}
+          <h6 className="font-bold text-[#198754] mb-4 border-b border-[#198754]/20 pb-2 flex items-center gap-2">
+            <MapPin className="h-4 w-4" /> Geolocalización del Recorrido
+          </h6>
+          <div className="mb-10">
+            <div className="w-full h-[320px] md:h-[480px] bg-gray-50 border border-gray-100 rounded-2xl overflow-hidden shadow-sm relative">
+              {/* Renderizamos el mapa de Leaflet. Al ser dynamic import, mostrará un Skeleton mientras carga */}
+              <MapaEnvio />
+            </div>
+          </div>
+
           {/* Detalle de Carga */}
           <h6 className="font-bold text-[#198754] mb-4 border-b border-[#198754]/20 pb-2">
             Detalle de Carga
@@ -230,6 +242,8 @@ export default function DetalleEnvioPage({
               />
             </div>
           </div>
+
+
 
           {/* Documentación y Transporte */}
           <h6 className="font-bold text-[#198754] mb-4 border-b border-[#198754]/20 pb-2">
