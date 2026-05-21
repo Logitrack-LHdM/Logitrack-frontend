@@ -27,6 +27,7 @@ import { useAuth } from '@/contexts/auth-context';
 import { ESTADO_CONFIG, PRIORIDAD_CONFIG } from '@/lib/constants';
 import type { EstadoEnvio, Prioridad } from '@/types';
 import { normalizarEnum } from '@/lib/utils';
+import { MapaEnvio } from '@/components/envios/mapa-envio';
 // import { useProgresoEnvio } from '@/hooks/use-progress';
 
 export default function DetalleEnvioPage({
@@ -210,11 +211,8 @@ export default function DetalleEnvioPage({
           </h6>
           <div className="mb-10">
             <div className="w-full h-[320px] md:h-[480px] bg-gray-50 border border-gray-100 rounded-2xl overflow-hidden shadow-sm relative">
-              {/* Aquí irá nuestro componente de Leaflet en la siguiente fase */}
-              <div className="absolute inset-0 flex items-center justify-center text-sm text-muted-foreground bg-gray-50 animate-pulse">
-                Preparando visor de mapa...
-              </div>
-
+              {/* Renderizamos el mapa de Leaflet. Al ser dynamic import, mostrará un Skeleton mientras carga */}
+              <MapaEnvio />
             </div>
           </div>
 
