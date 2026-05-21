@@ -45,7 +45,7 @@ export const usuarioFormSchema = z.object({
   // Validación básica para un CUIL argentino (11 dígitos sin guiones)
   cuil: z.string().regex(/^\d{11}$/, 'El CUIL debe contener exactamente 11 números sin guiones'),
   telefono: z.string().min(8, 'El número de teléfono es muy corto'),
-  username: z.string().min(4, 'El nombre de usuario debe tener al menos 4 caracteres'),
+  username: z.string().email('Debe ingresar un correo electrónico válido'),
   password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres').optional(),
   rol: z.enum(ROLES_PERMITIDOS, {
     required_error: 'Debe seleccionar un rol válido',
