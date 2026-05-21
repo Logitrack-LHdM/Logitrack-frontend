@@ -204,6 +204,17 @@ export default function DetalleEnvioPage({
             </div>
           </div>
 
+          {/* Geolocalización*/}
+          <h6 className="font-bold text-[#198754] mb-4 border-b border-[#198754]/20 pb-2 flex items-center gap-2">
+            <MapPin className="h-4 w-4" /> Geolocalización del Recorrido
+          </h6>
+          <div className="mb-10">
+            {/* Marcador de posición temporal */}
+            <div className="p-8 bg-gray-50 border border-dashed border-gray-300 rounded-2xl text-center text-sm text-muted-foreground">
+              Espacio reservado para el mapa de origen y destino
+            </div>
+          </div>
+
           {/* Detalle de Carga */}
           <h6 className="font-bold text-[#198754] mb-4 border-b border-[#198754]/20 pb-2">
             Detalle de Carga
@@ -230,6 +241,8 @@ export default function DetalleEnvioPage({
               />
             </div>
           </div>
+
+
 
           {/* Documentación y Transporte */}
           <h6 className="font-bold text-[#198754] mb-4 border-b border-[#198754]/20 pb-2">
