@@ -16,34 +16,34 @@ import { api } from '@/lib/api';
 // Normaliza el rol del backend al formato esperado
 function normalizarRol(rol: string): RolUsuario {
   const rolUpper = rol.toUpperCase();
-  
+
   // Si ya tiene el prefijo ROLE_, usarlo directamente
   if (rolUpper.startsWith('ROLE_')) {
     if (rolUpper in PERMISOS_POR_ROL) {
       return rolUpper as RolUsuario;
     }
   }
-  
+
   // Si no tiene prefijo, agregarlo
   const rolConPrefijo = `ROLE_${rolUpper}` as RolUsuario;
   if (rolConPrefijo in PERMISOS_POR_ROL) {
     return rolConPrefijo;
   }
-  
+
   // Mapeo de variantes comunes
   const mapeoRoles: Record<string, RolUsuario> = {
     'OPERADOR': 'ROLE_OPERADOR',
     'SUPERVISOR': 'ROLE_SUPERVISOR',
-    'ADMIN': 'ROLE_ADMIN',
-    'ADMINISTRADOR': 'ROLE_ADMIN',
+    // 'ADMIN': 'ROLE_ADMINISTRADOR',
+    'ADMINISTRADOR': 'ROLE_ADMINISTRADOR',
     'CHOFER': 'ROLE_CHOFER',
     'DRIVER': 'ROLE_CHOFER',
   };
-  
+
   if (rolUpper in mapeoRoles) {
     return mapeoRoles[rolUpper];
   }
-  
+
   // Default a operador si no se reconoce
   console.warn(`Rol no reconocido: ${rol}, usando ROLE_OPERADOR por defecto`);
   return 'ROLE_OPERADOR';
@@ -97,11 +97,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const esRutaPublica = pathname === '/login' || pathname === '/';
     const esRutaChofer = pathname.startsWith('/mi-viaje');
+    const esRutaAdmin = pathname.startsWith('/admin');
     const esRutaDashboard =
       pathname.startsWith('/menu') ||
       pathname.startsWith('/busqueda') ||
       pathname.startsWith('/envios') ||
-      pathname.startsWith('/asignaciones')||
+      pathname.startsWith('/asignaciones') ||
       pathname.startsWith('/auditoria');
 
     // Verificar si hay sesion en sessionStorage (puede que el estado aun no se haya actualizado)
@@ -116,6 +117,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (usuario) {
       const permisos = PERMISOS_POR_ROL[usuario.rol];
+
+      // Admin no puede acceder a las rutas logísticas
+      if (usuario.rol === 'ROLE_ADMINISTRADOR' && esRutaDashboard) {
+        router.replace('/admin/dashboard');
+        return;
+      }
+
+      // Otros roles no pueden acceder al panel de administración
+      if (usuario.rol !== 'ROLE_ADMINISTRADOR' && esRutaAdmin) {
+        router.replace(usuario.rol === 'ROLE_CHOFER' ? '/mi-viaje' : '/menu');
+        return;
+      }
 
       // Chofer solo puede acceder a /mi-viaje
       if (usuario.rol === 'ROLE_CHOFER' && esRutaDashboard) {
@@ -139,6 +152,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (pathname === '/login') {
         if (usuario.rol === 'ROLE_CHOFER') {
           router.replace('/mi-viaje');
+        } else if (usuario.rol === 'ROLE_ADMINISTRADOR') {
+          router.push('/admin/dashboard');
         } else {
           router.replace('/menu');
         }
@@ -165,6 +180,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Redirigir segun rol
       if (nuevoUsuario.rol === 'ROLE_CHOFER') {
         router.push('/mi-viaje');
+      } else if (nuevoUsuario.rol === 'ROLE_ADMINISTRADOR') {
+        router.push('/admin/dashboard');
       } else {
         router.push('/menu');
       }

@@ -63,7 +63,7 @@ El sistema reconoce los siguientes roles:
 
 - `ROLE_OPERADOR`
 - `ROLE_SUPERVISOR`
-- `ROLE_ADMIN`
+- `ROLE_ADMINISTRADOR`
 - `ROLE_CHOFER`
 
 ### Comportamiento por rol

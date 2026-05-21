@@ -21,7 +21,7 @@ export type TipoGrano =
 export type RolUsuario =
   | 'ROLE_OPERADOR'
   | 'ROLE_SUPERVISOR'
-  | 'ROLE_ADMIN'
+  | 'ROLE_ADMINISTRADOR'
   | 'ROLE_CHOFER';
 
 // === AUTH ===
@@ -120,6 +120,33 @@ export interface EnvioUpdateDTO {
 }
 export interface IncidenciaDTO {
   descripcion: string;
+}
+
+export interface UsuarioResponseDTO {
+  idUsuario: number;
+  username: string;
+  rol: RolUsuario;
+  activo: boolean;
+  idPersona: number;
+  nombre: string;
+  apellido: string;
+  cuil: string;
+  telefono: string;
+}
+
+export interface UsuarioRequestDTO {
+  username: string;
+  password?: string; // Opcional para la edición, obligatorio para la creación
+  rol: RolUsuario;
+  nombre: string;
+  apellido: string;
+  cuil: string;
+  telefono: string;
+
+  // --- Datos de Chofer (Opcionales, solo se usan si rol == CHOFER) ---
+  nroLicencia?: string;
+  vtoLicencia?: string;
+  vtoLinti?: string;
 }
 
 export interface BusquedaEnviosParams {

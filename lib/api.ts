@@ -14,6 +14,8 @@ import type {
   Camion,
   MetadatosCatalogo,
   EnvioChofer,
+  UsuarioResponseDTO,
+  UsuarioRequestDTO,
 } from '@/types';
 
 // Base URL de la API - usar variable de entorno en produccion
@@ -271,6 +273,51 @@ class ApiClient {
     return this.request<PaginatedResponse<Envio>>(
       `/envios/search?${searchParams.toString()}`
     );
+  }
+
+  // === ADMIN ===
+  async listarUsuarios(): Promise<UsuarioResponseDTO[]> {
+    const usuarios = await this.request<any[]>('/admin/usuarios');
+    // Agregamos el prefijo ROLE_ para que el frontend lo reconozca
+    return usuarios.map(u => ({ ...u, rol: `ROLE_${u.rol}` as any }));
+  }
+
+  async crearUsuario(data: UsuarioRequestDTO): Promise<UsuarioResponseDTO> {
+    // Quitamos el prefijo ROLE_ antes de enviarlo a Spring Boot
+    const payload = { ...data, rol: data.rol.replace('ROLE_', '') };
+
+    const res = await this.request<any>('/admin/usuarios', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+
+    // Volvemos a agregar el prefijo a la respuesta
+    return { ...res, rol: `ROLE_${res.rol}` as any };
+  }
+
+  async actualizarUsuario(id: number, data: UsuarioRequestDTO): Promise<UsuarioResponseDTO> {
+    // Quitamos el prefijo ROLE_ antes de enviarlo
+    const payload = { ...data, rol: data.rol.replace('ROLE_', '') };
+
+    const res = await this.request<any>(`/admin/usuarios/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    });
+
+    return { ...res, rol: `ROLE_${res.rol}` as any };
+  }
+
+  async deshabilitarUsuario(id: number): Promise<void> {
+    return this.request<void>(`/admin/usuarios/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async resetearPassword(id: number, nuevaPassword: string): Promise<void> {
+    return this.request<void>(`/admin/usuarios/${id}/reset-password`, {
+      method: 'PUT',
+      body: JSON.stringify({ nuevaPassword }),
+    });
   }
 }
 
