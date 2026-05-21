@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import L from 'leaflet';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import { fixLeafletIcons } from '@/lib/leaflet-setup';
 
 interface MapaClienteProps {
@@ -33,8 +33,36 @@ const crearIconoPersonalizado = (colorFill: string) => {
 };
 
 // Instanciamos los dos íconos usando los colores de tu interfaz
-const iconoOrigen = crearIconoPersonalizado('#198754'); // Verde (success)
-const iconoDestino = crearIconoPersonalizado('#0d6efd'); // Azul (transit)
+const iconoOrigen = crearIconoPersonalizado('#198754');
+const iconoDestino = crearIconoPersonalizado('#0d6efd');
+
+// Componente invisible para controlar la cámara del mapa
+function AjusteEncuadre({
+    origen,
+    destino
+}: {
+    origen?: [number, number];
+    destino?: [number, number];
+}) {
+    const map = useMap(); // Obtenemos la instancia real de Leaflet
+
+    useEffect(() => {
+        if (origen && destino) {
+            // 1. Creamos una "caja" (bounding box) que envuelve ambos puntos
+            const bounds = L.latLngBounds([origen, destino]);
+
+            // 2. Le pedimos a Leaflet que ajuste el zoom para que la caja entre en pantalla.
+            // El padding asegura que los pines no queden pegados a los bordes del contenedor.
+            map.fitBounds(bounds, { padding: [50, 50] });
+        } else if (origen) {
+            map.setView(origen, 13);
+        } else if (destino) {
+            map.setView(destino, 13);
+        }
+    }, [map, origen, destino]);
+
+    return null; // No renderiza nada en el DOM
+}
 
 export default function MapaCliente({
     origenLat,
@@ -52,11 +80,14 @@ export default function MapaCliente({
     // Coordenadas por defecto (Buenos Aires) como plan de contingencia
     const centroPorDefecto: [number, number] = [-34.6037, -58.3816];
 
-    // Si tenemos las coordenadas de origen, centramos ahí inicialmente
-    const tieneOrigen = origenLat !== undefined && origenLng !== undefined;
-    const centroInicial: [number, number] = tieneOrigen
-        ? [origenLat!, origenLng!]
-        : centroPorDefecto;
+    // Preparamos las tuplas de coordenadas para pasarlas más fácil
+    const coordsOrigen: [number, number] | undefined =
+        origenLat !== undefined && origenLng !== undefined ? [origenLat, origenLng] : undefined;
+
+    const coordsDestino: [number, number] | undefined =
+        destinoLat !== undefined && destinoLng !== undefined ? [destinoLat, destinoLng] : undefined;
+
+    const centroInicial = coordsOrigen || centroPorDefecto;
 
     return (
         <div className="h-full w-full rounded-xl overflow-hidden relative z-[1]">
@@ -71,9 +102,12 @@ export default function MapaCliente({
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
 
+                {/* Ejecutamos la lógica de encuadre */}
+                <AjusteEncuadre origen={coordsOrigen} destino={coordsDestino} />
+
                 {/* Marcador de Origen con su ícono verde (solo se dibuja si existen las coordenadas)*/}
-                {origenLat !== undefined && origenLng !== undefined && (
-                    <Marker position={[origenLat, origenLng]} icon={iconoOrigen}>
+                {coordsOrigen && (
+                    <Marker position={coordsOrigen} icon={iconoOrigen}>
                         <Popup>
                             <span className="font-bold text-[#198754]">Origen:</span> {origenNombre}
                         </Popup>
@@ -81,8 +115,8 @@ export default function MapaCliente({
                 )}
 
                 {/* Marcador de Destino con su ícono azul (solo se dibuja si existen las coordenadas)*/}
-                {destinoLat !== undefined && destinoLng !== undefined && (
-                    <Marker position={[destinoLat, destinoLng]} icon={iconoDestino}>
+                {coordsDestino && (
+                    <Marker position={coordsDestino} icon={iconoDestino}>
                         <Popup>
                             <span className="font-bold text-blue-600">Destino:</span> {destinoNombre}
                         </Popup>
