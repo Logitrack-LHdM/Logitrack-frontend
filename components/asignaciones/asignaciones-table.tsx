@@ -40,17 +40,11 @@ export function AsignacionesTable() {
     try {
       // Intentar con los endpoints de disponibles primero.
       // Si cualquiera falla, hacer fallback silencioso a los endpoints generales.
-      const [choferesData, camionesData] = await Promise.all([
+      const [enviosData, choferesData, camionesData] = await Promise.all([
+        api.getEnviosSinAsignar(),
         api.getChoferesDisponibles(),
         api.getCamionesDisponibles(),
-      ]).catch(() =>
-        Promise.all([
-          api.getChoferes(),
-          api.getCamiones(),
-        ])
-      );
-
-      const enviosData = await api.getEnviosSinAsignar();
+        ]);
 
       setEnvios(enviosData);
       setChoferes(choferesData);
@@ -119,6 +113,13 @@ export function AsignacionesTable() {
 
       toast.success(`Transporte asignado al envío ${envioSeleccionado.idEnvio}`);
 
+      const [choferesData, camionesData] = await Promise.all([
+        api.getChoferesDisponibles(),
+        api.getCamionesDisponibles(),
+      ]);
+      setChoferes(choferesData);
+      setCamiones(camionesData);
+      
       // Quitar el envío de la lista (ya quedó asignado)
       setEnvios((prev) => prev.filter((e) => e.idEnvio !== envioSeleccionado.idEnvio));
       cerrarModal();
@@ -134,9 +135,7 @@ export function AsignacionesTable() {
 
   // ── Camiones aptos para la carga del envío seleccionado ────────────────────
   const kgCarga = envioSeleccionado?.kgOrigen ?? 0;
-  const camionesAptos = camiones.filter(
-    (camion) => (camion.capacidadCargaKg ?? 0) >= kgCarga
-  );
+  const camionesAptos = camiones
 
   // ── Loading ────────────────────────────────────────────────────────────────
   if (loadingDatos) {
