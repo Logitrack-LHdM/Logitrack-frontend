@@ -52,7 +52,7 @@ export default function AdminDashboardPage() {
       href: '/admin/usuarios',
       // color: 'text-blue-600',
       icon: <Users className="h-8 w-8" />,
-      title: 'Gestión de Accesos',
+      title: 'Gestión de Usuarios',
       description: 'ABM de usuarios, asignación de roles y desactivación.',
     },
     {
