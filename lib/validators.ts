@@ -35,3 +35,22 @@ export const envioSchema = z
   });
 
 export type EnvioFormData = z.infer<typeof envioSchema>;
+
+// Ajusta los roles según tu constante exacta en el sistema
+const ROLES_PERMITIDOS = ['ROLE_OPERADOR', 'ROLE_SUPERVISOR', 'ROLE_CHOFER', 'ROLE_ADMINISTRADOR'] as const;
+
+export const usuarioFormSchema = z.object({
+  nombre: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
+  apellido: z.string().min(2, 'El apellido debe tener al menos 2 caracteres'),
+  // Validación básica para un CUIL argentino (11 dígitos sin guiones)
+  cuil: z.string().regex(/^\d{11}$/, 'El CUIL debe contener exactamente 11 números sin guiones'),
+  telefono: z.string().min(8, 'El número de teléfono es muy corto'),
+  username: z.string().min(4, 'El nombre de usuario debe tener al menos 4 caracteres'),
+  password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres').optional(),
+  rol: z.enum(ROLES_PERMITIDOS, {
+    required_error: 'Debe seleccionar un rol válido',
+  }),
+});
+
+// Inferimos el tipo directamente del esquema de Zod
+export type UsuarioFormValues = z.infer<typeof usuarioFormSchema>;

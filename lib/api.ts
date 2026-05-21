@@ -14,6 +14,8 @@ import type {
   Camion,
   MetadatosCatalogo,
   EnvioChofer,
+  UsuarioResponseDTO,
+  UsuarioRequestDTO,
 } from '@/types';
 
 // Base URL de la API - usar variable de entorno en produccion
@@ -275,3 +277,48 @@ class ApiClient {
 }
 
 export const api = new ApiClient();
+
+// === Usuarios ===
+export const adminApi = {
+  // Listar todos los usuarios
+  listarUsuarios: async (): Promise<UsuarioResponseDTO[]> => {
+    // Reemplaza fetchAuth con tu método personalizado si inyectas el token JWT automáticamente
+    const res = await fetch('/api/admin/usuarios');
+    return res.json();
+  },
+
+  // Crear un nuevo usuario
+  crearUsuario: async (data: UsuarioRequestDTO): Promise<UsuarioResponseDTO> => {
+    const res = await fetch('/api/admin/usuarios', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    return res.json();
+  },
+
+  // Actualizar un usuario existente
+  actualizarUsuario: async (id: number, data: UsuarioRequestDTO): Promise<UsuarioResponseDTO> => {
+    const res = await fetch(`/api/admin/usuarios/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    return res.json();
+  },
+
+  // Deshabilitar usuario (Soft Delete)
+  deshabilitarUsuario: async (id: number): Promise<void> => {
+    await fetch(`/api/admin/usuarios/${id}`, { method: 'DELETE' });
+  },
+
+  // Resetear la contraseña de un usuario
+  resetearPassword: async (id: number, nuevaPassword: string): Promise<string> => {
+    const res = await fetch(`/api/admin/usuarios/${id}/reset-password`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nuevaPassword }),
+    });
+    return res.text();
+  },
+};
