@@ -274,51 +274,51 @@ class ApiClient {
       `/envios/search?${searchParams.toString()}`
     );
   }
+
+  // === ADMIN ===
+  async listarUsuarios(): Promise<UsuarioResponseDTO[]> {
+    const usuarios = await this.request<any[]>('/admin/usuarios');
+    // Agregamos el prefijo ROLE_ para que el frontend lo reconozca
+    return usuarios.map(u => ({ ...u, rol: `ROLE_${u.rol}` as any }));
+  }
+
+  async crearUsuario(data: UsuarioRequestDTO): Promise<UsuarioResponseDTO> {
+    // Quitamos el prefijo ROLE_ antes de enviarlo a Spring Boot
+    const payload = { ...data, rol: data.rol.replace('ROLE_', '') };
+
+    const res = await this.request<any>('/admin/usuarios', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+
+    // Volvemos a agregar el prefijo a la respuesta
+    return { ...res, rol: `ROLE_${res.rol}` as any };
+  }
+
+  async actualizarUsuario(id: number, data: UsuarioRequestDTO): Promise<UsuarioResponseDTO> {
+    // Quitamos el prefijo ROLE_ antes de enviarlo
+    const payload = { ...data, rol: data.rol.replace('ROLE_', '') };
+
+    const res = await this.request<any>(`/admin/usuarios/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    });
+
+    return { ...res, rol: `ROLE_${res.rol}` as any };
+  }
+
+  async deshabilitarUsuario(id: number): Promise<void> {
+    return this.request<void>(`/admin/usuarios/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async resetearPassword(id: number, nuevaPassword: string): Promise<void> {
+    return this.request<void>(`/admin/usuarios/${id}/reset-password`, {
+      method: 'PUT',
+      body: JSON.stringify({ nuevaPassword }),
+    });
+  }
 }
 
 export const api = new ApiClient();
-
-// === Usuarios ===
-export const adminApi = {
-  // Listar todos los usuarios
-  listarUsuarios: async (): Promise<UsuarioResponseDTO[]> => {
-    // Reemplaza fetchAuth con tu método personalizado si inyectas el token JWT automáticamente
-    const res = await fetch('/api/admin/usuarios');
-    return res.json();
-  },
-
-  // Crear un nuevo usuario
-  crearUsuario: async (data: UsuarioRequestDTO): Promise<UsuarioResponseDTO> => {
-    const res = await fetch('/api/admin/usuarios', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
-    return res.json();
-  },
-
-  // Actualizar un usuario existente
-  actualizarUsuario: async (id: number, data: UsuarioRequestDTO): Promise<UsuarioResponseDTO> => {
-    const res = await fetch(`/api/admin/usuarios/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
-    return res.json();
-  },
-
-  // Deshabilitar usuario (Soft Delete)
-  deshabilitarUsuario: async (id: number): Promise<void> => {
-    await fetch(`/api/admin/usuarios/${id}`, { method: 'DELETE' });
-  },
-
-  // Resetear la contraseña de un usuario
-  resetearPassword: async (id: number, nuevaPassword: string): Promise<string> => {
-    const res = await fetch(`/api/admin/usuarios/${id}/reset-password`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nuevaPassword }),
-    });
-    return res.text();
-  },
-};
