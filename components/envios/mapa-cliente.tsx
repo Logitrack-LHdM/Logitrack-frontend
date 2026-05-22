@@ -12,6 +12,10 @@ interface MapaClienteProps {
     destinoLng?: number;
     origenNombre?: string;
     destinoNombre?: string;
+    // Nuevas propiedades para el rastreo en tiempo real:
+    camionLat?: number;
+    camionLng?: number;
+    ruta?: [number, number][]; // Array de tuplas [latitud, longitud] ya adaptadas
 }
 
 // Función para crear un pin SVG personalizado con el color que le pasemos
@@ -107,6 +111,9 @@ export default function MapaCliente({
     destinoLng,
     origenNombre = 'Origen',
     destinoNombre = 'Destino',
+    camionLat,
+    camionLng,
+    ruta = [] // Por defecto un array vacío para evitar errores de iteración
 }: MapaClienteProps) {
 
     useEffect(() => {

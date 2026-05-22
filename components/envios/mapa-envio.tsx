@@ -10,6 +10,10 @@ interface MapaEnvioProps {
     destinoLng?: number;
     origenNombre?: string;
     destinoNombre?: string;
+    // Agregamos las mismas propiedades aquí:
+    camionLat?: number;
+    camionLng?: number;
+    ruta?: [number, number][];
 }
 
 const MapaInteractivo = dynamic(
