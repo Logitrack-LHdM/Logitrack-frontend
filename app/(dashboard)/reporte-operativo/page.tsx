@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import { Truck, Scale } from 'lucide-react';
+import { Truck, Scale, ArrowLeftCircle, ChartColumnBig } from 'lucide-react';
 import {
     BarChart,
     Bar,
@@ -17,6 +17,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Skeleton } from '@/components/ui/skeleton';
 import { useReporteOperativo } from '@/hooks/use-reporte-operativo';
 import { DesgloseEstados } from '@/types/reporte-operativo';
+import Link from 'next/link';
 
 // Función para adaptar los datos crudos al formato del gráfico inyectando variables CSS
 const adaptarDatosParaGrafico = (desglose: DesgloseEstados | undefined) => {
@@ -65,13 +66,25 @@ export default function ReporteOperativoPage() {
             <div className="max-w-6xl mx-auto space-y-8">
 
                 {/* Encabezado de la página */}
-                <div>
-                    <h1 className="text-3xl font-bold text-foreground mb-2">
-                        Reporte Operativo
-                    </h1>
-                    <p className="text-muted-foreground">
-                        Resumen de la actividad diaria: volumen de carga y estado de los viajes.
-                    </p>
+                {/* Botón Volver */}
+                <Link
+                    href="/menu"
+                    className="text-[#198754] font-semibold mb-3 md:mb-4 inline-flex items-center gap-2 hover:opacity-80 transition-opacity"
+                >
+                    <ArrowLeftCircle className="h-5 w-5" /> Volver al Panel
+                </Link>
+
+                {/* Encabezado Principal (Réplica exacta de tu HTML) */}
+                <div className="flex items-center gap-3 mb-6 mt-2 px-2 md:px-0">
+                    <div className="p-4 rounded-2xl bg-gradient-to-br from-[#1b4332] to-[#2d6a4f] text-white shadow-md group-hover:shadow-lg transition-shadow">
+                        <ChartColumnBig className="h-7 w-7" />
+                    </div>
+                    <div>
+                        <h4 className="font-bold text-gray-900 mb-1 text-xl md:text-2xl">Reporte Operativo</h4>
+                        <p className="text-muted-foreground text-sm m-0">
+                            Resumen de la actividad diaria: volumen de carga y estado de los viajes.
+                        </p>
+                    </div>
                 </div>
 
                 {/* Grilla de Métricas Globales */}

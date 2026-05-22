@@ -1,6 +1,6 @@
 'use client';
 
-import { Search, PlusCircle, FileText, Truck, BarChart } from 'lucide-react';
+import { Search, PlusCircle, FileText, Truck, ChartColumnBig } from 'lucide-react';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/contexts/auth-context';
@@ -77,7 +77,7 @@ export default function MenuPage() {
       show: permisos.asignarTransporte,
     }, {
       href: '/reporte-operativo',
-      icon: <BarChart className="h-8 w-8" />,
+      icon: <ChartColumnBig className="h-8 w-8" />,
       title: 'Reporte Operativo',
       description: 'Visualiza el volumen y estado de la actividad diaria',
       show: permisos.verReporteOperativo,
