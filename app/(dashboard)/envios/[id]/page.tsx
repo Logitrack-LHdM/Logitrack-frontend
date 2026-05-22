@@ -62,7 +62,7 @@ export default function DetalleEnvioPage({
   // Feedback visual si se pierde la conexión con el camión
   useEffect(() => {
     if (errorTracking) {
-      toast.warning('Pérdida de señal GPS', {
+      toast.warning('Atención', {
         description: 'Se perdió la conexión temporal con el vehículo. Mostrando la última ubicación conocida en el mapa.',
         duration: 6000, // Le damos un poco más de tiempo para que el operador lo lea
       });
