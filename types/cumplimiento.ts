@@ -3,11 +3,12 @@
  * Alineado con las variables CSS de tu globals.css y el desglose operativo.
  */
 export type EstadoEnvio =
-    | 'Pendiente'
-    | 'En Tránsito'
-    | 'En Punto de Recolección'
-    | 'Entregado'
-    | 'Cancelado';
+    | 'PENDIENTE'
+    | 'EN_TRANSITO'
+    | 'EN_PUNTO_DE_RECOLECCION'
+    | 'EN_REPARTO'
+    | 'ENTREGADO'
+    | 'CANCELADO';
 
 /**
  * Criterio 2: Identificación de desvíos en viajes individuales.
@@ -15,9 +16,9 @@ export type EstadoEnvio =
  */
 export interface DetalleViajeCumplimiento {
     idEnvio: string;
-    codigoSeguimiento: string;
-    estado: EstadoEnvio;
-    eta: string;               // Fecha y hora estimada de arribo (ISO 8601 string)
+    // codigoSeguimiento: string;
+    estadoActual: EstadoEnvio;
+    fechaEstimadaLlegada: string;    // Fecha y hora estimada de arribo (ISO 8601 string)
     fechaEntregaReal: string | null; // Fecha y hora real de entrega (ISO 8601 string). Puede ser null si no está completado.
     esRetrasado: boolean | null;     // true si fechaEntregaReal > eta. null si aún no se entrega.
     desvioHoras: number | null;      // Diferencia de tiempo en horas.
