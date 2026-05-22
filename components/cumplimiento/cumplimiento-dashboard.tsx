@@ -3,6 +3,7 @@
 import React from 'react';
 import { ResumenPuntualidad } from './resumen-puntualidad';
 import { GraficoPuntualidad } from './grafico-puntualidad';
+import { TablaDesvios } from './tabla-desvios';
 import { useCumplimiento } from '@/hooks/use-cumplimiento';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertCircle } from 'lucide-react';
@@ -62,18 +63,12 @@ export function CumplimientoDashboard() {
                 </div>
             </div>
 
-            {/* 
-        Contenedor reservado para el Paso 4: Tabla de Desvíos 
-        Dejamos el Skeleton listo para cuando integremos la lista de viajes.
-      */}
+            {/* Integración del Criterio 2: Tabla de Análisis de Viajes Individuales */}
             <div className="mt-8">
                 {isLoading || !data ? (
                     <Skeleton className="h-[400px] w-full rounded-xl" />
                 ) : (
-                    <div className="p-8 border-2 border-dashed border-border rounded-xl bg-muted/20 text-muted-foreground text-center flex flex-col items-center justify-center min-h-[300px]">
-                        <p className="font-medium">Aquí se integrará el análisis de viajes individuales (Paso 4)</p>
-                        <p className="text-sm mt-1">Renderizaremos la tabla de desvíos para los envíos entregados.</p>
-                    </div>
+                    <TablaDesvios viajes={data.viajes} />
                 )}
             </div>
         </div>
