@@ -3,7 +3,7 @@ import { api } from '@/lib/api';
 import type { EstadoEnvio } from '@/types';
 
 // Definimos el tiempo de actualización como constante para facilitar cambios futuros
-const INTERVALO_POLLING_MS = 30000; // 30 segundos
+const INTERVALO_POLLING_MS = 30000;
 
 export function useRastreoTiempoReal(idEnvio: string) {
     // Definición de Estados
@@ -21,96 +21,87 @@ export function useRastreoTiempoReal(idEnvio: string) {
     const [isTrackingCargando, setIsTrackingCargando] = useState<boolean>(true);
     const [errorTracking, setErrorTracking] = useState<string | null>(null);
 
+    // --- EFECTO 1: Cargar la Ruta Planificada con Cancelación ---
     // Efecto para cargar la ruta (Se ejecuta solo al montar o si cambia el idEnvio)
     useEffect(() => {
         if (!idEnvio) return;
 
-        // Patrón de bandera para evitar actualizar el estado si el componente 
-        // se desmonta antes de que la promesa se resuelva (Navegación rápida)
-        let isMounted = true;
+        // Creamos el controlador para la petición de la ruta
+        const controller = new AbortController();
 
         const fetchRuta = async () => {
             setIsRutaCargando(true);
             setErrorRuta(null);
 
             try {
-                const rutaObtenida = await api.getRutaPlanificada(idEnvio);
-
-                if (isMounted) {
-                    setRuta(rutaObtenida);
-                }
+                const rutaObtenida = await api.getRutaPlanificada(idEnvio, controller.signal);
+                setRuta(rutaObtenida);
             } catch (err) {
-                if (isMounted) {
-                    // Si bien nuestra API ya maneja el error devolviendo [],
-                    // cubrimos cualquier fallo inesperado de red por seguridad.
-                    setErrorRuta('No se pudo cargar la ruta planificada.');
-                }
+                // Si el error es porque se abortó, no actualizamos el estado
+                if (err instanceof Error && err.name === 'AbortError') return;
+                // Si bien nuestra API ya maneja el error devolviendo [],
+                // cubrimos cualquier fallo inesperado de red por seguridad.
+                setErrorRuta('No se pudo cargar la ruta planificada.');
             } finally {
-                if (isMounted) {
-                    setIsRutaCargando(false);
-                }
+                setIsRutaCargando(false);
             }
         };
 
         fetchRuta();
 
         // Función de limpieza
+        // Al desmontar, cancelamos inmediatamente la petición si seguía en vuelo
         return () => {
-            isMounted = false;
+            controller.abort();
         };
     }, [idEnvio]);
 
-    // --- NUEVA FUNCIÓN: Fase 4.1 (Consulta de Ubicación en Tiempo Real) ---
+    // --- FUNCIÓN DE SEGUIMIENTO (Consulta de Ubicación en Tiempo Real): Acepta el AbortSignal ---
     // Memorizamos la función con useCallback para evitar recreaciones innecesarias
-    const fetchUbicacion = useCallback(async (isMounted: boolean = true) => {
+    const fetchUbicacion = useCallback(async (signal?: AbortSignal) => {
         if (!idEnvio) return;
 
         try {
-            const data = await api.getUbicacionTiempoReal(idEnvio);
+            const data = await api.getUbicacionTiempoReal(idEnvio, signal);
 
-            if (isMounted) {
-                setCamionLat(data.latitudActual);
-                setCamionLng(data.longitudActual);
-                setPorcentajeCompletado(data.porcentajeCompletado);
-                setEstadoActual(data.estadoActual);
-                setErrorTracking(null);
-            }
+            setCamionLat(data.latitudActual);
+            setCamionLng(data.longitudActual);
+            setPorcentajeCompletado(data.porcentajeCompletado);
+            setEstadoActual(data.estadoActual);
+            setErrorTracking(null);
         } catch (err) {
-            if (isMounted) {
-                // En lugar de romper la app, registramos el error para manejar la resiliencia en la UI
-                setErrorTracking('No se pudo obtener la ubicación en tiempo real del camión.');
-            }
+            if (err instanceof Error && err.name === 'AbortError') return;
+            setErrorTracking('No se pudo obtener la ubicación en tiempo real del camión.');
         } finally {
-            if (isMounted) {
-                setIsTrackingCargando(false);
-            }
+            setIsTrackingCargando(false);
         }
     }, [idEnvio]);
 
-    // --- NUEVO EFECTO: Fase 4.2 (Lógica de Polling) ---
+    // --- EFECTO 2: Polling de Ubicación con Cancelación Integral ---
     useEffect(() => {
-        let isMounted = true;
+        // Creamos un controlador para el ciclo de polling
+        const controller = new AbortController();
 
-        // 1. Ejecución inmediata al montar el componente
-        fetchUbicacion(isMounted);
+        // Ejecución inmediata usando el signal del controlador
+        fetchUbicacion(controller.signal);
 
-        // 2. Control de intervalo: Declaramos la variable para el temporizador
+        // Control de intervalo: Declaramos la variable para el temporizador
         let intervalId: NodeJS.Timeout;
 
         // 3. Validación: Solo iniciamos el temporizador si el estado es EN_TRANSITO, EN_PUNTO_DE_RECOLECCION o EN_REPARTO
         // (O si es null, lo que significa que es la primera carga y aún no sabemos el estado)
         if (estadoActual === 'EN_TRANSITO' || estadoActual === 'EN_PUNTO_DE_RECOLECCION' || estadoActual === 'EN_REPARTO' || estadoActual === null) {
             intervalId = setInterval(() => {
-                fetchUbicacion(isMounted);
+                fetchUbicacion(controller.signal);
             }, INTERVALO_POLLING_MS);
         }
 
-        // 4. Limpieza de recursos (Cumplimiento Tarea #230)
+        // Limpieza de recursos (Cumplimiento Tarea #230): destruye el intervalo y aborta cualquier petición activa
         return () => {
-            isMounted = false;
             if (intervalId) {
                 clearInterval(intervalId);
             }
+            controller.abort();
         };
     }, [fetchUbicacion, estadoActual]);
     // Dependencias: 

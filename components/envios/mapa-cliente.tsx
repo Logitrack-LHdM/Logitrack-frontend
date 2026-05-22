@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, memo } from 'react';
 import L from 'leaflet';
 // 1. Agregamos Polyline a las importaciones de react-leaflet
 import { MapContainer, TileLayer, Marker, Popup, useMap, Polyline } from 'react-leaflet';
@@ -128,7 +128,7 @@ function AjusteEncuadre({
     return null; // No renderiza nada en el DOM
 }
 
-export default function MapaCliente({
+const MapaCliente = memo(function MapaCliente({
     origenLat,
     origenLng,
     destinoLat,
@@ -218,4 +218,7 @@ export default function MapaCliente({
             </MapContainer>
         </div>
     );
-}
+});
+
+// Exportamos el componente ya memorizado
+export default MapaCliente;

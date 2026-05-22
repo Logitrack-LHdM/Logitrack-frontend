@@ -43,8 +43,8 @@ export default function DetalleEnvioPage({
   // Pasamos el "id" directamente como string sin usar parseInt. Hook existente con los datos generales estáticos
   const { envio, historial, isLoading, isUpdating, error, actualizarEnvio } = useEnvioDetail(id);
 
-  // Consumimos la ruta desde el nuevo hook independiente. Extraemos también las coordenadas dinámicas del camión
-  const { ruta, camionLat, camionLng } = useRastreoTiempoReal(id);
+  // Consumimos la ruta desde el nuevo hook independiente. Extraemos también las coordenadas dinámicas del camión y el estado de error
+  const { ruta, camionLat, camionLng, errorTracking } = useRastreoTiempoReal(id);
 
   const { permisos } = useAuth();
 
@@ -58,6 +58,16 @@ export default function DetalleEnvioPage({
       setNuevaPrioridad(envio.prioridadIa);
     }
   }, [envio]);
+
+  // Feedback visual si se pierde la conexión con el camión
+  useEffect(() => {
+    if (errorTracking) {
+      toast.warning('Atención', {
+        description: 'Se perdió la conexión temporal con el vehículo. Mostrando la última ubicación conocida en el mapa.',
+        duration: 6000, // Le damos un poco más de tiempo para que el operador lo lea
+      });
+    }
+  }, [errorTracking]);
 
   // Código original (comentado por ahora)
   /*
