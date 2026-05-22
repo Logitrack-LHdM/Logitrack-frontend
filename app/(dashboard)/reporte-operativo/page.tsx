@@ -1,14 +1,41 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Truck, Scale } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    BarChart,
+    Bar,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    ResponsiveContainer,
+    Cell
+} from 'recharts';
+
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useReporteOperativo } from '@/hooks/use-reporte-operativo';
+import { DesgloseEstados } from '@/types/reporte-operativo';
+
+// Función para adaptar los datos crudos al formato del gráfico inyectando variables CSS
+const adaptarDatosParaGrafico = (desglose: DesgloseEstados | undefined) => {
+    if (!desglose) return [];
+    return [
+        { estado: 'Pendientes', cantidad: desglose.pendientes, fill: 'var(--status-pending)' },
+        { estado: 'En Tránsito', cantidad: desglose.enTransito, fill: 'var(--status-transit)' },
+        { estado: 'En Recolección', cantidad: desglose.enPuntoRecoleccion, fill: 'var(--status-pickup)' },
+        { estado: 'Entregados', cantidad: desglose.entregados, fill: 'var(--status-delivered)' },
+        { estado: 'Cancelados', cantidad: desglose.cancelados, fill: 'var(--status-cancelled)' }
+    ];
+};
 
 export default function ReporteOperativoPage() {
     // Conectamos nuestro servicio simulado
     const { data, isLoading, error } = useReporteOperativo();
+
+    // Memorizamos los datos del gráfico para evitar re-renderizados innecesarios
+    const datosGrafico = useMemo(() => adaptarDatosParaGrafico(data?.desgloseEstados), [data]);
 
     // Manejo de estado de error
     if (error) {
@@ -47,9 +74,9 @@ export default function ReporteOperativoPage() {
                     </p>
                 </div>
 
+                {/* Grilla de Métricas Globales */}
                 {/* Contenedor principal de la grilla (Layout Responsivo) */}
                 <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
-
                     {isLoading ? (
                         <>
                             {/* Skeletons para las tarjetas de métricas */}
@@ -58,7 +85,7 @@ export default function ReporteOperativoPage() {
                         </>
                     ) : (
                         <>
-                            {/* Tarjeta 1: Total de Viajes */}
+                            {/* Tarjeta: Total de Viajes */}
                             <Card className="lg:col-span-2 shadow-sm hover:shadow-md transition-shadow">
                                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                                     <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -78,7 +105,7 @@ export default function ReporteOperativoPage() {
                                 </CardContent>
                             </Card>
 
-                            {/* Tarjeta 2: Total de Kilos Transportados */}
+                            {/* Tarjeta: Kilos Transportados */}
                             <Card className="lg:col-span-2 shadow-sm hover:shadow-md transition-shadow">
                                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                                     <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -99,21 +126,57 @@ export default function ReporteOperativoPage() {
                             </Card>
                         </>
                     )}
-
                 </div>
 
+                {/* Sección: Desglose de Estados */}
                 {/* Contenedor para la sección del desglose de estados */}
                 <div className="grid gap-6 grid-cols-1">
 
                     {isLoading ? (
                         /* Skeleton para el gráfico */
-                        <Skeleton className="h-96 rounded-xl w-full" />
+                        <Skeleton className="h-[400px] rounded-xl w-full" />
                     ) : (
-                        /* Espacio para la Fase 3.4: Gráfico de Estados */
-                        <div className="border-2 border-dashed border-muted rounded-xl h-96 flex flex-col items-center justify-center text-muted-foreground bg-muted/10">
-                            <span>[Gráfico Desglose de Estados]</span>
-                            <span className="text-sm mt-2">Pendientes: {data?.desgloseEstados.pendientes} | Entregados: {data?.desgloseEstados.entregados}</span>
-                        </div>
+                        <Card className="shadow-sm">
+                            <CardHeader>
+                                <CardTitle>Desglose de Envíos por Estado</CardTitle>
+                                <CardDescription>Distribución actual de las operaciones logísticas</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="h-[300px] w-full mt-4">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart data={datosGrafico} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
+                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--muted-foreground)/0.2)" />
+                                            <XAxis
+                                                dataKey="estado"
+                                                axisLine={false}
+                                                tickLine={false}
+                                                tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }}
+                                                dy={10}
+                                            />
+                                            <YAxis
+                                                axisLine={false}
+                                                tickLine={false}
+                                                tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }}
+                                            />
+                                            <Tooltip
+                                                cursor={{ fill: 'hsl(var(--muted)/0.5)' }}
+                                                contentStyle={{
+                                                    backgroundColor: 'hsl(var(--card))',
+                                                    borderRadius: '8px',
+                                                    border: '1px solid hsl(var(--border))',
+                                                    color: 'hsl(var(--foreground))'
+                                                }}
+                                            />
+                                            <Bar dataKey="cantidad" radius={[4, 4, 0, 0]}>
+                                                {datosGrafico.map((entry, index) => (
+                                                    <Cell key={`cell-${index}`} fill={entry.fill} />
+                                                ))}
+                                            </Bar>
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            </CardContent>
+                        </Card>
                     )}
 
                 </div>
