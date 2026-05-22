@@ -40,11 +40,11 @@ export default function DetalleEnvioPage({
   const router = useRouter();
   const { id } = use(params);
 
-  // Pasamos el "id" directamente como string sin usar parseInt. Hook existente con los datos generales
+  // Pasamos el "id" directamente como string sin usar parseInt. Hook existente con los datos generales estáticos
   const { envio, historial, isLoading, isUpdating, error, actualizarEnvio } = useEnvioDetail(id);
 
-  // Consumimos la ruta desde el nuevo hook independiente
-  const { ruta } = useRastreoTiempoReal(id);
+  // Consumimos la ruta desde el nuevo hook independiente. Extraemos también las coordenadas dinámicas del camión
+  const { ruta, camionLat, camionLng } = useRastreoTiempoReal(id);
 
   const { permisos } = useAuth();
 
@@ -228,6 +228,8 @@ export default function DetalleEnvioPage({
                   origenNombre={envio.origen.nombreLugar}
                   destinoNombre={envio.destino.nombreLugar}
                   ruta={ruta}
+                  camionLat={camionLat} // Latitud en tiempo real
+                  camionLng={camionLng} // Longitud en tiempo real
                 />
               ) : (
                 /* Empty State: UI amigable cuando no hay coordenadas */
