@@ -2,7 +2,8 @@
 
 import { useEffect } from 'react';
 import L from 'leaflet';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+// 1. Agregamos Polyline a las importaciones de react-leaflet
+import { MapContainer, TileLayer, Marker, Popup, useMap, Polyline } from 'react-leaflet';
 import { fixLeafletIcons } from '@/lib/leaflet-setup';
 
 interface MapaClienteProps {
@@ -130,6 +131,10 @@ export default function MapaCliente({
     const coordsDestino: [number, number] | undefined =
         destinoLat !== undefined && destinoLng !== undefined ? [destinoLat, destinoLng] : undefined;
 
+    // 2. Preparamos las coordenadas del camión
+    const coordsCamion: [number, number] | undefined =
+        camionLat !== undefined && camionLng !== undefined ? [camionLat, camionLng] : undefined;
+
     const centroInicial = coordsOrigen || centroPorDefecto;
 
     return (
@@ -148,6 +153,14 @@ export default function MapaCliente({
                 {/* Ejecutamos la lógica de encuadre */}
                 <AjusteEncuadre origen={coordsOrigen} destino={coordsDestino} />
 
+                {/* 3. Renderizamos la Polyline (Ruta planificada) solo si hay coordenadas */}
+                {ruta.length > 0 && (
+                    <Polyline
+                        positions={ruta}
+                        pathOptions={opcionesRuta}
+                    />
+                )}
+
                 {/* Marcador de Origen con su ícono verde (solo se dibuja si existen las coordenadas)*/}
                 {coordsOrigen && (
                     <Marker position={coordsOrigen} icon={iconoOrigen}>
@@ -162,6 +175,15 @@ export default function MapaCliente({
                     <Marker position={coordsDestino} icon={iconoDestino}>
                         <Popup>
                             <span className="font-bold text-blue-600">Destino:</span> {destinoNombre}
+                        </Popup>
+                    </Marker>
+                )}
+
+                {/* 4. Renderizamos el marcador del camión en movimiento */}
+                {coordsCamion && (
+                    <Marker position={coordsCamion} icon={iconoCamion}>
+                        <Popup>
+                            <span className="font-bold text-amber-500">Ubicación Actual</span>
                         </Popup>
                     </Marker>
                 )}
