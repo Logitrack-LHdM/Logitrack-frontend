@@ -205,25 +205,29 @@ class ApiClient {
   /**
    * Obtiene la ruta completa planificada para un envío y la 
    * formatea para ser usada directamente en react-leaflet.
+   * Se añade soporte opcional para AbortSignal.
    */
-  async getRutaPlanificada(idEnvio: string): Promise<[number, number][]> {
+  async getRutaPlanificada(idEnvio: string, signal?: AbortSignal): Promise<[number, number][]> {
     try {
-      const response = await this.request<RutaCamionResponse>(`/envios/${idEnvio}/ruta-completa`);
+      const response = await this.request<RutaCamionResponse>(`/envios/${idEnvio}/ruta-completa`, { signal });
 
       // Transformamos inmediatamente la respuesta para que el frontend no 
       // lidie con el formato GeoJSON [longitud, latitud]
       return adaptarRutaParaLeaflet(response.coordinates);
     } catch (error) {
+      // Si la petición fue cancelada intencionalmente, ignoramos el error de manera silenciosa
+      if (error instanceof Error && error.name === 'AbortError') {
+        return [];
+      }
       console.error(`Error al obtener la ruta para el envío ${idEnvio}:`, error);
-      // Retornamos un arreglo vacío en lugar de lanzar el error para 
-      // cumplir con nuestra política de casos extremos (Fase 1.4)
       return [];
     }
   }
 
   // Obtiene la ubicación actual del camión.
-  async getUbicacionTiempoReal(idEnvio: string): Promise<UbicacionTiempoRealResponse> {
-    return this.request<UbicacionTiempoRealResponse>(`/envios/${idEnvio}/tracking`);
+  // Se añade soporte opcional para AbortSignal.
+  async getUbicacionTiempoReal(idEnvio: string, signal?: AbortSignal): Promise<UbicacionTiempoRealResponse> {
+    return this.request<UbicacionTiempoRealResponse>(`/envios/${idEnvio}/tracking`, { signal });
   }
 
   // === CHOFER ===
