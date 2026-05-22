@@ -36,6 +36,42 @@ const crearIconoPersonalizado = (colorFill: string) => {
 const iconoOrigen = crearIconoPersonalizado('#198754');
 const iconoDestino = crearIconoPersonalizado('#0d6efd');
 
+// Función para crear el marcador del camión en movimiento
+const crearIconoCamion = (colorFondo: string) => {
+    // SVG de un círculo con un camión de carga en el medio
+    const svgString = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" width="36px" height="36px">
+      <circle cx="18" cy="18" r="16" fill="${colorFondo}" stroke="white" stroke-width="2"/>
+      <g transform="translate(8, 9) scale(0.85)">
+        <path d="M5 18H3c-.6 0-1-.4-1-1V7c0-.6.4-1 1-1h10c.6 0 1 .4 1 1v11" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M14 9h4l4 4v5h-3" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="7" cy="18" r="2" fill="none" stroke="white" stroke-width="2"/>
+        <circle cx="17" cy="18" r="2" fill="none" stroke="white" stroke-width="2"/>
+      </g>
+    </svg>
+  `;
+
+    return L.divIcon({
+        html: svgString,
+        className: 'bg-transparent border-none', // Anulamos estilos por defecto
+        iconSize: [36, 36],
+        iconAnchor: [18, 18], // A diferencia de los pines, el ancla de un círculo es su centro exacto
+        popupAnchor: [0, -18] // El popup se abre justo arriba del círculo
+    });
+};
+
+// Instanciamos el ícono del camión usando el color ámbar de tu interfaz
+const iconoCamion = crearIconoCamion('#f59e0b');
+
+// Configuración visual para la Polyline (Ruta planificada)
+const opcionesRuta = {
+    color: '#64748b', // Gris pizarra (slate-500 de Tailwind)
+    weight: 4,        // Grosor de la línea
+    opacity: 0.8,     // Ligeramente transparente para no tapar calles del mapa base
+    dashArray: '10, 10', // Crea el efecto de línea punteada
+    lineJoin: 'round' as const // Suaviza las esquinas de la línea cuando el camión dobla
+};
+
 // Componente invisible para controlar la cámara del mapa
 function AjusteEncuadre({
     origen,
