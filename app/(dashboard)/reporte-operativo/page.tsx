@@ -159,13 +159,15 @@ export default function ReporteOperativoPage() {
                                                 tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }}
                                             />
                                             <Tooltip
-                                                cursor={{ fill: 'hsl(var(--muted)/0.5)' }}
+                                                cursor={{ fill: 'var(--muted)', opacity: 0.4 }}
                                                 contentStyle={{
-                                                    backgroundColor: 'hsl(var(--card))',
+                                                    backgroundColor: 'var(--card)',
                                                     borderRadius: '8px',
-                                                    border: '1px solid hsl(var(--border))',
-                                                    color: 'hsl(var(--foreground))'
+                                                    border: '1px solid var(--border)',
+                                                    color: 'var(--foreground)',
+                                                    boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)'
                                                 }}
+                                                itemStyle={{ color: 'var(--foreground)' }}
                                             />
                                             <Bar dataKey="cantidad" radius={[4, 4, 0, 0]}>
                                                 {datosGrafico.map((entry, index) => (
