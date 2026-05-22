@@ -78,6 +78,7 @@ export const PERMISOS_POR_ROL: Record<
     verMenu: boolean;
     asignarTransporte: boolean;
     panelAdmin: boolean;
+    verReporteOperativo: boolean;
   }
 > = {
   ROLE_OPERADOR: {
@@ -89,6 +90,7 @@ export const PERMISOS_POR_ROL: Record<
     verMenu: true,
     asignarTransporte: true,
     panelAdmin: false,
+    verReporteOperativo: false,
   },
   ROLE_SUPERVISOR: {
     crearEnvio: true,
@@ -99,6 +101,7 @@ export const PERMISOS_POR_ROL: Record<
     verMenu: true,
     asignarTransporte: true,
     panelAdmin: false,
+    verReporteOperativo: true,
   },
   ROLE_ADMINISTRADOR: {
     crearEnvio: false,
@@ -109,6 +112,7 @@ export const PERMISOS_POR_ROL: Record<
     verMenu: false,
     asignarTransporte: false,
     panelAdmin: true,
+    verReporteOperativo: false,
   },
   ROLE_CHOFER: {
     crearEnvio: false,
@@ -119,6 +123,7 @@ export const PERMISOS_POR_ROL: Record<
     verMenu: false,
     asignarTransporte: false,
     panelAdmin: false,
+    verReporteOperativo: false,
   },
 };
 
