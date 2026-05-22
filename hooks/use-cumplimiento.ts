@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { RespuestaCumplimiento } from '@/types/cumplimiento';
 import { cumplimientoMockData } from '@/mocks/cumplimientoMock';
+// TODO: Descomentar la siguiente línea en la Integración #242
+// import api from '@/lib/api'; 
 
 export function useCumplimiento() {
     const [data, setData] = useState<RespuestaCumplimiento | null>(null);
@@ -13,15 +15,21 @@ export function useCumplimiento() {
                 setIsLoading(true);
                 setError(null);
 
+                // --- INICIO: MODO MOCK (Desarrollo Frontend) ---
                 // Simulamos el tiempo de respuesta de la red (ej. 1.5 segundos)
-                // para poder apreciar los Skeletons en el frontend.
+                // Simula latencia de red para probar los Skeletons
                 await new Promise((resolve) => setTimeout(resolve, 1500));
-
-                // TODO (Integración #242): Reemplazar el mock por la llamada real al endpoint.
-                // const response = await apiClient.get<RespuestaCumplimiento>('/api/v1/cumplimiento');
-                // setData(response.data);
-
                 setData(cumplimientoMockData);
+                // --- FIN: MODO MOCK ---
+
+                // --- INICIO: MODO PRODUCCIÓN (Integración #242) ---
+                // Cuando el endpoint en Java Spring Boot esté listo, elimina el bloque de 
+                // "MODO MOCK" arriba y descomenta las siguientes líneas:
+                //
+                // const response = await api.get<RespuestaCumplimiento>('/api/v1/cumplimiento');
+                // setData(response.data);
+                // --- FIN: MODO PRODUCCIÓN ---
+
             } catch (err) {
                 setError('Ocurrió un error al cargar las métricas de cumplimiento y puntualidad.');
                 console.error(err);
