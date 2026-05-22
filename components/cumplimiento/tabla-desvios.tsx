@@ -8,6 +8,7 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { DetalleViajeCumplimiento } from '@/types/cumplimiento';
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
 
@@ -56,53 +57,66 @@ export function TablaDesvios({ viajes }: TablaDesviosProps) {
                     Detalle de entregas completadas y sus respectivos desvíos frente al ETA estimado.
                 </CardDescription>
             </CardHeader>
-            <CardContent>
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>ID Envío</TableHead>
-                            <TableHead>Estado</TableHead>
-                            <TableHead>ETA (Estimado)</TableHead>
-                            <TableHead>Entrega Real</TableHead>
-                            <TableHead className="text-right">Desvío</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {viajesCompletados.length === 0 ? (
+            <CardContent className="p-0 sm:p-6">
+                {/* Contenedor responsivo para permitir scroll horizontal en móviles */}
+                <div className="overflow-x-auto">
+                    <Table className="min-w-[700px]">
+                        <TableHeader>
                             <TableRow>
-                                <TableCell colSpan={5} className="text-center h-24 text-muted-foreground">
-                                    No hay viajes completados para analizar en este período.
-                                </TableCell>
+                                <TableHead className="pl-4 sm:pl-0">ID Envío</TableHead>
+                                <TableHead>Estado</TableHead>
+                                <TableHead>ETA (Estimado)</TableHead>
+                                <TableHead>Entrega Real</TableHead>
+                                <TableHead className="text-right pr-4 sm:pr-0">Desvío</TableHead>
                             </TableRow>
-                        ) : (
-                            viajesCompletados.map((viaje) => (
-                                <TableRow key={viaje.idEnvio}>
-                                    <TableCell className="font-medium">{viaje.idEnvio}</TableCell>
-                                    <TableCell>{viaje.estadoActual}</TableCell>
-
-                                    {/* Celdas con fechas formateadas */}
-                                    <TableCell>{formatearFecha(viaje.fechaEstimadaLlegada)}</TableCell>
-                                    <TableCell>{formatearFecha(viaje.fechaEntregaReal)}</TableCell>
-
-                                    {/* Celda de Desvío con renderizado condicional (Criterio 2) */}
-                                    <TableCell
-                                        className={`text-right font-medium ${viaje.esRetrasado ? 'text-destructive' : 'text-[color:var(--status-delivered)]'
-                                            }`}
-                                    >
-                                        <div className="flex items-center justify-end gap-1.5">
-                                            {viaje.esRetrasado ? (
-                                                <AlertCircle className="h-4 w-4" />
-                                            ) : (
-                                                <CheckCircle2 className="h-4 w-4" />
-                                            )}
-                                            {formatearDesvio(viaje.desvioHoras, viaje.esRetrasado)}
-                                        </div>
+                        </TableHeader>
+                        <TableBody>
+                            {viajesCompletados.length === 0 ? (
+                                <TableRow>
+                                    <TableCell colSpan={5} className="text-center h-24 text-muted-foreground">
+                                        No hay viajes completados para analizar en este período.
                                     </TableCell>
                                 </TableRow>
-                            ))
-                        )}
-                    </TableBody>
-                </Table>
+                            ) : (
+                                viajesCompletados.map((viaje) => (
+                                    <TableRow key={viaje.idEnvio}>
+                                        <TableCell className="font-medium pl-4 sm:pl-0">{viaje.idEnvio}</TableCell>
+                                        <TableCell>
+                                            {/* Integración del componente Badge con el color semántico de entregado */}
+                                            <Badge
+                                                variant="outline"
+                                                style={{
+                                                    backgroundColor: 'color-mix(in srgb, var(--status-delivered) 15%, transparent)',
+                                                    color: 'var(--status-delivered)',
+                                                    borderColor: 'color-mix(in srgb, var(--status-delivered) 30%, transparent)'
+                                                }}
+                                            >
+                                                {viaje.estadoActual}
+                                            </Badge>
+                                        </TableCell>
+                                        {/* Celdas con fechas formateadas */}
+                                        <TableCell>{formatearFecha(viaje.fechaEstimadaLlegada)}</TableCell>
+                                        <TableCell>{formatearFecha(viaje.fechaEntregaReal)}</TableCell>
+                                        {/* Celda de Desvío con renderizado condicional (Criterio 2) */}
+                                        <TableCell
+                                            className={`text-right font-medium pr-4 sm:pr-0 ${viaje.esRetrasado ? 'text-destructive' : 'text-[color:var(--status-delivered)]'
+                                                }`}
+                                        >
+                                            <div className="flex items-center justify-end gap-1.5 whitespace-nowrap">
+                                                {viaje.esRetrasado ? (
+                                                    <AlertCircle className="h-4 w-4" />
+                                                ) : (
+                                                    <CheckCircle2 className="h-4 w-4" />
+                                                )}
+                                                {formatearDesvio(viaje.desvioHoras, viaje.esRetrasado)}
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            )}
+                        </TableBody>
+                    </Table>
+                </div>
             </CardContent>
         </Card>
     );
