@@ -1,6 +1,8 @@
 'use client';
 
 import React from 'react';
+import { Truck, Scale } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useReporteOperativo } from '@/hooks/use-reporte-operativo';
 
@@ -21,6 +23,15 @@ export default function ReporteOperativoPage() {
             </div>
         );
     }
+
+    // Función auxiliar para formatear los kilos con separadores de miles y decimales
+    const formatearKilos = (kilos: number | undefined) => {
+        if (kilos === undefined) return '0';
+        return new Intl.NumberFormat('es-AR', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        }).format(kilos);
+    };
 
     return (
         <div className="container mx-auto px-4 py-8">
@@ -47,16 +58,45 @@ export default function ReporteOperativoPage() {
                         </>
                     ) : (
                         <>
-                            {/* Espacio para la Fase 3.3: Tarjetas de Métricas Globales */}
-                            <div className="lg:col-span-2 border-2 border-dashed border-muted rounded-xl h-32 flex flex-col items-center justify-center text-muted-foreground bg-muted/10">
-                                <span>[Card Total Viajes]</span>
-                                <span className="font-bold text-foreground mt-2">Dato mock: {data?.metricasGlobales.totalViajes}</span>
-                            </div>
+                            {/* Tarjeta 1: Total de Viajes */}
+                            <Card className="lg:col-span-2 shadow-sm hover:shadow-md transition-shadow">
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                    <CardTitle className="text-sm font-medium text-muted-foreground">
+                                        Total de Viajes
+                                    </CardTitle>
+                                    <div className="p-2 bg-primary/10 rounded-full">
+                                        <Truck className="h-4 w-4 text-primary" />
+                                    </div>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="text-3xl font-bold text-foreground">
+                                        {data?.metricasGlobales.totalViajes}
+                                    </div>
+                                    <p className="text-xs text-muted-foreground mt-1">
+                                        Viajes registrados en el período actual
+                                    </p>
+                                </CardContent>
+                            </Card>
 
-                            <div className="lg:col-span-2 border-2 border-dashed border-muted rounded-xl h-32 flex flex-col items-center justify-center text-muted-foreground bg-muted/10">
-                                <span>[Card Total Kilos]</span>
-                                <span className="font-bold text-foreground mt-2">Dato mock: {data?.metricasGlobales.totalKilos} kg</span>
-                            </div>
+                            {/* Tarjeta 2: Total de Kilos Transportados */}
+                            <Card className="lg:col-span-2 shadow-sm hover:shadow-md transition-shadow">
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                    <CardTitle className="text-sm font-medium text-muted-foreground">
+                                        Kilos Transportados
+                                    </CardTitle>
+                                    <div className="p-2 bg-primary/10 rounded-full">
+                                        <Scale className="h-4 w-4 text-primary" />
+                                    </div>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="text-3xl font-bold text-foreground">
+                                        {formatearKilos(data?.metricasGlobales.totalKilos)} <span className="text-lg font-normal text-muted-foreground">kg</span>
+                                    </div>
+                                    <p className="text-xs text-muted-foreground mt-1">
+                                        Volumen total de carga gestionada
+                                    </p>
+                                </CardContent>
+                            </Card>
                         </>
                     )}
 
