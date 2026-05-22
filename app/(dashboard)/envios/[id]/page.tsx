@@ -30,6 +30,7 @@ import type { EstadoEnvio, Prioridad } from '@/types';
 import { normalizarEnum } from '@/lib/utils';
 import { MapaEnvio } from '@/components/envios/mapa-envio';
 // import { useProgresoEnvio } from '@/hooks/use-progress';
+import { useRastreoTiempoReal } from '@/hooks/use-rastreo-tiempo-real';
 
 export default function DetalleEnvioPage({
   params,
@@ -39,8 +40,12 @@ export default function DetalleEnvioPage({
   const router = useRouter();
   const { id } = use(params);
 
-  // Pasamos el "id" directamente como string sin usar parseInt
+  // Pasamos el "id" directamente como string sin usar parseInt. Hook existente con los datos generales
   const { envio, historial, isLoading, isUpdating, error, actualizarEnvio } = useEnvioDetail(id);
+
+  // Consumimos la ruta desde el nuevo hook independiente
+  const { ruta } = useRastreoTiempoReal(id);
+
   const { permisos } = useAuth();
 
   const [nuevoEstado, setNuevoEstado] = useState<EstadoEnvio | ''>('');
@@ -222,6 +227,7 @@ export default function DetalleEnvioPage({
                   destinoLng={envio.destino.longitud}
                   origenNombre={envio.origen.nombreLugar}
                   destinoNombre={envio.destino.nombreLugar}
+                  ruta={ruta}
                 />
               ) : (
                 /* Empty State: UI amigable cuando no hay coordenadas */
