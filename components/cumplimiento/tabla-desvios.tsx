@@ -9,10 +9,37 @@ import {
 } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { DetalleViajeCumplimiento } from '@/types/cumplimiento';
+import { AlertCircle, CheckCircle2 } from 'lucide-react';
 
 interface TablaDesviosProps {
     viajes: DetalleViajeCumplimiento[];
 }
+
+// Helper para formatear fechas a un formato legible (DD/MM/AAAA HH:mm)
+const formatearFecha = (fechaIso: string | null) => {
+    if (!fechaIso) return 'N/A';
+    const date = new Date(fechaIso);
+    return new Intl.DateTimeFormat('es-AR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+    }).format(date);
+};
+
+// Helper para formatear el desvío según el Criterio 2 (horas o días)
+const formatearDesvio = (horas: number | null, esRetrasado: boolean | null) => {
+    if (horas === null || esRetrasado === null) return '-';
+    if (!esRetrasado || horas <= 0) return 'A tiempo';
+
+    if (horas > 24) {
+        const dias = Math.floor(horas / 24);
+        const horasRestantes = Math.round(horas % 24);
+        return `${dias} d ${horasRestantes} h de retraso`;
+    }
+    return `${Math.round(horas)} h de retraso`;
+};
 
 export function TablaDesvios({ viajes }: TablaDesviosProps) {
     // Criterio 3: Inclusión en métricas solo de viajes completados.
@@ -52,9 +79,25 @@ export function TablaDesvios({ viajes }: TablaDesviosProps) {
                                 <TableRow key={viaje.idEnvio}>
                                     <TableCell className="font-medium">{viaje.idEnvio}</TableCell>
                                     <TableCell>{viaje.estadoActual}</TableCell>
-                                    <TableCell>{viaje.fechaEstimadaLlegada}</TableCell>
-                                    <TableCell>{viaje.fechaEntregaReal}</TableCell>
-                                    <TableCell className="text-right">{viaje.desvioHoras}</TableCell>
+
+                                    {/* Celdas con fechas formateadas */}
+                                    <TableCell>{formatearFecha(viaje.fechaEstimadaLlegada)}</TableCell>
+                                    <TableCell>{formatearFecha(viaje.fechaEntregaReal)}</TableCell>
+
+                                    {/* Celda de Desvío con renderizado condicional (Criterio 2) */}
+                                    <TableCell
+                                        className={`text-right font-medium ${viaje.esRetrasado ? 'text-destructive' : 'text-[color:var(--status-delivered)]'
+                                            }`}
+                                    >
+                                        <div className="flex items-center justify-end gap-1.5">
+                                            {viaje.esRetrasado ? (
+                                                <AlertCircle className="h-4 w-4" />
+                                            ) : (
+                                                <CheckCircle2 className="h-4 w-4" />
+                                            )}
+                                            {formatearDesvio(viaje.desvioHoras, viaje.esRetrasado)}
+                                        </div>
+                                    </TableCell>
                                 </TableRow>
                             ))
                         )}
