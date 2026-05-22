@@ -16,7 +16,11 @@ import type {
   EnvioChofer,
   UsuarioResponseDTO,
   UsuarioRequestDTO,
+  UbicacionTiempoRealResponse,
+  RutaCamionResponse,
 } from '@/types';
+
+import { adaptarRutaParaLeaflet } from '@/lib/utils';
 
 // Base URL de la API - usar variable de entorno en produccion
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
@@ -195,6 +199,31 @@ class ApiClient {
 
   async getHistorialCompleto(): Promise<RegistroHistorial[]> {
     return this.request<RegistroHistorial[]>('/envios/historial-completo');
+  }
+
+  // === RASTREO TIEMPO REAL DE ENVIO===
+  /**
+   * Obtiene la ruta completa planificada para un envío y la 
+   * formatea para ser usada directamente en react-leaflet.
+   */
+  async getRutaPlanificada(idEnvio: string): Promise<[number, number][]> {
+    try {
+      const response = await this.request<RutaCamionResponse>(`/envios/${idEnvio}/ruta-completa`);
+
+      // Transformamos inmediatamente la respuesta para que el frontend no 
+      // lidie con el formato GeoJSON [longitud, latitud]
+      return adaptarRutaParaLeaflet(response.coordinates);
+    } catch (error) {
+      console.error(`Error al obtener la ruta para el envío ${idEnvio}:`, error);
+      // Retornamos un arreglo vacío en lugar de lanzar el error para 
+      // cumplir con nuestra política de casos extremos (Fase 1.4)
+      return [];
+    }
+  }
+
+  // Obtiene la ubicación actual del camión.
+  async getUbicacionTiempoReal(idEnvio: string): Promise<UbicacionTiempoRealResponse> {
+    return this.request<UbicacionTiempoRealResponse>(`/envios/${idEnvio}/tracking`);
   }
 
   // === CHOFER ===
