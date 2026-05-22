@@ -1,16 +1,27 @@
-import { useState, useEffect } from 'react';
-import { api } from '@/lib/api'; // Ajustá esta ruta según dónde esté tu archivo api.ts
+import { useState, useEffect, useCallback } from 'react';
+import { api } from '@/lib/api';
+import type { EstadoEnvio } from '@/types';
+
+// Definimos el tiempo de actualización como constante para facilitar cambios futuros
+const INTERVALO_POLLING_MS = 30000; // 30 segundos
 
 export function useRastreoTiempoReal(idEnvio: string) {
-    // 1. Definición de Estados
+    // Definición de Estados
     // Inicializamos la ruta como un arreglo vacío para evitar errores en el primer renderizado
     const [ruta, setRuta] = useState<[number, number][]>([]);
     const [isRutaCargando, setIsRutaCargando] = useState<boolean>(true);
     const [errorRuta, setErrorRuta] = useState<string | null>(null);
 
-    // (En el Paso 4 agregaremos aquí los estados para el movimiento del camión)
+    // --- NUEVOS ESTADOS: Tracking del Camión ---
+    // Se gregarema los estados para el movimiento del camión
+    const [camionLat, setCamionLat] = useState<number | undefined>(undefined);
+    const [camionLng, setCamionLng] = useState<number | undefined>(undefined);
+    const [porcentajeCompletado, setPorcentajeCompletado] = useState<number>(0);
+    const [estadoActual, setEstadoActual] = useState<EstadoEnvio | null>(null);
+    const [isTrackingCargando, setIsTrackingCargando] = useState<boolean>(true);
+    const [errorTracking, setErrorTracking] = useState<string | null>(null);
 
-    // 2. Efecto para cargar la ruta (Se ejecuta solo al montar o si cambia el idEnvio)
+    // Efecto para cargar la ruta (Se ejecuta solo al montar o si cambia el idEnvio)
     useEffect(() => {
         if (!idEnvio) return;
 
@@ -49,10 +60,76 @@ export function useRastreoTiempoReal(idEnvio: string) {
         };
     }, [idEnvio]);
 
-    // 3. Exponemos los datos y estados hacia el componente
+    // --- NUEVA FUNCIÓN: Fase 4.1 (Consulta de Ubicación en Tiempo Real) ---
+    // Memorizamos la función con useCallback para evitar recreaciones innecesarias
+    const fetchUbicacion = useCallback(async (isMounted: boolean = true) => {
+        if (!idEnvio) return;
+
+        try {
+            const data = await api.getUbicacionTiempoReal(idEnvio);
+
+            if (isMounted) {
+                setCamionLat(data.latitudActual);
+                setCamionLng(data.longitudActual);
+                setPorcentajeCompletado(data.porcentajeCompletado);
+                setEstadoActual(data.estadoActual);
+                setErrorTracking(null);
+            }
+        } catch (err) {
+            if (isMounted) {
+                // En lugar de romper la app, registramos el error para manejar la resiliencia en la UI
+                setErrorTracking('No se pudo obtener la ubicación en tiempo real del camión.');
+            }
+        } finally {
+            if (isMounted) {
+                setIsTrackingCargando(false);
+            }
+        }
+    }, [idEnvio]);
+
+    // --- NUEVO EFECTO: Fase 4.2 (Lógica de Polling) ---
+    useEffect(() => {
+        let isMounted = true;
+
+        // 1. Ejecución inmediata al montar el componente
+        fetchUbicacion(isMounted);
+
+        // 2. Control de intervalo: Declaramos la variable para el temporizador
+        let intervalId: NodeJS.Timeout;
+
+        // 3. Validación: Solo iniciamos el temporizador si el estado es EN_TRANSITO, EN_PUNTO_DE_RECOLECCION o EN_REPARTO
+        // (O si es null, lo que significa que es la primera carga y aún no sabemos el estado)
+        if (estadoActual === 'EN_TRANSITO' || estadoActual === 'EN_PUNTO_DE_RECOLECCION' || estadoActual === 'EN_REPARTO' || estadoActual === null) {
+            intervalId = setInterval(() => {
+                fetchUbicacion(isMounted);
+            }, INTERVALO_POLLING_MS);
+        }
+
+        // 4. Limpieza de recursos (Cumplimiento Tarea #230)
+        return () => {
+            isMounted = false;
+            if (intervalId) {
+                clearInterval(intervalId);
+            }
+        };
+    }, [fetchUbicacion, estadoActual]);
+    // Dependencias: 
+    // - fetchUbicacion está memorizada por useCallback.
+    // - estadoActual nos permite detener el temporizador si el viaje finaliza (ej. pasa a ENTREGADO).
+
+    // Exponemos los datos y estados hacia el componente
+    // Retornamos tanto los datos de la ruta como las variables dinámicas del vehículo
     return {
         ruta,
         isRutaCargando,
         errorRuta,
+        // Retornos de tracking:
+        camionLat,
+        camionLng,
+        porcentajeCompletado,
+        estadoActual,
+        isTrackingCargando,
+        errorTracking,
+        fetchUbicacion
     };
 }
