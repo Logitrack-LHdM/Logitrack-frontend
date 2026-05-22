@@ -6,7 +6,7 @@ import { GraficoPuntualidad } from './grafico-puntualidad';
 import { TablaDesvios } from './tabla-desvios';
 import { useCumplimiento } from '@/hooks/use-cumplimiento';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AlertCircle } from 'lucide-react';
+import { Activity, AlertCircle } from 'lucide-react';
 
 export function CumplimientoDashboard() {
     // Consumimos el mock a través de nuestro hook simulado
@@ -28,9 +28,16 @@ export function CumplimientoDashboard() {
     return (
         <div className="space-y-6">
             {/* Encabezado temporal para orientar la vista (Mayo 2026) */}
-            <div className="mb-6">
-                <h2 className="text-xl font-bold text-foreground">Resumen de Cumplimiento</h2>
-                <p className="text-sm text-muted-foreground">Métricas globales correspondientes a Mayo 2026</p>
+            <div className="flex items-center gap-3 mb-6 mt-2 px-2 md:px-0">
+                <div className="p-4 rounded-2xl bg-gradient-to-br from-[#1b4332] to-[#2d6a4f] text-white shadow-md group-hover:shadow-lg transition-shadow">
+                    <Activity className="h-7 w-7" />
+                </div>
+                <div>
+                    <h4 className="font-bold text-gray-900 mb-1 text-xl md:text-2xl">Resumen de Cumplimiento</h4>
+                    <p className="text-muted-foreground text-sm m-0">
+                        Métricas globales correspondientes a Mayo 2026
+                    </p>
+                </div>
             </div>
 
             {/* 
