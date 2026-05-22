@@ -2,6 +2,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { api } from '@/lib/api';
 import type { EstadoEnvio } from '@/types';
 
+// Definimos el tiempo de actualización como constante para facilitar cambios futuros
+const INTERVALO_POLLING_MS = 30000; // 30 segundos
+
 export function useRastreoTiempoReal(idEnvio: string) {
     // Definición de Estados
     // Inicializamos la ruta como un arreglo vacío para evitar errores en el primer renderizado
@@ -83,6 +86,36 @@ export function useRastreoTiempoReal(idEnvio: string) {
             }
         }
     }, [idEnvio]);
+
+    // --- NUEVO EFECTO: Fase 4.2 (Lógica de Polling) ---
+    useEffect(() => {
+        let isMounted = true;
+
+        // 1. Ejecución inmediata al montar el componente
+        fetchUbicacion(isMounted);
+
+        // 2. Control de intervalo: Declaramos la variable para el temporizador
+        let intervalId: NodeJS.Timeout;
+
+        // 3. Validación: Solo iniciamos el temporizador si el estado es EN_TRANSITO, EN_PUNTO_DE_RECOLECCION o EN_REPARTO
+        // (O si es null, lo que significa que es la primera carga y aún no sabemos el estado)
+        if (estadoActual === 'EN_TRANSITO' || estadoActual === 'EN_PUNTO_DE_RECOLECCION' || estadoActual === 'EN_REPARTO' || estadoActual === null) {
+            intervalId = setInterval(() => {
+                fetchUbicacion(isMounted);
+            }, INTERVALO_POLLING_MS);
+        }
+
+        // 4. Limpieza de recursos (Cumplimiento Tarea #230)
+        return () => {
+            isMounted = false;
+            if (intervalId) {
+                clearInterval(intervalId);
+            }
+        };
+    }, [fetchUbicacion, estadoActual]);
+    // Dependencias: 
+    // - fetchUbicacion está memorizada por useCallback.
+    // - estadoActual nos permite detener el temporizador si el viaje finaliza (ej. pasa a ENTREGADO).
 
     // Exponemos los datos y estados hacia el componente
     // Retornamos tanto los datos de la ruta como las variables dinámicas del vehículo
