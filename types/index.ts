@@ -195,3 +195,21 @@ export interface EnvioChofer {
   // nombreChofer: string;
   prioridadIa: Prioridad;   // ← agregar
 }
+
+// === MAPAS ===
+// Interface para la respuesta del endpoint de polling (cada 30 seg)
+export interface UbicacionTiempoRealResponse {
+  idEnvio: string;
+  estadoActual: EstadoEnvio; // Reutilizamos el tipo que ya tienes en tu proyecto
+  latitudActual: number;
+  longitudActual: number;
+  porcentajeCompletado: number;
+}
+
+// Interface para la respuesta de la ruta completa (Polyline)
+export interface RutaCamionResponse {
+  idEnvio: string;
+  // Usamos un array de tuplas de dos números.
+  // El backend envía el formato GeoJSON: [longitud, latitud]
+  coordinates: [number, number][]; 
+}
