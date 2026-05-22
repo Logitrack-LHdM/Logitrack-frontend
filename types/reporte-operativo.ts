@@ -1,5 +1,3 @@
-// types/reporte-operativo.ts
-
 // 1. Tipamos las llaves exactas de los estados para evitar errores tipográficos
 export type EstadoEnvioClave = 
   | 'pendientes'
