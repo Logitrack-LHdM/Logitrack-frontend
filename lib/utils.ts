@@ -84,3 +84,20 @@ export function formatearPeso(kg: number): string {
   return `${kg.toLocaleString('es-AR')} kg`;
 }
 
+/**
+ * Transforma un arreglo de coordenadas GeoJSON [Longitud, Latitud] 
+ * al formato que requiere Leaflet [Latitud, Longitud].
+ * * @param coordenadasGeoJson Arreglo de tuplas [longitud, latitud]
+ * @returns Arreglo de tuplas [latitud, longitud]
+ */
+export const adaptarRutaParaLeaflet = (
+  coordenadasGeoJson?: [number, number][]
+): [number, number][] => {
+  // Verificación de seguridad por si el backend envía null o un arreglo vacío
+  if (!coordenadasGeoJson || coordenadasGeoJson.length === 0) {
+    return [];
+  }
+
+  // Iteramos sobre el arreglo e invertimos el orden de cada tupla
+  return coordenadasGeoJson.map(([longitud, latitud]) => [latitud, longitud]);
+};
