@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import L from 'leaflet';
 // 1. Agregamos Polyline a las importaciones de react-leaflet
 import { MapContainer, TileLayer, Marker, Popup, useMap, Polyline } from 'react-leaflet';
@@ -80,27 +80,50 @@ const opcionesRuta = {
 // Componente invisible para controlar la cámara del mapa
 function AjusteEncuadre({
     origen,
-    destino
+    destino,
+    camion,
+    ruta
 }: {
     origen?: [number, number];
     destino?: [number, number];
+    camion?: [number, number];
+    ruta?: [number, number][];
 }) {
     const map = useMap(); // Obtenemos la instancia real de Leaflet
+    // Usamos una referencia para saber si ya hicimos el zoom inicial
+    const encuadreRealizado = useRef(false);
 
     useEffect(() => {
-        if (origen && destino) {
-            // 1. Creamos una "caja" (bounding box) que envuelve ambos puntos
-            const bounds = L.latLngBounds([origen, destino]);
+        // Si ya encuadramos, no hacemos nada más para dejar al usuario navegar tranquilo
+        if (encuadreRealizado.current) return;
 
-            // 2. Le pedimos a Leaflet que ajuste el zoom para que la caja entre en pantalla.
+        // Prioridad 1: Encuadrar usando toda la ruta planificada
+        if (ruta && ruta.length > 0) {
+            // Creamos una "caja" (bounding box) que envuelve ambos puntos
+            const bounds = L.latLngBounds(ruta);
+
+            // Le pedimos a Leaflet que ajuste el zoom para que la caja entre en pantalla.
             // El padding asegura que los pines no queden pegados a los bordes del contenedor.
             map.fitBounds(bounds, { padding: [50, 50] });
-        } else if (origen) {
-            map.setView(origen, 13);
-        } else if (destino) {
-            map.setView(destino, 13);
+            encuadreRealizado.current = true;
         }
-    }, [map, origen, destino]);
+        // Prioridad 2: Fallback (Si la ruta aún no cargó, encuadramos los puntos sueltos)
+        else {
+            const puntosBase = [];
+            if (origen) puntosBase.push(origen);
+            if (destino) puntosBase.push(destino);
+            if (camion) puntosBase.push(camion);
+
+            if (puntosBase.length > 1) {
+                const bounds = L.latLngBounds(puntosBase);
+                map.fitBounds(bounds, { padding: [50, 50] });
+                encuadreRealizado.current = true;
+            } else if (puntosBase.length === 1) {
+                map.setView(puntosBase[0], 13);
+                encuadreRealizado.current = true;
+            }
+        }
+    }, [map, origen, destino, camion, ruta]);
 
     return null; // No renderiza nada en el DOM
 }
@@ -151,7 +174,12 @@ export default function MapaCliente({
                 />
 
                 {/* Ejecutamos la lógica de encuadre */}
-                <AjusteEncuadre origen={coordsOrigen} destino={coordsDestino} />
+                <AjusteEncuadre
+                    origen={coordsOrigen}
+                    destino={coordsDestino}
+                    camion={coordsCamion}
+                    ruta={ruta}
+                />
 
                 {/* 3. Renderizamos la Polyline (Ruta planificada) solo si hay coordenadas */}
                 {ruta.length > 0 && (
