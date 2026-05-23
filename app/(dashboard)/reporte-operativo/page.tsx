@@ -1,8 +1,7 @@
 'use client';
 
-import React, { useMemo } from 'react';
-import { useState } from 'react';
-import { Truck, Scale, ArrowLeftCircle, ChartColumnBig, FileDown, Loader2, } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { Truck, Scale, ArrowLeftCircle, ChartColumnBig, FileDown, Loader2 } from 'lucide-react';
 import {
     BarChart,
     Bar,
@@ -19,7 +18,11 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useReporteOperativo } from '@/hooks/use-reporte-operativo';
 import { DesgloseEstados } from '@/types/reporte-operativo';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/button'; // <-- Importamos el componente Button
+import { useToast } from '@/hooks/use-toast'; // <-- Asumiendo que tu hook de notificaciones está aquí o en @/components/ui/use-toast
+
+// Importamos nuestra función mock (Fase 2.2)
+import { exportReporteOperativoCsvMock } from '@/lib/export-mock';
 
 // Función para adaptar los datos crudos al formato del gráfico inyectando variables CSS
 const adaptarDatosParaGrafico = (desglose: DesgloseEstados | undefined) => {
@@ -41,6 +44,33 @@ export default function ReporteOperativoPage() {
     const datosGrafico = useMemo(() => adaptarDatosParaGrafico(data?.desgloseEstados), [data]);
 
     // Manejo de estado de error
+    // Estados y hooks para la exportación (Fases 3.1 y 3.2)
+    const [isExporting, setIsExporting] = useState(false);
+    const { toast } = useToast();
+
+    // Controlador del botón de exportación
+    const handleExport = async () => {
+        setIsExporting(true);
+        try {
+            await exportReporteOperativoCsvMock();
+
+            toast({
+                title: "¡Exportación exitosa!",
+                description: "El archivo CSV se ha descargado correctamente en su dispositivo.",
+                variant: "default",
+            });
+        } catch (err) {
+            console.error("Error en exportación:", err);
+            toast({
+                title: "Error al exportar",
+                description: "Hubo un problema al generar el archivo. Por favor, intente nuevamente.",
+                variant: "destructive",
+            });
+        } finally {
+            setIsExporting(false);
+        }
+    };
+
     if (error) {
         return (
             <div className="container mx-auto px-4 py-8">
@@ -61,16 +91,6 @@ export default function ReporteOperativoPage() {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
         }).format(kilos);
-    };
-
-    const [isExporting, setIsExporting] = useState(false);
-
-    const handleExport = async () => {
-        setIsExporting(true);
-        // Aquí irá la lógica de consumo del mock y descarga (Fase 2 y 4)
-        // Simulamos la espera por ahora:
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        setIsExporting(false);
     };
 
     return (
@@ -118,7 +138,7 @@ export default function ReporteOperativoPage() {
                     {/* Botón de Exportación (Derecha en PC / Abajo y full-width en Móviles) */}
                     <Button
                         className="bg-[#1b4332] hover:bg-[#2d6a4f] text-white w-full sm:w-auto shadow-sm flex items-center justify-center gap-2 transition-colors disabled:opacity-80 disabled:cursor-not-allowed"
-                        disabled={isExporting}
+                        disabled={isExporting || isLoading || !data}
                         onClick={handleExport}
                     >
                         {isExporting ? (
