@@ -18,6 +18,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useReporteOperativo } from '@/hooks/use-reporte-operativo';
 import { DesgloseEstados } from '@/types/reporte-operativo';
 import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 
 // Función para adaptar los datos crudos al formato del gráfico inyectando variables CSS
 const adaptarDatosParaGrafico = (desglose: DesgloseEstados | undefined) => {
@@ -75,7 +76,7 @@ export default function ReporteOperativoPage() {
                 </Link>
 
                 {/* Encabezado Principal (Réplica exacta de tu HTML) */}
-                <div className="flex items-center gap-3 mb-6 mt-2 px-2 md:px-0">
+                {/* <div className="flex items-center gap-3 mb-6 mt-2 px-2 md:px-0">
                     <div className="p-4 rounded-2xl bg-gradient-to-br from-[#1b4332] to-[#2d6a4f] text-white shadow-md group-hover:shadow-lg transition-shadow">
                         <ChartColumnBig className="h-7 w-7" />
                     </div>
@@ -85,6 +86,34 @@ export default function ReporteOperativoPage() {
                             Resumen de la actividad diaria: volumen de carga y estado de los viajes.
                         </p>
                     </div>
+                </div> */}
+
+                {/* Encabezado Principal Modificado para incluir el botón */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 mt-2 px-2 md:px-0">
+
+                    {/* Título e Ícono (Izquierda en PC / Arriba en Móviles) */}
+                    <div className="flex items-center gap-3">
+                        <div className="p-4 rounded-2xl bg-gradient-to-br from-[#1b4332] to-[#2d6a4f] text-white shadow-md group-hover:shadow-lg transition-shadow">
+                            <ChartColumnBig className="h-7 w-7" />
+                        </div>
+                        <div>
+                            <h4 className="font-bold text-gray-900 mb-1 text-xl md:text-2xl">Reporte Operativo</h4>
+                            <p className="text-muted-foreground text-sm m-0">
+                                Resumen de la actividad diaria: volumen de carga y estado de los viajes.
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Botón de Exportación (Derecha en PC / Abajo y full-width en Móviles) */}
+                    <Button
+                        className="bg-[#1b4332] hover:bg-[#2d6a4f] text-white w-full sm:w-auto shadow-sm flex items-center justify-center gap-2 transition-colors"
+                        onClick={() => console.log("Iniciando descarga...")}
+                    >
+                        {/* Aquí iría nuestro ícono, ej: <Download className="h-4 w-4" /> */}
+                        <span className="hidden sm:inline">Exportar a CSV</span>
+                        <span className="sm:hidden">Exportar</span>
+                    </Button>
+
                 </div>
 
                 {/* Grilla de Métricas Globales */}

@@ -6,7 +6,8 @@ import { GraficoPuntualidad } from './grafico-puntualidad';
 import { TablaDesvios } from './tabla-desvios';
 import { useCumplimiento } from '@/hooks/use-cumplimiento';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Activity, AlertCircle } from 'lucide-react';
+import { Activity, AlertCircle, ChartColumnBig } from 'lucide-react';
+import { Button } from '../ui/button';
 
 export function CumplimientoDashboard() {
     // Consumimos el mock a través de nuestro hook simulado
@@ -28,17 +29,33 @@ export function CumplimientoDashboard() {
     return (
         <div className="space-y-6">
             {/* Encabezado temporal para orientar la vista (Mayo 2026) */}
-            <div className="flex items-center gap-3 mb-6 mt-2 px-2 md:px-0">
-                <div className="p-4 rounded-2xl bg-gradient-to-br from-[#1b4332] to-[#2d6a4f] text-white shadow-md group-hover:shadow-lg transition-shadow">
-                    <Activity className="h-7 w-7" />
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 mt-2 px-2 md:px-0">
+
+                {/* Título e Ícono (Izquierda en PC / Arriba en Móviles) */}
+                <div className="flex items-center gap-3">
+                    <div className="p-4 rounded-2xl bg-gradient-to-br from-[#1b4332] to-[#2d6a4f] text-white shadow-md group-hover:shadow-lg transition-shadow">
+                        <Activity className="h-7 w-7" />
+                    </div>
+                    <div>
+                        <h4 className="font-bold text-gray-900 mb-1 text-xl md:text-2xl">Resumen de Cumplimiento</h4>
+                        <p className="text-muted-foreground text-sm m-0">
+                            Métricas globales correspondientes a Mayo 2026.
+                        </p>
+                    </div>
                 </div>
-                <div>
-                    <h4 className="font-bold text-gray-900 mb-1 text-xl md:text-2xl">Resumen de Cumplimiento</h4>
-                    <p className="text-muted-foreground text-sm m-0">
-                        Métricas globales correspondientes a Mayo 2026
-                    </p>
-                </div>
+
+                {/* Botón de Exportación (Derecha en PC / Abajo y full-width en Móviles) */}
+                <Button
+                    className="bg-[#1b4332] hover:bg-[#2d6a4f] text-white w-full sm:w-auto shadow-sm flex items-center justify-center gap-2 transition-colors"
+                    onClick={() => console.log("Iniciando descarga...")}
+                >
+                    {/* Aquí iría nuestro ícono, ej: <Download className="h-4 w-4" /> */}
+                    <span className="hidden sm:inline">Exportar a CSV</span>
+                    <span className="sm:hidden">Exportar</span>
+                </Button>
+
             </div>
+
 
             {/* 
         Layout responsivo para móviles y PC: 
