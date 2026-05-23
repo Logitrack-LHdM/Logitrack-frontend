@@ -1,18 +1,48 @@
 'use client';
 
-import React from 'react';
-import { useState } from 'react';
-import { Activity, AlertCircle, FileDown, Loader2, } from 'lucide-react';
+import React, { useState } from 'react';
 import { ResumenPuntualidad } from './resumen-puntualidad';
 import { GraficoPuntualidad } from './grafico-puntualidad';
 import { TablaDesvios } from './tabla-desvios';
 import { useCumplimiento } from '@/hooks/use-cumplimiento';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Button } from '../ui/button';
+import { Activity, AlertCircle, FileDown, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
+import { exportCumplimientoCsvMock } from '@/lib/export-mock';
 
 export function CumplimientoDashboard() {
     // Consumimos el mock a través de nuestro hook simulado
     const { data, isLoading, error } = useCumplimiento();
+
+    // Estados y hooks para la exportación
+    const [isExporting, setIsExporting] = useState(false);
+    const { toast } = useToast();
+
+    // Controlador del botón de exportación
+    const handleExport = async () => {
+        setIsExporting(true);
+        try {
+            await exportCumplimientoCsvMock();
+
+            toast({
+                title: "¡Exportación exitosa!",
+                description: "El análisis de viajes y desvíos se ha descargado correctamente.",
+                variant: "default",
+            });
+        } catch (err) {
+            console.error("Error en exportación:", err);
+            // Si el error viene de nuestro mock (ej. "No hay viajes completados"), lo mostramos
+            const mensajeError = err instanceof Error ? err.message : "Hubo un problema al generar el archivo. Por favor, intente nuevamente.";
+            toast({
+                title: "Error al exportar",
+                description: mensajeError,
+                variant: "destructive",
+            });
+        } finally {
+            setIsExporting(false);
+        }
+    };
 
     // Manejo de estado de error
     if (error) {
@@ -27,19 +57,10 @@ export function CumplimientoDashboard() {
         );
     }
 
-    const [isExporting, setIsExporting] = useState(false);
-
-    const handleExport = async () => {
-        setIsExporting(true);
-        // Aquí irá la lógica de consumo del mock y descarga (Fase 2 y 4)
-        // Simulamos la espera por ahora:
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        setIsExporting(false);
-    };
-
     return (
         <div className="space-y-6">
             {/* Encabezado temporal para orientar la vista (Mayo 2026) */}
+            {/* Encabezado adaptado con el botón de exportación */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 mt-2 px-2 md:px-0">
 
                 {/* Título e Ícono (Izquierda en PC / Arriba en Móviles) */}
@@ -58,7 +79,7 @@ export function CumplimientoDashboard() {
                 {/* Botón de Exportación (Derecha en PC / Abajo y full-width en Móviles) */}
                 <Button
                     className="bg-[#1b4332] hover:bg-[#2d6a4f] text-white w-full sm:w-auto shadow-sm flex items-center justify-center gap-2 transition-colors disabled:opacity-80 disabled:cursor-not-allowed"
-                    disabled={isExporting}
+                    disabled={isExporting || isLoading || !data}
                     onClick={handleExport}
                 >
                     {isExporting ? (

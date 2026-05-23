@@ -43,7 +43,7 @@ export default function ReporteOperativoPage() {
     // Memorizamos los datos del gráfico para evitar re-renderizados innecesarios
     const datosGrafico = useMemo(() => adaptarDatosParaGrafico(data?.desgloseEstados), [data]);
 
-    // Manejo de estado de error
+
     // Estados y hooks para la exportación (Fases 3.1 y 3.2)
     const [isExporting, setIsExporting] = useState(false);
     const { toast } = useToast();
@@ -71,6 +71,7 @@ export default function ReporteOperativoPage() {
         }
     };
 
+    // Manejo de estado de error
     if (error) {
         return (
             <div className="container mx-auto px-4 py-8">
