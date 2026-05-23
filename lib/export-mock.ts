@@ -1,5 +1,7 @@
 import { mockReporteOperativo } from '@/mocks/reporteOperativoMock';
 import { downloadCsv } from '@/utils/csv-exporter';
+import { cumplimientoMockData } from '@/mocks/cumplimientoMock'; // Usado en tu hook use-cumplimiento[cite: 8]
+
 
 /**
  * Simula el endpoint de exportación del Reporte Operativo.
@@ -35,5 +37,39 @@ export const exportReporteOperativoCsvMock = async (): Promise<void> => {
     const filename = `Logitrack_ReporteOperativo_${fecha}.csv`;
 
     // 5. Llamamos a nuestra función utilitaria de la Fase 2.1 para que realice la descarga
+    downloadCsv(filename, csvData);
+};
+
+/**
+ * Simula el endpoint de exportación del Análisis de Cumplimiento.
+ * Transforma la lista de viajes en un formato tabular ideal para hojas de cálculo.
+ */
+export const exportCumplimientoCsvMock = async (): Promise<void> => {
+    // 1. Simulamos latencia de red para la experiencia de usuario (Fase 1.3)
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
+    // 2. Obtenemos los datos mockeados
+    const data = cumplimientoMockData;
+
+    if (!data || !data.viajes || data.viajes.length === 0) {
+        throw new Error('No se encontraron viajes para exportar.');
+    }
+
+    // 3. Mapeamos la lista de viajes para aplanar la estructura y 
+    // definir exactamente las columnas que el supervisor verá en Excel
+    const csvData = data.viajes.map((viaje: any) => ({
+        'ID Viaje': viaje.id || viaje.idViaje,
+        'Chofer asignado': viaje.chofer,
+        'Ruta / Destino': viaje.ruta || viaje.destino,
+        'Estado de Puntualidad': viaje.estadoPuntualidad || viaje.estado,
+        'Minutos de Desvío': viaje.minutosDesvio || 0,
+        'Incidencias Reportadas': viaje.incidencias ? viaje.incidencias.join(' - ') : 'Ninguna'
+    }));
+
+    // 4. Generamos un nombre de archivo dinámico
+    const fecha = new Date().toISOString().split('T')[0];
+    const filename = `Logitrack_Cumplimiento_${fecha}.csv`;
+
+    // 5. Llamamos al motor de conversión
     downloadCsv(filename, csvData);
 };
