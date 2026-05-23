@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import { Truck, Scale, ArrowLeftCircle, ChartColumnBig } from 'lucide-react';
+import { useState } from 'react';
+import { Truck, Scale, ArrowLeftCircle, ChartColumnBig, FileDown, Loader2, } from 'lucide-react';
 import {
     BarChart,
     Bar,
@@ -62,6 +63,16 @@ export default function ReporteOperativoPage() {
         }).format(kilos);
     };
 
+    const [isExporting, setIsExporting] = useState(false);
+
+    const handleExport = async () => {
+        setIsExporting(true);
+        // Aquí irá la lógica de consumo del mock y descarga (Fase 2 y 4)
+        // Simulamos la espera por ahora:
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        setIsExporting(false);
+    };
+
     return (
         <div className="container mx-auto px-4 py-8">
             <div className="max-w-6xl mx-auto space-y-8">
@@ -106,12 +117,25 @@ export default function ReporteOperativoPage() {
 
                     {/* Botón de Exportación (Derecha en PC / Abajo y full-width en Móviles) */}
                     <Button
-                        className="bg-[#1b4332] hover:bg-[#2d6a4f] text-white w-full sm:w-auto shadow-sm flex items-center justify-center gap-2 transition-colors"
-                        onClick={() => console.log("Iniciando descarga...")}
+                        className="bg-[#1b4332] hover:bg-[#2d6a4f] text-white w-full sm:w-auto shadow-sm flex items-center justify-center gap-2 transition-colors disabled:opacity-80 disabled:cursor-not-allowed"
+                        disabled={isExporting}
+                        onClick={handleExport}
                     >
-                        {/* Aquí iría nuestro ícono, ej: <Download className="h-4 w-4" /> */}
-                        <span className="hidden sm:inline">Exportar a CSV</span>
-                        <span className="sm:hidden">Exportar</span>
+                        {isExporting ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                            <FileDown className="h-4 w-4" />
+                        )}
+
+                        {/* Texto para PC */}
+                        <span className="hidden sm:inline">
+                            {isExporting ? 'Exportando...' : 'Exportar a CSV'}
+                        </span>
+
+                        {/* Texto para Móviles */}
+                        <span className="sm:hidden">
+                            {isExporting ? 'Exportando...' : 'Exportar'}
+                        </span>
                     </Button>
 
                 </div>

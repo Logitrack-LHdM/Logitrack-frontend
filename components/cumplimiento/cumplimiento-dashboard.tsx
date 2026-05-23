@@ -1,12 +1,13 @@
 'use client';
 
 import React from 'react';
+import { useState } from 'react';
+import { Activity, AlertCircle, FileDown, Loader2, } from 'lucide-react';
 import { ResumenPuntualidad } from './resumen-puntualidad';
 import { GraficoPuntualidad } from './grafico-puntualidad';
 import { TablaDesvios } from './tabla-desvios';
 import { useCumplimiento } from '@/hooks/use-cumplimiento';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Activity, AlertCircle, ChartColumnBig } from 'lucide-react';
 import { Button } from '../ui/button';
 
 export function CumplimientoDashboard() {
@@ -25,6 +26,16 @@ export function CumplimientoDashboard() {
             </div>
         );
     }
+
+    const [isExporting, setIsExporting] = useState(false);
+
+    const handleExport = async () => {
+        setIsExporting(true);
+        // Aquí irá la lógica de consumo del mock y descarga (Fase 2 y 4)
+        // Simulamos la espera por ahora:
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        setIsExporting(false);
+    };
 
     return (
         <div className="space-y-6">
@@ -46,12 +57,25 @@ export function CumplimientoDashboard() {
 
                 {/* Botón de Exportación (Derecha en PC / Abajo y full-width en Móviles) */}
                 <Button
-                    className="bg-[#1b4332] hover:bg-[#2d6a4f] text-white w-full sm:w-auto shadow-sm flex items-center justify-center gap-2 transition-colors"
-                    onClick={() => console.log("Iniciando descarga...")}
+                    className="bg-[#1b4332] hover:bg-[#2d6a4f] text-white w-full sm:w-auto shadow-sm flex items-center justify-center gap-2 transition-colors disabled:opacity-80 disabled:cursor-not-allowed"
+                    disabled={isExporting}
+                    onClick={handleExport}
                 >
-                    {/* Aquí iría nuestro ícono, ej: <Download className="h-4 w-4" /> */}
-                    <span className="hidden sm:inline">Exportar a CSV</span>
-                    <span className="sm:hidden">Exportar</span>
+                    {isExporting ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                        <FileDown className="h-4 w-4" />
+                    )}
+
+                    {/* Texto para PC */}
+                    <span className="hidden sm:inline">
+                        {isExporting ? 'Exportando...' : 'Exportar a CSV'}
+                    </span>
+
+                    {/* Texto para Móviles */}
+                    <span className="sm:hidden">
+                        {isExporting ? 'Exportando...' : 'Exportar'}
+                    </span>
                 </Button>
 
             </div>
