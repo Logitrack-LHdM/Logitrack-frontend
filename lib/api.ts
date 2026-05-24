@@ -242,10 +242,23 @@ class ApiClient {
   }
 
   async reportarIncidencia(id: string | number, incidencia: IncidenciaDTO): Promise<void> {
+    // MOCK: Simulación de petición al backend para la historia de usuario
+    console.log(`[MOCK API] Enviando reporte de incidencia para el viaje ${id}:`, incidencia);
+
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        console.log('[MOCK API] Reporte procesado correctamente por el servidor simulado.');
+        resolve();
+      }, 1500); // Simulamos 1.5 segundos de latencia de red
+    });
+
+    /* 
+    Código original para restaurar cuando el endpoint en Spring Boot esté listo:
     return this.request<void>(`/envios/${id}/incidencias`, {
       method: 'POST',
       body: JSON.stringify(incidencia),
     });
+    */
   }
 
 
