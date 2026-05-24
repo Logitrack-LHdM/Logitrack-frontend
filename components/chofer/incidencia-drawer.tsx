@@ -36,6 +36,16 @@ export function IncidenciaDrawer({ onSubmit, isLoading, disabled }: IncidenciaDr
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
+  // Función para manejar el evento de abrir/cerrar
+  const handleOpenChange = (newOpen: boolean) => {
+    setOpen(newOpen);
+
+    // Si el panel se está cerrando, limpiamos el formulario
+    if (!newOpen) {
+      setTipo('');
+      setDescripcion('');
+    }
+  };
   const handleSubmit = async () => {
     if (!tipo) return; // Ahora la validación principal es el tipo
 
@@ -54,7 +64,7 @@ export function IncidenciaDrawer({ onSubmit, isLoading, disabled }: IncidenciaDr
   };
 
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
+    <Sheet open={open} onOpenChange={handleOpenChange}>
       <SheetTrigger asChild>
         {/* Sumamos la validación disabled a la que ya existía con isLoading */}
         <Button variant="outline" size="lg" className="w-full" disabled={isLoading || disabled}>
