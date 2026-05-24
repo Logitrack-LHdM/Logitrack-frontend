@@ -83,12 +83,14 @@ export function IncidenciaDrawer({ onSubmit, isLoading, disabled }: IncidenciaDr
           </SheetDescription>
         </SheetHeader>
 
-        <div className="py-1 space-y-1 px-1">
-
+        <div className="py-2 space-y-5 px-1">
+          {/* Campo Tipo de Incidencia */}
           <div className="space-y-2 px-1">
-            <Label htmlFor="tipo-incidencia">Tipo de incidencia *</Label>
+            <Label htmlFor="tipo-incidencia" className="flex items-center gap-1 text-sm font-medium">
+              Tipo de incidencia <span className="text-destructive font-bold">*</span>
+            </Label>
             <Select value={tipo} onValueChange={setTipo}>
-              <SelectTrigger id="tipo-incidencia">
+              <SelectTrigger id="tipo-incidencia" className="w-full bg-background transition-colors">
                 <SelectValue placeholder="Seleccione un motivo..." />
               </SelectTrigger>
               <SelectContent>
@@ -101,14 +103,17 @@ export function IncidenciaDrawer({ onSubmit, isLoading, disabled }: IncidenciaDr
             </Select>
           </div>
 
+          {/* Campo Descripción */}
           <div className="space-y-2 px-1">
-            <Label htmlFor="descripcion">Descripción (Opcional)</Label>
+            <Label htmlFor="descripcion" className="text-sm font-medium text-muted-foreground">
+              Descripción (Opcional)
+            </Label>
             <Textarea
               id="descripcion"
-              placeholder="Describa detalladamente la incidencia..."
+              placeholder="Ej: Demora por un corte en la ruta o pinchadura de rueda..."
               value={descripcion}
               onChange={(e) => setDescripcion(e.target.value)}
-              className="min-h-[120px] resize-none"
+              className="min-h-[120px] resize-none w-full bg-background transition-colors"
             />
           </div>
         </div>
