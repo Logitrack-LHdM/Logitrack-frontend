@@ -6,6 +6,13 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Sheet,
   SheetContent,
   SheetDescription,
@@ -15,24 +22,30 @@ import {
   SheetFooter,
   SheetClose,
 } from '@/components/ui/sheet';
+import type { IncidenciaDTO, TipoIncidencia } from '@/types';
 
 interface IncidenciaDrawerProps {
-  onSubmit: (descripcion: string) => Promise<void>;
+  onSubmit: (data: IncidenciaDTO) => Promise<void>;
   isLoading?: boolean;
 }
 
 export function IncidenciaDrawer({ onSubmit, isLoading }: IncidenciaDrawerProps) {
+  const [tipo, setTipo] = useState<string>(''); // Nuevo estado
   const [descripcion, setDescripcion] = useState('');
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async () => {
-    if (!descripcion.trim()) return;
+    if (!tipo) return; // Ahora la validación principal es el tipo
 
     setSubmitting(true);
     try {
-      await onSubmit(descripcion);
+      await onSubmit({
+        tipoIncidencia: tipo as TipoIncidencia,
+        descripcion: descripcion.trim() ? descripcion : undefined
+      });
       setDescripcion('');
+      setTipo(''); // Limpiamos el tipo también
       setOpen(false);
     } finally {
       setSubmitting(false);
@@ -59,8 +72,25 @@ export function IncidenciaDrawer({ onSubmit, isLoading }: IncidenciaDrawerProps)
         </SheetHeader>
 
         <div className="py-1 space-y-1 px-1">
+
           <div className="space-y-2 px-1">
-            <Label htmlFor="descripcion">Descripcion de la incidencia</Label>
+            <Label htmlFor="tipo-incidencia">Tipo de incidencia *</Label>
+            <Select value={tipo} onValueChange={setTipo}>
+              <SelectTrigger id="tipo-incidencia">
+                <SelectValue placeholder="Seleccione un motivo..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="MECANICA">Falla Mecánica</SelectItem>
+                <SelectItem value="CLIMA">Problemas de Clima</SelectItem>
+                <SelectItem value="TRAFICO">Tráfico / Corte de ruta</SelectItem>
+                <SelectItem value="CONTROLES">Controles / Retenes</SelectItem>
+                <SelectItem value="OTRO">Otro motivo</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2 px-1">
+            <Label htmlFor="descripcion">Descripción (Opcional)</Label>
             <Textarea
               id="descripcion"
               placeholder="Describa detalladamente la incidencia..."
@@ -79,7 +109,7 @@ export function IncidenciaDrawer({ onSubmit, isLoading }: IncidenciaDrawerProps)
           </SheetClose>
           <Button
             onClick={handleSubmit}
-            disabled={!descripcion.trim() || submitting}
+            disabled={!tipo || submitting} // Validamos por 'tipo' en lugar de 'descripcion'
             className="w-full sm:w-auto bg-amber-500 hover:bg-amber-600"
           >
             {submitting ? (
