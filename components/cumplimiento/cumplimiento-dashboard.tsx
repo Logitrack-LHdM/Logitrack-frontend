@@ -1,16 +1,83 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { ResumenPuntualidad } from './resumen-puntualidad';
 import { GraficoPuntualidad } from './grafico-puntualidad';
 import { TablaDesvios } from './tabla-desvios';
 import { useCumplimiento } from '@/hooks/use-cumplimiento';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Activity, AlertCircle } from 'lucide-react';
+import { Activity, AlertCircle, FileDown, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
+import { exportCumplimientoCsvMock } from '@/lib/export-mock';
 
 export function CumplimientoDashboard() {
     // Consumimos el mock a través de nuestro hook simulado
     const { data, isLoading, error } = useCumplimiento();
+
+    // Estados y hooks para la exportación
+    const [isExporting, setIsExporting] = useState(false);
+    const { toast } = useToast();
+
+    // Controlador del botón de exportación
+    const handleExport = async () => {
+        setIsExporting(true);
+        try {
+            await exportCumplimientoCsvMock();
+
+            toast({
+                title: "¡Exportación exitosa!",
+                description: "El análisis de viajes y desvíos se ha descargado correctamente.",
+                variant: "default",
+            });
+        } catch (err) {
+            console.error("Error en exportación:", err);
+            // Si el error viene de nuestro mock (ej. "No hay viajes completados"), lo mostramos
+            const mensajeError = err instanceof Error ? err.message : "Hubo un problema al generar el archivo. Por favor, intente nuevamente.";
+            toast({
+                title: "Error al exportar",
+                description: mensajeError,
+                variant: "destructive",
+            });
+        } finally {
+            setIsExporting(false);
+        }
+    };
+
+    // const handleExport = async () => {
+    //     setIsExporting(true);
+    //     try {
+    //         // 1. Llamas al endpoint real de Spring Boot (la URL dependerá de lo que defina el backend)
+    //         const blob = await api.descargarArchivoCsv('/reportes/operativo/exportar');
+
+    //         // 2. Creas una URL temporal para el archivo recibido
+    //         const url = window.URL.createObjectURL(blob);
+    //         const link = document.createElement('a');
+    //         link.href = url;
+
+    //         // 3. Fuerzas la descarga
+    //         link.setAttribute('download', `Logitrack_Reporte_${new Date().toISOString().split('T')[0]}.csv`);
+    //         document.body.appendChild(link);
+    //         link.click();
+
+    //         // 4. Limpias el DOM
+    //         document.body.removeChild(link);
+    //         window.URL.revokeObjectURL(url);
+
+    //         toast({
+    //             title: "¡Exportación exitosa!",
+    //             description: "El archivo se descargó correctamente desde el servidor.",
+    //         });
+    //     } catch (err) {
+    //         toast({
+    //             title: "Error al exportar",
+    //             description: "El servidor no pudo generar el archivo.",
+    //             variant: "destructive",
+    //         });
+    //     } finally {
+    //         setIsExporting(false);
+    //     }
+    // };
 
     // Manejo de estado de error
     if (error) {
@@ -28,17 +95,47 @@ export function CumplimientoDashboard() {
     return (
         <div className="space-y-6">
             {/* Encabezado temporal para orientar la vista (Mayo 2026) */}
-            <div className="flex items-center gap-3 mb-6 mt-2 px-2 md:px-0">
-                <div className="p-4 rounded-2xl bg-gradient-to-br from-[#1b4332] to-[#2d6a4f] text-white shadow-md group-hover:shadow-lg transition-shadow">
-                    <Activity className="h-7 w-7" />
+            {/* Encabezado adaptado con el botón de exportación */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 mt-2 px-2 md:px-0">
+
+                {/* Título e Ícono (Izquierda en PC / Arriba en Móviles) */}
+                <div className="flex items-center gap-3">
+                    <div className="p-4 rounded-2xl bg-gradient-to-br from-[#1b4332] to-[#2d6a4f] text-white shadow-md group-hover:shadow-lg transition-shadow">
+                        <Activity className="h-7 w-7" />
+                    </div>
+                    <div>
+                        <h4 className="font-bold text-gray-900 mb-1 text-xl md:text-2xl">Resumen de Cumplimiento</h4>
+                        <p className="text-muted-foreground text-sm m-0">
+                            Métricas globales correspondientes a Mayo 2026.
+                        </p>
+                    </div>
                 </div>
-                <div>
-                    <h4 className="font-bold text-gray-900 mb-1 text-xl md:text-2xl">Resumen de Cumplimiento</h4>
-                    <p className="text-muted-foreground text-sm m-0">
-                        Métricas globales correspondientes a Mayo 2026
-                    </p>
-                </div>
+
+                {/* Botón de Exportación (Derecha en PC / Abajo y full-width en Móviles) */}
+                <Button
+                    className="bg-[#1b4332] hover:bg-[#2d6a4f] text-white w-full sm:w-auto shadow-sm flex items-center justify-center gap-2 transition-colors disabled:opacity-80 disabled:cursor-not-allowed"
+                    disabled={isExporting || isLoading || !data}
+                    onClick={handleExport}
+                >
+                    {isExporting ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                        <FileDown className="h-4 w-4" />
+                    )}
+
+                    {/* Texto para PC */}
+                    <span className="hidden sm:inline">
+                        {isExporting ? 'Exportando...' : 'Exportar a CSV'}
+                    </span>
+
+                    {/* Texto para Móviles */}
+                    <span className="sm:hidden">
+                        {isExporting ? 'Exportando...' : 'Exportar'}
+                    </span>
+                </Button>
+
             </div>
+
 
             {/* 
         Layout responsivo para móviles y PC: 
