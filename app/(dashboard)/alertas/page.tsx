@@ -3,11 +3,12 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
-import { AlertTriangle, ClipboardX } from 'lucide-react';
+import { AlertTriangle, ArrowLeftCircle, ClipboardX } from 'lucide-react';
 import { Spinner } from '@/components/ui/spinner';
 import { AlertasList } from '@/components/alertas/alertas-list';
 import { useAlertas } from '@/hooks/use-alertas';
 import { useToast } from '@/hooks/use-toast';
+import Link from 'next/link';
 
 export default function AlertasPage() {
     const { permisos, isLoading: isLoadingAuth } = useAuth();
@@ -73,6 +74,14 @@ export default function AlertasPage() {
 
     return (
         <div className="w-full max-w-5xl mx-auto p-4 md:p-6 lg:py-8">
+            {/* Botón Volver */}
+            <Link
+                href="/menu"
+                className="text-[#198754] font-semibold mb-3 md:mb-4 inline-flex items-center gap-2 hover:opacity-80 transition-opacity"
+            >
+                <ArrowLeftCircle className="h-5 w-5" /> Volver al Panel
+            </Link>
+
             {/* Encabezado */}
             <div className="flex items-center gap-3 mb-6 mt-2 px-2 md:px-0">
                 <div className="bg-red-500/10 text-red-600 p-3 rounded-xl border border-red-500/25 shadow-sm shrink-0">
