@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { AlertTriangle, Loader2 } from 'lucide-react';
+import { AlertTriangle, Loader2, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -127,7 +127,7 @@ export function IncidenciaDrawer({ onSubmit, isLoading, disabled }: IncidenciaDr
           <Button
             onClick={handleSubmit}
             disabled={!tipo || submitting} // Validamos por 'tipo' en lugar de 'descripcion'
-            className="w-full sm:w-auto bg-amber-500 hover:bg-amber-600"
+            className="w-full sm:w-auto bg-amber-500 hover:bg-amber-600 text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {submitting ? (
               <>
@@ -135,7 +135,10 @@ export function IncidenciaDrawer({ onSubmit, isLoading, disabled }: IncidenciaDr
                 Enviando...
               </>
             ) : (
-              'Enviar Reporte'
+              <>
+                <Send className="mr-2 h-4 w-4" />
+                Enviar Reporte
+              </>
             )}
           </Button>
         </SheetFooter>
