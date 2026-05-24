@@ -27,9 +27,10 @@ import type { IncidenciaDTO, TipoIncidencia } from '@/types';
 interface IncidenciaDrawerProps {
   onSubmit: (data: IncidenciaDTO) => Promise<void>;
   isLoading?: boolean;
+  disabled?: boolean; // NUEVA PROPIEDAD
 }
 
-export function IncidenciaDrawer({ onSubmit, isLoading }: IncidenciaDrawerProps) {
+export function IncidenciaDrawer({ onSubmit, isLoading, disabled }: IncidenciaDrawerProps) {
   const [tipo, setTipo] = useState<string>(''); // Nuevo estado
   const [descripcion, setDescripcion] = useState('');
   const [open, setOpen] = useState(false);
@@ -55,7 +56,8 @@ export function IncidenciaDrawer({ onSubmit, isLoading }: IncidenciaDrawerProps)
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button variant="outline" size="lg" className="w-full" disabled={isLoading}>
+        {/* Sumamos la validación disabled a la que ya existía con isLoading */}
+        <Button variant="outline" size="lg" className="w-full" disabled={isLoading || disabled}>
           <AlertTriangle className="mr-2 h-5 w-5 text-amber-500" />
           Reportar Incidencia
         </Button>
