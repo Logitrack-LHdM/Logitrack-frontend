@@ -44,6 +44,41 @@ export function CumplimientoDashboard() {
         }
     };
 
+    // const handleExport = async () => {
+    //     setIsExporting(true);
+    //     try {
+    //         // 1. Llamas al endpoint real de Spring Boot (la URL dependerá de lo que defina el backend)
+    //         const blob = await api.descargarArchivoCsv('/reportes/operativo/exportar');
+
+    //         // 2. Creas una URL temporal para el archivo recibido
+    //         const url = window.URL.createObjectURL(blob);
+    //         const link = document.createElement('a');
+    //         link.href = url;
+
+    //         // 3. Fuerzas la descarga
+    //         link.setAttribute('download', `Logitrack_Reporte_${new Date().toISOString().split('T')[0]}.csv`);
+    //         document.body.appendChild(link);
+    //         link.click();
+
+    //         // 4. Limpias el DOM
+    //         document.body.removeChild(link);
+    //         window.URL.revokeObjectURL(url);
+
+    //         toast({
+    //             title: "¡Exportación exitosa!",
+    //             description: "El archivo se descargó correctamente desde el servidor.",
+    //         });
+    //     } catch (err) {
+    //         toast({
+    //             title: "Error al exportar",
+    //             description: "El servidor no pudo generar el archivo.",
+    //             variant: "destructive",
+    //         });
+    //     } finally {
+    //         setIsExporting(false);
+    //     }
+    // };
+
     // Manejo de estado de error
     if (error) {
         return (
