@@ -24,6 +24,13 @@ export type RolUsuario =
   | 'ROLE_ADMINISTRADOR'
   | 'ROLE_CHOFER';
 
+export type TipoIncidencia =
+  | 'MECANICA'
+  | 'CLIMA'
+  | 'TRAFICO'
+  | 'CONTROLES'
+  | 'OTRO';
+
 // === AUTH ===
 export interface Usuario {
   username: string;
@@ -120,8 +127,10 @@ export interface EnvioUpdateDTO {
   estado?: EstadoEnvio;
   prioridadIa?: Prioridad;
 }
+
 export interface IncidenciaDTO {
-  descripcion: string;
+  tipoIncidencia: TipoIncidencia;
+  descripcion?: string; // Ahora es opcional según el Criterio 2
 }
 
 export interface UsuarioResponseDTO {
