@@ -100,6 +100,9 @@ export default function MiViajePage() {
   const flujo = FLUJO_LOGISTICO[viaje.estadoActual];
   const isCompleted = !flujo.siguiente;
 
+  // Validamos que el viaje esté efectivamente en curso, excluyendo PENDIENTE y ENTREGADO/CANCELADO
+  const esViajeEnCurso = ['EN_TRANSITO', 'EN_PUNTO_DE_RECOLECCION', 'EN_REPARTO'].includes(viaje.estadoActual);
+
   return (
     <div className="container mx-auto px-4 py-6">
       <div className="max-w-lg mx-auto space-y-6">
@@ -153,7 +156,14 @@ export default function MiViajePage() {
             <IncidenciaDrawer
               onSubmit={handleReportarIncidencia}
               isLoading={isUpdating}
+              disabled={!esViajeEnCurso} // NUEVO: Deshabilita si el viaje no está en curso
             />
+            {/* NUEVO: Mensaje explicativo (Criterio 3) */}
+            {!esViajeEnCurso && (
+              <p className="text-xs text-muted-foreground text-center pt-1 px-2">
+                Solo se pueden reportar incidencias sobre viajes en curso.
+              </p>
+            )}
           </div>
         )}
 
