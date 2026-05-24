@@ -20,6 +20,7 @@ import { ActionButton } from '@/components/chofer/action-button';
 import { IncidenciaDrawer } from '@/components/chofer/incidencia-drawer';
 import { useViajeChofer } from '@/hooks/use-viaje-chofer';
 import { FLUJO_LOGISTICO } from '@/lib/constants';
+import type { IncidenciaDTO } from '@/types';
 
 export default function MiViajePage() {
   const {
@@ -42,9 +43,10 @@ export default function MiViajePage() {
     }
   };
 
-  const handleReportarIncidencia = async (descripcion: string) => {
+  // Cambiamos el parámetro 'descripcion: string' por 'datos: IncidenciaDTO'
+  const handleReportarIncidencia = async (datos: IncidenciaDTO) => {
     try {
-      await reportarIncidencia(descripcion);
+      await reportarIncidencia(datos); // Pasamos el objeto completo al hook
       toast.success('Incidencia reportada correctamente');
     } catch (err) {
       toast.error('Error al reportar la incidencia');
