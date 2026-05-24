@@ -48,9 +48,13 @@ export default function MiViajePage() {
     try {
       await reportarIncidencia(datos); // Pasamos el objeto completo al hook
       toast.success('Incidencia reportada correctamente');
+
+      // Recargamos los datos del viaje para sincronizar con el backend
+      await recargar();
+
     } catch (err) {
       toast.error('Error al reportar la incidencia');
-      throw err;
+      throw err; // Propagamos el error para que el Drawer no se cierre (lo veremos en el Paso 4.2)
     }
   };
 
