@@ -1,7 +1,7 @@
 import { mockReporteOperativo } from '@/mocks/reporteOperativoMock';
 import { downloadCsv } from '@/utils/csv-exporter';
 import { cumplimientoMockData } from '@/mocks/cumplimientoMock'; // Usado en tu hook use-cumplimiento[cite: 8]
-
+import { DetalleViajeCumplimiento } from '@/types/cumplimiento'; // <-- 1. Importamos el tipo estricto
 
 /**
  * Simula el endpoint de exportación del Reporte Operativo.
@@ -88,16 +88,18 @@ export const exportCumplimientoCsvMock = async (): Promise<void> => {
     // }));
 
     // Filtramos igual que en la UI (solo los entregados)
+
+    // 2. Aplicamos el tipo estricto en el filtro
     const viajesCompletados = data.viajes.filter(
-        (viaje: any) => viaje.estadoActual === 'ENTREGADO'
+        (viaje: DetalleViajeCumplimiento) => viaje.estadoActual === 'ENTREGADO'
     );
 
     if (viajesCompletados.length === 0) {
         throw new Error('No hay viajes completados para exportar en este período.');
     }
 
-    // 3. Mapeamos usando las claves reales y los formateadores
-    const csvData = viajesCompletados.map((viaje: any) => ({
+    // 3. Aplicamos el tipo estricto en el mapeo
+    const csvData = viajesCompletados.map((viaje: DetalleViajeCumplimiento) => ({
         'ID Envío': viaje.idEnvio,
         'Estado': viaje.estadoActual,
         'ETA (Estimado)': formatearFecha(viaje.fechaEstimadaLlegada),
