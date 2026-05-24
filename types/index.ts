@@ -24,6 +24,13 @@ export type RolUsuario =
   | 'ROLE_ADMINISTRADOR'
   | 'ROLE_CHOFER';
 
+export type TipoIncidencia =
+  | 'MECANICA'
+  | 'CLIMA'
+  | 'TRAFICO'
+  | 'CONTROLES'
+  | 'OTRO';
+
 // === AUTH ===
 export interface Usuario {
   username: string;
@@ -120,8 +127,10 @@ export interface EnvioUpdateDTO {
   estado?: EstadoEnvio;
   prioridadIa?: Prioridad;
 }
+
 export interface IncidenciaDTO {
-  descripcion: string;
+  tipoIncidencia: TipoIncidencia;
+  descripcion?: string; // Ahora es opcional según el Criterio 2
 }
 
 export interface UsuarioResponseDTO {
@@ -184,7 +193,6 @@ export interface LugarResumen {
 
 export interface EnvioChofer {
   idEnvio: string;
-  // trackingCtg: string;
   cpe: string;
   estadoActual: EstadoEnvio;
   tipoGrano: TipoGrano;
@@ -192,8 +200,7 @@ export interface EnvioChofer {
   origen: LugarResumen;
   destino: LugarResumen;
   patenteCamion: string;
-  // nombreChofer: string;
-  prioridadIa: Prioridad;   // ← agregar
+  prioridadIa: Prioridad;
 }
 
 // === MAPAS ===
@@ -211,5 +218,5 @@ export interface RutaCamionResponse {
   idEnvio: string;
   // Usamos un array de tuplas de dos números.
   // El backend envía el formato GeoJSON: [longitud, latitud]
-  coordinates: [number, number][]; 
+  coordinates: [number, number][];
 }

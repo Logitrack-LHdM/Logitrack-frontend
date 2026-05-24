@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import type { EnvioChofer } from '@/types';
+import type { EnvioChofer, IncidenciaDTO } from '@/types';
 import { api } from '@/lib/api';
 import { FLUJO_LOGISTICO } from '@/lib/constants';
 
@@ -83,13 +83,13 @@ export function useViajeChofer() {
   }, [state.viaje]);
 
   const reportarIncidencia = useCallback(
-    async (descripcion: string) => {
+    async (datosIncidencia: IncidenciaDTO) => {
       if (!state.viaje) return;
 
       setState((prev) => ({ ...prev, isUpdating: true }));
 
       try {
-        await api.reportarIncidencia(state.viaje!.idEnvio, { descripcion });
+        await api.reportarIncidencia(state.viaje!.idEnvio, datosIncidencia);
         setState((prev) => ({ ...prev, isUpdating: false }));
       } catch (error) {
         setState((prev) => ({ ...prev, isUpdating: false }));
