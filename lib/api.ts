@@ -18,6 +18,7 @@ import type {
   UsuarioRequestDTO,
   UbicacionTiempoRealResponse,
   RutaCamionResponse,
+  AlertaListadoDTO,
 } from '@/types';
 
 import { adaptarRutaParaLeaflet } from '@/lib/utils';
@@ -387,6 +388,38 @@ class ApiClient {
     // Retornamos directamente el blob (el archivo crudo)
     return response.blob();
   }
+
+  // === ALERTAS (MOCKS TEMPORALES PARA FRONTEND) ===
+
+  async getAlertas(): Promise<AlertaListadoDTO[]> {
+    console.log('[MOCK API] Obteniendo listado de alertas...');
+
+    // Importación dinámica para no afectar el bundle inicial si no se usa
+    const { mockAlertas } = await import('@/mocks/alertasMock');
+
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        // En una API real, esto devolvería los datos ordenados desde BD.
+        // Aquí simulamos que llegan tal cual los definimos.
+        resolve([...mockAlertas]);
+      }, 800); // Simulamos 800ms de latencia
+    });
+  }
+
+  async resolverAlerta(idAlerta: number, notas?: string): Promise<void> {
+    console.log(`[MOCK API] Resolviendo alerta ${idAlerta}... Notas:`, notas);
+
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        // Al ser un mock estático en el cliente, la actualización de estado real 
+        // la manejaremos en el propio componente React para reflejar el cambio visual.
+        console.log('[MOCK API] Alerta resuelta con éxito.');
+        resolve();
+      }, 1000);
+    });
+  }
 }
+
+
 
 export const api = new ApiClient();
