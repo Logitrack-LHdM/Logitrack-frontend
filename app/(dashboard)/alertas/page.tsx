@@ -7,6 +7,7 @@ import { AlertTriangle, ClipboardX } from 'lucide-react';
 import { Spinner } from '@/components/ui/spinner';
 import { AlertasList } from '@/components/alertas/alertas-list';
 import { useAlertas } from '@/hooks/use-alertas';
+import { useToast } from '@/hooks/use-toast';
 
 export default function AlertasPage() {
     const { permisos, isLoading: isLoadingAuth } = useAuth();
@@ -22,10 +23,25 @@ export default function AlertasPage() {
         }
     }, [isLoadingAuth, permisos, router]);
 
-    // 2. Enlazamos la función del hook
-    // Función para manejar el clic en "Marcar como resuelto" en la UI
+    // Instanciamos el hook de notificaciones
+    const { toast } = useToast();
+
+    // 2. Función para manejar el clic en "Marcar como resuelto" en la UI
     const handleResolver = async (idAlerta: number) => {
-        await resolverAlerta(idAlerta);
+        const resultado = await resolverAlerta(idAlerta);
+
+        if (resultado.success) {
+            toast({
+                title: 'Incidencia resuelta',
+                description: 'La alerta ha sido actualizada y movida al historial.',
+            });
+        } else {
+            toast({
+                variant: 'destructive',
+                title: 'Error de actualización',
+                description: resultado.error || 'Ocurrió un problema al intentar resolver la alerta.',
+            });
+        }
     };
 
     // 3. Renderizado condicional de seguridad Y de carga de datos
