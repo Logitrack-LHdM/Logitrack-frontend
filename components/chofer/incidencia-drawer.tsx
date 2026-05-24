@@ -55,10 +55,17 @@ export function IncidenciaDrawer({ onSubmit, isLoading, disabled }: IncidenciaDr
         tipoIncidencia: tipo as TipoIncidencia,
         descripcion: descripcion.trim() ? descripcion : undefined
       });
+
+      // Estas líneas SOLO se ejecutan si la petición al backend fue exitosa
       setDescripcion('');
       setTipo(''); // Limpiamos el tipo también
       setOpen(false);
+    } catch (error) {
+      // Capturamos el error propagado desde page.tsx
+      // El modal queda abierto y con los datos intactos para que el chofer reintente
+      console.error('El envío de la incidencia falló:', error);
     } finally {
+      // Siempre quitamos el estado de carga, haya éxito o error
       setSubmitting(false);
     }
   };
