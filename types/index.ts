@@ -31,6 +31,21 @@ export type TipoIncidencia =
   | 'CONTROLES'
   | 'OTRO';
 
+// Tipos de problemas comunes que el chofer podría reportar
+// export type TipoIncidencia =
+//   | 'MECANICO'
+//   | 'CLIMATICO'
+//   | 'ACCIDENTE'
+//   | 'DEMORA_CARGA'
+//   | 'DEMORA_DESCARGA'
+//   | 'OTRO';
+
+// Tipos de estado específicos para las alertas de incidencias
+export type EstadoAlerta =
+  | 'PENDIENTE'
+  | 'NO_RESUELTA'
+  | 'RESUELTA';
+
 // === AUTH ===
 export interface Usuario {
   username: string;
@@ -219,4 +234,27 @@ export interface RutaCamionResponse {
   // Usamos un array de tuplas de dos números.
   // El backend envía el formato GeoJSON: [longitud, latitud]
   coordinates: [number, number][];
+}
+
+// === INCIDENCIAS ===
+// DTO para la visualización en el Panel del Supervisor (Lectura)
+export interface AlertaListadoDTO {
+  id: number;
+  idEnvio: string; // Referencia al código de viaje (ej. "ENV-2026-001")
+  chofer: {
+    id: number;
+    nombreCompleto: string; // Ya concatenado para facilitar el frontend
+    telefono?: string; // Útil para que el supervisor llame directamente
+  };
+  tipoIncidencia: TipoIncidencia;
+  descripcion: string;
+  estado: EstadoAlerta;
+  fechaReporte: string; // Formato ISO 8601 (UTC)
+  fechaResolucion?: string; // Nulo si sigue pendiente
+}
+
+// Interfaz para la actualización de estado (Escritura)
+export interface ResolverAlertaDTO {
+  estado: 'RESUELTA';
+  notasSupervisor?: string; // Opcional por si el supervisor quiere dejar registro de cómo se resolvió
 }
