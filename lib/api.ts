@@ -352,6 +352,28 @@ class ApiClient {
       body: JSON.stringify({ nuevaPassword }),
     });
   }
+
+  // === EXPORTACIONES (Archivos) ===
+  async descargarArchivoCsv(endpoint: string): Promise<Blob> {
+    const token = this.getToken();
+    const headers: HeadersInit = {};
+
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      method: 'GET',
+      headers,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error al descargar el archivo: ${response.statusText}`);
+    }
+
+    // Retornamos directamente el blob (el archivo crudo)
+    return response.blob();
+  }
 }
 
 export const api = new ApiClient();
