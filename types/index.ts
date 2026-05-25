@@ -98,7 +98,6 @@ export interface Camion {
 
 export interface Envio {
   idEnvio: string | number;
-  // trackingCtg: string;
   cpe: string;
   estadoActual: EstadoEnvio;
   prioridadIa: Prioridad;
@@ -112,7 +111,7 @@ export interface Envio {
   destino: Establecimiento;
   chofer: Chofer;
   camion: Camion;
-  distanciaKm?: number; //viene de EnvioDetalleResponseDTO
+  distanciaKm?: number;
 }
 
 export interface RegistroHistorial {
@@ -127,14 +126,13 @@ export interface RegistroHistorial {
 
 // === DTOs ===
 export interface EnvioRequestDTO {
-  // trackingCtg: string;
   cpe: string;
   idOrigen: number;
   idDestino: number;
   idChofer: number;
   patenteCamion: string;
   tipoGrano: TipoGrano;
-  prioridadIa?: Prioridad; // Ahora es opcional
+  prioridadIa?: Prioridad;
   kgOrigen: number;
 }
 
@@ -168,7 +166,6 @@ export interface UsuarioRequestDTO {
   apellido: string;
   cuil: string;
   telefono: string;
-
   // --- Datos de Chofer (Opcionales, solo se usan si rol == CHOFER) ---
   nroLicencia?: string;
   vtoLicencia?: string;
@@ -178,7 +175,7 @@ export interface UsuarioRequestDTO {
 export interface BusquedaEnviosParams {
   query?: string;
   estado?: EstadoEnvio | '';
-  fecha?: string; // <-- Unificamos a una sola fecha
+  fecha?: string;
   page: number;
   size: number;
 }
