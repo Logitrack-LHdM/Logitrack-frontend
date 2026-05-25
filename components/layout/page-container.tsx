@@ -4,6 +4,7 @@ import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
+import { Route } from 'next';
 
 interface PageContainerProps {
   title: string;
@@ -27,7 +28,7 @@ export function PageContainer({
       {/* Enlace volver */}
       {backHref && (
         <Link
-          href={backHref}
+          href={backHref as string as Route}
           className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4"
         >
           <ArrowLeft className="h-4 w-4" />
