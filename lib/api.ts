@@ -21,6 +21,15 @@ import type {
   AlertaListadoDTO,
 } from '@/types';
 
+// Agrega esta importación junto a las demás
+import type {
+  ReporteSimpleDTO,
+  ReporteEstadoDTO,
+  ReporteGranoDTO,
+  ReporteEficienciaDTO,
+  RangoReporte
+} from '@/types/reporte-operativo';
+
 import { adaptarRutaParaLeaflet } from '@/lib/utils';
 
 // Base URL de la API - usar variable de entorno en produccion
@@ -365,6 +374,29 @@ class ApiClient {
       method: 'PUT',
       body: JSON.stringify({ nuevaPassword }),
     });
+  }
+
+  // === REPORTES ===
+  async getReporteOperativo(fechaInicio?: string, fechaFin?: string): Promise<ReporteSimpleDTO> {
+    const searchParams = new URLSearchParams();
+    if (fechaInicio) searchParams.append('fechaInicio', fechaInicio);
+    if (fechaFin) searchParams.append('fechaFin', fechaFin);
+
+    const query = searchParams.toString() ? `?${searchParams.toString()}` : '';
+    return this.request<ReporteSimpleDTO>(`/reportes/operativo${query}`);
+  }
+
+  async getReporteEstados(rango?: RangoReporte): Promise<ReporteEstadoDTO[]> {
+    const query = rango ? `?rango=${rango}` : '';
+    return this.request<ReporteEstadoDTO[]>(`/reportes/estados${query}`);
+  }
+
+  async getReporteGranos(fechaInicio: string, fechaFin: string): Promise<ReporteGranoDTO[]> {
+    return this.request<ReporteGranoDTO[]>(`/reportes/granos?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`);
+  }
+
+  async getReporteATiempo(fechaInicio: string, fechaFin: string): Promise<ReporteEficienciaDTO> {
+    return this.request<ReporteEficienciaDTO>(`/reportes/a-tiempo?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`);
   }
 
   // === EXPORTACIONES (Archivos) ===
