@@ -19,7 +19,7 @@ import { useReporteOperativo } from '@/hooks/use-reporte-operativo';
 import { DesgloseEstados } from '@/types/reporte-operativo';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button'; // <-- Importamos el componente Button
-import { useToast } from '@/hooks/use-toast'; // <-- Asumiendo que tu hook de notificaciones está aquí o en @/components/ui/use-toast
+import { toast } from 'sonner';
 import { api } from '@/lib/api'; // Importas tu cliente API real
 
 // Importamos nuestra función mock (Fase 2.2)
@@ -47,25 +47,19 @@ export default function ReporteOperativoPage() {
 
     // Estados y hooks para la exportación (Fases 3.1 y 3.2)
     const [isExporting, setIsExporting] = useState(false);
-    const { toast } = useToast();
 
     // Controlador del botón de exportación
     const handleExport = async () => {
         setIsExporting(true);
         try {
             await exportReporteOperativoCsvMock();
-
-            toast({
-                title: "¡Exportación exitosa!",
-                description: "El archivo CSV se ha descargado correctamente en su dispositivo.",
-                variant: "default",
+            toast.success('¡Exportación exitosa!', {
+                description: 'El archivo CSV se ha descargado correctamente en su dispositivo..',
             });
         } catch (err) {
             console.error("Error en exportación:", err);
-            toast({
-                title: "Error al exportar",
-                description: "Hubo un problema al generar el archivo. Por favor, intente nuevamente.",
-                variant: "destructive",
+            toast.error('Error al exportar', {
+                description: 'Hubo un problema al generar el archivo. Por favor, intente nuevamente.',
             });
         } finally {
             setIsExporting(false);
