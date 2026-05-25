@@ -3,7 +3,7 @@ import { api } from '@/lib/api';
 import type { EstadoEnvio } from '@/types';
 
 // Definimos el tiempo de actualización como constante para facilitar cambios futuros
-const INTERVALO_POLLING_MS = 30000;
+const INTERVALO_POLLING_MS = 1000;
 
 export function useRastreoTiempoReal(idEnvio: string) {
     // Definición de Estados
