@@ -54,7 +54,7 @@ export default function ReporteOperativoPage() {
         try {
             await exportReporteOperativoCsvMock();
             toast.success('¡Exportación exitosa!', {
-                description: 'El archivo CSV se ha descargado correctamente en su dispositivo..',
+                description: 'El archivo CSV se ha descargado correctamente en su dispositivo.',
             });
         } catch (err) {
             console.error("Error en exportación:", err);
