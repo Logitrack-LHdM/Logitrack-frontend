@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/contexts/auth-context';
 import { cn } from '@/lib/utils';
+import { Route } from 'next';
 
 interface MenuCardProps {
   href: string;
@@ -15,7 +16,7 @@ interface MenuCardProps {
 
 function MenuCard({ href, icon, title, description }: MenuCardProps) {
   return (
-    <Link href={href} className="block group">
+    <Link href={href as string as Route} className="block group">
       <Card
         className={cn(
           'h-full transition-all duration-300',
@@ -68,7 +69,7 @@ export default function MenuPage() {
       description: 'Revisa el registro completo de auditoria',
       show: permisos.verAuditoria,
     },
-        {
+    {
       href: '/asignaciones',
       icon: <Truck className="h-8 w-8" />,
       title: 'Asignar Transporte',
