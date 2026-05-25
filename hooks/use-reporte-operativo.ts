@@ -41,14 +41,20 @@ export const useReporteOperativo = (filtros: FiltrosReporte = {}) => {
             try {
                 const { fechaInicio, fechaFin, rango } = filtros;
 
-                // Validación para endpoints que exigen fechas obligatorias
+                // --- INTERCEPTOR DE REGLAS DE NEGOCIO ---
+                // Regla 1: Si se envía una fecha, la otra es obligatoria.
+                if ((fechaInicio && !fechaFin) || (!fechaInicio && fechaFin)) {
+                    throw new Error('Debe seleccionar tanto la fecha de inicio como la fecha de fin.');
+                }
+
                 const hasFechasCompletas = Boolean(fechaInicio && fechaFin);
 
                 // Preparamos las promesas
                 const reqOperativo = api.getReporteOperativo(fechaInicio, fechaFin);
                 const reqEstados = api.getReporteEstados(rango);
 
-                // Si no hay fechas, resolvemos con datos vacíos para no romper la UI ni causar un HTTP 400
+                // Regla 2: Granos y Eficiencia requieren fechas obligatorias.
+                // Si no hay fechas, interceptamos y devolvemos arrays/null vacíos sin llamar al backend.
                 const reqGranos = hasFechasCompletas
                     ? api.getReporteGranos(fechaInicio!, fechaFin!)
                     : Promise.resolve([]);
@@ -67,8 +73,10 @@ export const useReporteOperativo = (filtros: FiltrosReporte = {}) => {
 
                 setData({ operativo, estados, granos, eficiencia });
             } catch (err) {
-                setError(err instanceof Error ? err.message : 'Ocurrió un error al cargar los reportes operativos.');
-                console.error("Error en useReporteOperativo:", err);
+                // Capturamos el error (ya sea de nuestra validación o del backend)
+                setError(err instanceof Error ? err.message : 'Ocurrió un error al cargar los reportes.');
+                // Limpiamos los datos visuales si hay un error para evitar inconsistencias
+                setData({ operativo: null, estados: [], granos: [], eficiencia: null });
             } finally {
                 setIsLoading(false);
             }
