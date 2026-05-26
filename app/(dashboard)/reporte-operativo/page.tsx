@@ -1,8 +1,7 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
-import { Truck, Scale, ArrowLeftCircle, ChartColumnBig, FileDown, Loader2, Clock, CheckCircle } from 'lucide-react';
-import {
+import { Truck, Scale, ArrowLeftCircle, ChartColumnBig, FileDown, Loader2, Clock, CheckCircle, PackageOpen } from 'lucide-react'; import {
     BarChart,
     Bar,
     XAxis,
@@ -12,6 +11,15 @@ import {
     ResponsiveContainer,
     Cell
 } from 'recharts';
+
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
 
 import {
     Select,
@@ -441,7 +449,54 @@ export default function ReporteOperativoPage() {
                         </Card>
                     )}
 
-                    {/* Espacio reservado para la Tabla de Granos (Fase 4.3) */}
+                    {/* Tabla de Granos (Fase 4.3) */}
+                    {isLoading ? (
+                        <Skeleton className="h-[400px] rounded-xl w-full" />
+                    ) : (
+                        <Card className="shadow-sm flex flex-col">
+                            <CardHeader>
+                                <CardTitle>Volumen por Tipo de Grano</CardTitle>
+                                <CardDescription>Desglose de envíos y peso transportado</CardDescription>
+                            </CardHeader>
+                            <CardContent className="flex-1 flex flex-col">
+                                {!fechaInicio || !fechaFin ? (
+                                    /* Estado 1: Faltan fechas (Regla de negocio) */
+                                    <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground space-y-3 border-2 border-dashed border-border rounded-xl p-6 text-center mt-2">
+                                        <PackageOpen className="h-10 w-10 opacity-20" />
+                                        <p className="text-sm">Seleccione una fecha de inicio y fin para visualizar el desglose por tipo de grano.</p>
+                                    </div>
+                                ) : data?.granos && data.granos.length > 0 ? (
+                                    /* Estado 2: Con datos */
+                                    <div className="border rounded-md mt-2 overflow-hidden flex-1">
+                                        <Table>
+                                            <TableHeader className="bg-muted/50">
+                                                <TableRow>
+                                                    <TableHead className="font-semibold text-foreground">Tipo de Grano</TableHead>
+                                                    <TableHead className="text-right font-semibold text-foreground">Envíos</TableHead>
+                                                    <TableHead className="text-right font-semibold text-foreground">Total (kg)</TableHead>
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {data.granos.map((grano, index) => (
+                                                    <TableRow key={index} className="hover:bg-muted/30 transition-colors">
+                                                        <TableCell className="font-medium">{grano.tipoGrano}</TableCell>
+                                                        <TableCell className="text-right">{grano.cantidadEnvios}</TableCell>
+                                                        <TableCell className="text-right">{formatearKilos(grano.totalKilos)}</TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </div>
+                                ) : (
+                                    /* Estado 3: Sin datos para las fechas seleccionadas */
+                                    <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground space-y-3 border-2 border-dashed border-border rounded-xl p-6 text-center mt-2">
+                                        <PackageOpen className="h-10 w-10 opacity-20" />
+                                        <p className="text-sm">No se encontraron movimientos de granos en el período seleccionado.</p>
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+                    )}
 
                 </div>
 
