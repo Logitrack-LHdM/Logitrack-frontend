@@ -1,4 +1,4 @@
-import { mockReporteOperativo } from '@/mocks/reporteOperativoMock';
+// import { mockReporteOperativo } from '@/mocks/reporteOperativoMock';
 import { downloadCsv } from '@/utils/csv-exporter';
 import { cumplimientoMockData } from '@/mocks/cumplimientoMock'; // Usado en tu hook use-cumplimiento[cite: 8]
 import { DetalleViajeCumplimiento } from '@/types/cumplimiento'; // <-- 1. Importamos el tipo estricto
