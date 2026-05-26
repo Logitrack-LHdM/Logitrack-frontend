@@ -382,58 +382,66 @@ export default function ReporteOperativoPage() {
                     )}
                 </div>
 
-                {/* Sección: Desglose de Estados */}
-                {/* Contenedor para la sección del desglose de estados */}
-                <div className="grid gap-6 grid-cols-1">
+                {/* Contenedor de Gráficos y Tablas */}
+                <div className="grid gap-6 grid-cols-1 lg:grid-cols-2 pb-8">
 
+                    {/* Gráfico de Estados (Fase 4.2) */}
                     {isLoading ? (
-                        /* Skeleton para el gráfico */
                         <Skeleton className="h-[400px] rounded-xl w-full" />
                     ) : (
-                        <Card className="shadow-sm">
+                        <Card className="shadow-sm flex flex-col">
                             <CardHeader>
                                 <CardTitle>Desglose de Envíos por Estado</CardTitle>
-                                <CardDescription>Distribución actual de las operaciones logísticas</CardDescription>
+                                <CardDescription>Distribución de las operaciones logísticas</CardDescription>
                             </CardHeader>
-                            <CardContent>
-                                <div className="h-[300px] w-full mt-4">
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <BarChart data={datosGrafico} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
-                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--muted-foreground)/0.2)" />
-                                            <XAxis
-                                                dataKey="estado"
-                                                axisLine={false}
-                                                tickLine={false}
-                                                tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }}
-                                                dy={10}
-                                            />
-                                            <YAxis
-                                                axisLine={false}
-                                                tickLine={false}
-                                                tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }}
-                                            />
-                                            <Tooltip
-                                                cursor={{ fill: 'var(--muted)', opacity: 0.4 }}
-                                                contentStyle={{
-                                                    backgroundColor: 'var(--card)',
-                                                    borderRadius: '8px',
-                                                    border: '1px solid var(--border)',
-                                                    color: 'var(--foreground)',
-                                                    boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)'
-                                                }}
-                                                itemStyle={{ color: 'var(--foreground)' }}
-                                            />
-                                            <Bar dataKey="cantidad" radius={[4, 4, 0, 0]}>
-                                                {datosGrafico.map((entry, index) => (
-                                                    <Cell key={`cell-${index}`} fill={entry.fill} />
-                                                ))}
-                                            </Bar>
-                                        </BarChart>
-                                    </ResponsiveContainer>
-                                </div>
+                            <CardContent className="flex-1">
+                                {datosGrafico.length > 0 ? (
+                                    <div className="h-[300px] w-full mt-2">
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <BarChart data={datosGrafico} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
+                                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--muted-foreground)/0.2)" />
+                                                <XAxis
+                                                    dataKey="estado"
+                                                    axisLine={false}
+                                                    tickLine={false}
+                                                    tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }}
+                                                    dy={10}
+                                                />
+                                                <YAxis
+                                                    axisLine={false}
+                                                    tickLine={false}
+                                                    tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }}
+                                                />
+                                                <Tooltip
+                                                    cursor={{ fill: 'var(--muted)', opacity: 0.4 }}
+                                                    contentStyle={{
+                                                        backgroundColor: 'var(--card)',
+                                                        borderRadius: '8px',
+                                                        border: '1px solid var(--border)',
+                                                        color: 'var(--foreground)',
+                                                        boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)'
+                                                    }}
+                                                    itemStyle={{ color: 'var(--foreground)' }}
+                                                />
+                                                <Bar dataKey="cantidad" radius={[4, 4, 0, 0]}>
+                                                    {datosGrafico.map((entry, index) => (
+                                                        <Cell key={`cell-${index}`} fill={entry.fill} />
+                                                    ))}
+                                                </Bar>
+                                            </BarChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                ) : (
+                                    <div className="h-[300px] flex flex-col items-center justify-center text-muted-foreground space-y-3 mt-2 border-2 border-dashed border-border rounded-xl">
+                                        <ChartColumnBig className="h-10 w-10 opacity-20" />
+                                        <p className="text-sm">No hay envíos registrados para los filtros actuales.</p>
+                                    </div>
+                                )}
                             </CardContent>
                         </Card>
                     )}
+
+                    {/* Espacio reservado para la Tabla de Granos (Fase 4.3) */}
 
                 </div>
 
