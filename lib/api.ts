@@ -31,6 +31,7 @@ import type {
 } from '@/types/reporte-operativo';
 
 import { adaptarRutaParaLeaflet } from '@/lib/utils';
+import { RespuestaCumplimiento } from '@/types/cumplimiento';
 
 // Base URL de la API - usar variable de entorno en produccion
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
@@ -400,7 +401,7 @@ class ApiClient {
 
   async getReporteEstados(fechaInicio: string, fechaFin: string): Promise<ReporteEstadoDTO[]> {
     // El backend ahora se adaptará para recibir fechas también en este endpoint
-    return this.request<ReporteEstadoDTO[]>(`/reportes/estados?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`);
+    return this.request<ReporteEstadoDTO[]>(`/reportes/estadosPorFechas?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`);
   }
 
   async getReporteGranos(fechaInicio: string, fechaFin: string): Promise<ReporteGranoDTO[]> {
@@ -410,6 +411,11 @@ class ApiClient {
   async getReporteATiempo(fechaInicio: string, fechaFin: string): Promise<ReporteEficienciaDTO> {
     return this.request<ReporteEficienciaDTO>(`/reportes/a-tiempo?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`);
   }
+
+  async getReporteCumplimiento(fechaInicio: string, fechaFin: string): Promise<RespuestaCumplimiento> {
+    return this.request<RespuestaCumplimiento>(`/reportes/cumplimiento?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`);
+  }
+
 
   // === EXPORTACIONES (Archivos) ===
   async descargarArchivoCsv(endpoint: string): Promise<Blob> {
