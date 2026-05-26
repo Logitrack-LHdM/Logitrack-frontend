@@ -44,7 +44,9 @@ export const useReporteOperativo = (filtros: FiltrosReporte = {}) => {
                 // --- INTERCEPTOR DE REGLAS DE NEGOCIO ---
                 // Regla 1: Si se envía una fecha, la otra es obligatoria.
                 if ((fechaInicio && !fechaFin) || (!fechaInicio && fechaFin)) {
-                    throw new Error('Debe seleccionar tanto la fecha de inicio como la fecha de fin.');
+                    setError('Debe seleccionar tanto la fecha de inicio como la fecha de fin.');
+                    setIsLoading(false);
+                    return; // Salimos de la función sin borrar los datos previos ni llamar a la API
                 }
 
                 const hasFechasCompletas = Boolean(fechaInicio && fechaFin);

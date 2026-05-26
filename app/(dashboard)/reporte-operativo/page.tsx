@@ -131,24 +131,24 @@ export default function ReporteOperativoPage() {
         }).format(kilos);
     };
 
-    // Manejo de estado de error visual
-    if (error) {
-        return (
-            <div className="container mx-auto px-4 py-8">
-                <div className="max-w-6xl mx-auto">
-                    <div className="p-4 rounded-xl bg-destructive/10 text-destructive border border-destructive/20 flex justify-between items-center">
-                        <div>
-                            <h2 className="font-semibold text-lg">Error en el reporte</h2>
-                            <p>{error}</p>
-                        </div>
-                        <Button variant="outline" onClick={() => { setFechaInicio(''); setFechaFin(''); }}>
-                            Limpiar Filtros
-                        </Button>
-                    </div>
-                </div>
-            </div>
-        );
-    }
+    // // Manejo de estado de error visual
+    // if (error) {
+    //     return (
+    //         <div className="container mx-auto px-4 py-8">
+    //             <div className="max-w-6xl mx-auto">
+    //                 <div className="p-4 rounded-xl bg-destructive/10 text-destructive border border-destructive/20 flex justify-between items-center">
+    //                     <div>
+    //                         <h2 className="font-semibold text-lg">Error en el reporte</h2>
+    //                         <p>{error}</p>
+    //                     </div>
+    //                     <Button variant="outline" onClick={() => { setFechaInicio(''); setFechaFin(''); }}>
+    //                         Limpiar Filtros
+    //                     </Button>
+    //                 </div>
+    //             </div>
+    //         </div>
+    //     );
+    // }
 
     return (
         <div className="container mx-auto px-4 py-8">
@@ -217,6 +217,21 @@ export default function ReporteOperativoPage() {
 
                 </div>
                 {/* ... Fin del Encabezado Principal ... */}
+
+                {/* --- CARTEL DE ADVERTENCIA NO INTRUSIVO --- */}
+                {error && (
+                    <div className="bg-destructive/10 text-destructive border border-destructive/20 p-3 rounded-lg flex justify-between items-center text-sm shadow-sm">
+                        <p className="font-medium">{error}</p>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => { setFechaInicio(''); setFechaFin(''); }}
+                            className="hover:bg-destructive/20 text-destructive"
+                        >
+                            Limpiar fechas
+                        </Button>
+                    </div>
+                )}
 
                 {/* --- NUEVA BARRA DE FILTROS --- */}
                 <div className="bg-card p-4 md:p-5 rounded-xl border border-border shadow-sm flex flex-col sm:flex-row gap-4 items-start sm:items-end mb-2">
