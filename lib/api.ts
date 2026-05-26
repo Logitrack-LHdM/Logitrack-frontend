@@ -19,6 +19,7 @@ import type {
   UbicacionTiempoRealResponse,
   RutaCamionResponse,
   AlertaListadoDTO,
+  ClienteRequestDTO,
 } from '@/types';
 
 import { adaptarRutaParaLeaflet } from '@/lib/utils';
@@ -389,8 +390,19 @@ class ApiClient {
     return response.blob();
   }
 
-  // === ALERTAS (MOCKS TEMPORALES PARA FRONTEND) ===
+  // === CLIENTES ===
+  async crearCliente(data: ClienteRequestDTO): Promise<Empresa> {
+    return this.request<Empresa>('/clientes', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
 
+  async listarClientes(): Promise<Empresa[]> {
+    return this.request<Empresa[]>('/clientes');
+  }
+
+  // === ALERTAS (MOCKS TEMPORALES PARA FRONTEND) ===
   async getAlertas(): Promise<AlertaListadoDTO[]> {
     console.log('[MOCK API] Obteniendo listado de alertas...');
 
