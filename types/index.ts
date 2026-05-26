@@ -45,6 +45,7 @@ export interface ClienteRequestDTO {
   cuit: string;
   razonSocial: string;
   tipoEmpresa: string;
+  email: string;
   rucaNro?: string;
   vtoRuca?: string; // "YYYY-MM-DD"
   sede?: {

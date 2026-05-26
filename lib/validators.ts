@@ -72,6 +72,11 @@ export const clienteSchema = z.object({
     .string()
     .min(1, 'Seleccioná un tipo de empresa'),
 
+  email: z
+  .string()
+  .min(1, 'El email es obligatorio')
+  .email('El formato del email no es válido'),
+
   rucaNro: z.string().optional(),
   vtoRuca: z.string().optional(),
 

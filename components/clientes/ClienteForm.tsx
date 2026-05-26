@@ -20,14 +20,14 @@ import { clienteSchema, type ClienteFormData } from '@/lib/validators';
 import { api } from '@/lib/api';
 
 const TIPOS_EMPRESA = [
-  { value: 'ACOPIO',      label: 'Acopio' },
-  { value: 'PUERTO',      label: 'Puerto' },
-  { value: 'PRODUCTOR',   label: 'Productor' },
+  { value: 'ACOPIO', label: 'Acopio' },
+  { value: 'PUERTO', label: 'Puerto' },
+  { value: 'PRODUCTOR', label: 'Productor' },
   { value: 'EXPORTADORA', label: 'Exportadora' },
-  { value: 'MOLINO',      label: 'Molino' },
+  { value: 'MOLINO', label: 'Molino' },
   { value: 'COOPERATIVA', label: 'Cooperativa' },
-  { value: 'PRODUCTORA',  label: 'Productora' },
-  { value: 'OTRA',        label: 'Otra' },
+  { value: 'PRODUCTORA', label: 'Productora' },
+  { value: 'OTRA', label: 'Otra' },
 ];
 
 export function ClienteForm() {
@@ -72,11 +72,11 @@ export function ClienteForm() {
 
     const sede = sedeCompletada
       ? {
-          nombreLugar: data.sede!.nombreLugar || '',
-          direccion: data.sede!.direccion || '',
-          latitud: data.sede?.latitud ? parseFloat(data.sede.latitud) : undefined,
-          longitud: data.sede?.longitud ? parseFloat(data.sede.longitud) : undefined,
-        }
+        nombreLugar: data.sede!.nombreLugar || '',
+        direccion: data.sede!.direccion || '',
+        latitud: data.sede?.latitud ? parseFloat(data.sede.latitud) : undefined,
+        longitud: data.sede?.longitud ? parseFloat(data.sede.longitud) : undefined,
+      }
       : undefined;
 
     try {
@@ -84,6 +84,7 @@ export function ClienteForm() {
         cuit: data.cuit,
         razonSocial: data.razonSocial,
         tipoEmpresa: data.tipoEmpresa,
+        email: data.email,
         rucaNro: data.rucaNro || undefined,
         vtoRuca: data.vtoRuca || undefined,
         sede,
@@ -196,6 +197,22 @@ export function ClienteForm() {
               />
               {errors.razonSocial && (
                 <p className="text-xs text-destructive">{errors.razonSocial.message}</p>
+              )}
+            </div>
+
+            {/* Email del Cliente */}
+            <div className="space-y-2">
+              <Label className="text-xs font-bold uppercase text-muted-foreground">
+                Email <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                type="email"
+                placeholder="Ej. contacto@empresa.com"
+                {...register('email')}
+                className={inputClass(!!errors.email)}
+              />
+              {errors.email && (
+                <p className="text-xs text-destructive">{errors.email.message}</p>
               )}
             </div>
           </div>
