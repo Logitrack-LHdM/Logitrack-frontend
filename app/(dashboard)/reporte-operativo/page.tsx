@@ -42,7 +42,7 @@ import { RangoReporte } from '@/types/reporte-operativo';
 
 // Importamos las funciones utilitarias
 import { exportReporteOperativoCsvMock } from '@/lib/export-mock';
-import { adaptarDatosParaGrafico } from '@/utils/formatters';
+import { adaptarDatosParaGrafico, formatearTextoEnum } from '@/utils/formatters';
 
 export default function ReporteOperativoPage() {
     // 1. Definimos los estados locales para los filtros
@@ -494,7 +494,7 @@ export default function ReporteOperativoPage() {
                                             <TableBody>
                                                 {data.granos.map((grano, index) => (
                                                     <TableRow key={index} className="hover:bg-muted/30 transition-colors">
-                                                        <TableCell className="font-medium">{grano.tipoGrano}</TableCell>
+                                                        <TableCell className="font-medium">{formatearTextoEnum(grano.tipoGrano)}</TableCell>
                                                         <TableCell className="text-right">{grano.cantidadEnvios}</TableCell>
                                                         <TableCell className="text-right">{formatearKilos(grano.totalKilos)}</TableCell>
                                                     </TableRow>

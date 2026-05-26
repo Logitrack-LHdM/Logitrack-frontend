@@ -1,8 +1,18 @@
 import { ReporteEstadoDTO } from '@/types/reporte-operativo';
 
-// Función auxiliar para asignar los colores de globals.css según el texto del estado
+// Función para formatear textos que vienen como ENUM (ej: EN_PUNTO_DE_RECOLECCION -> En punto de recolección)
+export const formatearTextoEnum = (texto: string) => {
+    if (!texto) return '';
+    const textoLimpio = texto.replace(/_/g, ' ').toLowerCase();
+    return textoLimpio.charAt(0).toUpperCase() + textoLimpio.slice(1);
+};
+
+// Función auxiliar para asignar los colores de globals.css
 const getColorPorEstado = (estado: string) => {
-    const estadoNormalizado = estado.toLowerCase();
+    // Normalizamos quitando guiones bajos y pasando a minúsculas
+    const estadoNormalizado = estado.replace(/_/g, ' ').toLowerCase();
+
+    // Contemplamos opciones con y sin tilde por seguridad
     switch (estadoNormalizado) {
         case 'pendiente':
             return 'var(--status-pending)';
@@ -19,22 +29,20 @@ const getColorPorEstado = (estado: string) => {
     }
 };
 
-// Función auxiliar para capitalizar la primera letra (ej: "entregado" -> "Entregado")
-const capitalizar = (str: string) => str.charAt(0).toUpperCase() + str.slice(1);
-
 // Adaptación de Datos Dinámicos para el Gráfico de Recharts
 export const adaptarDatosParaGrafico = (estados: ReporteEstadoDTO[]) => {
     if (!estados || estados.length === 0) return [];
 
-    return estados.map((item) => ({
-        // Transformamos "en punto de recolección" a algo más corto si es necesario, 
-        // o simplemente lo capitalizamos para la UI
-        estado: item.estado.toLowerCase() === 'en punto de recolección'
-            ? 'En Recolección'
-            : capitalizar(item.estado),
-        cantidad: item.cantidadEnvios,
-        fill: getColorPorEstado(item.estado)
-    }));
+    return estados.map((item) => {
+        const estadoNormalizado = item.estado.replace(/_/g, ' ').toLowerCase();
+        return {
+            estado: estadoNormalizado === 'en punto de recoleccion' || estadoNormalizado === 'en punto de recolección'
+                ? 'En Recolección' // Versión corta exclusiva para el eje del gráfico
+                : formatearTextoEnum(item.estado),
+            cantidad: item.cantidadEnvios,
+            fill: getColorPorEstado(item.estado)
+        };
+    });
 };
 
 /**
