@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
-import { Truck, Scale, ArrowLeftCircle, ChartColumnBig, FileDown, Loader2 } from 'lucide-react';
+import { Truck, Scale, ArrowLeftCircle, ChartColumnBig, FileDown, Loader2, Clock, CheckCircle } from 'lucide-react';
 import {
     BarChart,
     Bar,
@@ -272,14 +272,15 @@ export default function ReporteOperativoPage() {
                 <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
                     {isLoading ? (
                         <>
-                            {/* Skeletons para las tarjetas de métricas */}
-                            <Skeleton className="lg:col-span-2 h-32 rounded-xl" />
-                            <Skeleton className="lg:col-span-2 h-32 rounded-xl" />
+                            <Skeleton className="h-32 rounded-xl" />
+                            <Skeleton className="h-32 rounded-xl" />
+                            <Skeleton className="h-32 rounded-xl" />
+                            <Skeleton className="h-32 rounded-xl" />
                         </>
                     ) : (
                         <>
-                            {/* Tarjeta: Total de Viajes */}
-                            <Card className="lg:col-span-2 shadow-sm hover:shadow-md transition-shadow">
+                            {/* Tarjeta 1: Total de Viajes */}
+                            <Card className="shadow-sm hover:shadow-md transition-shadow">
                                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                                     <CardTitle className="text-sm font-medium text-muted-foreground">
                                         Total de Viajes
@@ -290,16 +291,16 @@ export default function ReporteOperativoPage() {
                                 </CardHeader>
                                 <CardContent>
                                     <div className="text-3xl font-bold text-foreground">
-                                        {data?.metricasGlobales.totalViajes}
+                                        {data?.operativo?.totalViajes || 0}
                                     </div>
                                     <p className="text-xs text-muted-foreground mt-1">
-                                        Viajes registrados en el período actual
+                                        Viajes registrados en el período
                                     </p>
                                 </CardContent>
                             </Card>
 
-                            {/* Tarjeta: Kilos Transportados */}
-                            <Card className="lg:col-span-2 shadow-sm hover:shadow-md transition-shadow">
+                            {/* Tarjeta 2: Kilos Transportados */}
+                            <Card className="shadow-sm hover:shadow-md transition-shadow">
                                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                                     <CardTitle className="text-sm font-medium text-muted-foreground">
                                         Kilos Transportados
@@ -310,11 +311,71 @@ export default function ReporteOperativoPage() {
                                 </CardHeader>
                                 <CardContent>
                                     <div className="text-3xl font-bold text-foreground">
-                                        {formatearKilos(data?.metricasGlobales.totalKilos)} <span className="text-lg font-normal text-muted-foreground">kg</span>
+                                        {formatearKilos(data?.operativo?.totalKilos)} <span className="text-lg font-normal text-muted-foreground">kg</span>
                                     </div>
                                     <p className="text-xs text-muted-foreground mt-1">
                                         Volumen total de carga gestionada
                                     </p>
+                                </CardContent>
+                            </Card>
+
+                            {/* Tarjeta 3: Envíos a Tiempo (Fase 4.1) */}
+                            <Card className="shadow-sm hover:shadow-md transition-shadow">
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                    <CardTitle className="text-sm font-medium text-muted-foreground">
+                                        Envíos a Tiempo
+                                    </CardTitle>
+                                    <div className="p-2 bg-primary/10 rounded-full">
+                                        <CheckCircle className="h-4 w-4 text-primary" />
+                                    </div>
+                                </CardHeader>
+                                <CardContent>
+                                    {fechaInicio && fechaFin ? (
+                                        <>
+                                            <div className="text-3xl font-bold text-foreground">
+                                                {data?.eficiencia?.cantidadEnviosATiempo || 0}
+                                            </div>
+                                            <p className="text-xs text-muted-foreground mt-1">
+                                                Entregas dentro del plazo
+                                            </p>
+                                        </>
+                                    ) : (
+                                        <div className="flex items-center h-full pt-3">
+                                            <p className="text-sm text-muted-foreground italic bg-muted/50 p-2 rounded-md w-full text-center">
+                                                Filtre por fechas para calcular
+                                            </p>
+                                        </div>
+                                    )}
+                                </CardContent>
+                            </Card>
+
+                            {/* Tarjeta 4: Kilos Entregados a Tiempo (Fase 4.1) */}
+                            <Card className="shadow-sm hover:shadow-md transition-shadow">
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                    <CardTitle className="text-sm font-medium text-muted-foreground">
+                                        Kilos a Tiempo
+                                    </CardTitle>
+                                    <div className="p-2 bg-primary/10 rounded-full">
+                                        <Clock className="h-4 w-4 text-primary" />
+                                    </div>
+                                </CardHeader>
+                                <CardContent>
+                                    {fechaInicio && fechaFin ? (
+                                        <>
+                                            <div className="text-3xl font-bold text-foreground">
+                                                {formatearKilos(data?.eficiencia?.totalKilosEnTiempo)} <span className="text-lg font-normal text-muted-foreground">kg</span>
+                                            </div>
+                                            <p className="text-xs text-muted-foreground mt-1">
+                                                Volumen entregado puntualmente
+                                            </p>
+                                        </>
+                                    ) : (
+                                        <div className="flex items-center h-full pt-3">
+                                            <p className="text-sm text-muted-foreground italic bg-muted/50 p-2 rounded-md w-full text-center">
+                                                Filtre por fechas para calcular
+                                            </p>
+                                        </div>
+                                    )}
                                 </CardContent>
                             </Card>
                         </>
