@@ -8,7 +8,7 @@ import { useCumplimiento } from '@/hooks/use-cumplimiento';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Activity, AlertCircle, FileDown, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { exportCumplimientoCsvMock } from '@/lib/export-mock';
 
 export function CumplimientoDashboard() {
@@ -17,27 +17,21 @@ export function CumplimientoDashboard() {
 
     // Estados y hooks para la exportación
     const [isExporting, setIsExporting] = useState(false);
-    const { toast } = useToast();
 
     // Controlador del botón de exportación
     const handleExport = async () => {
         setIsExporting(true);
         try {
             await exportCumplimientoCsvMock();
-
-            toast({
-                title: "¡Exportación exitosa!",
-                description: "El análisis de viajes y desvíos se ha descargado correctamente.",
-                variant: "default",
+            toast.success('¡Exportación exitosa!', {
+                description: 'El análisis de viajes y desvíos se ha descargado correctamente.',
             });
         } catch (err) {
             console.error("Error en exportación:", err);
             // Si el error viene de nuestro mock (ej. "No hay viajes completados"), lo mostramos
             const mensajeError = err instanceof Error ? err.message : "Hubo un problema al generar el archivo. Por favor, intente nuevamente.";
-            toast({
-                title: "Error al exportar",
+            toast.error('Error al exportar', {
                 description: mensajeError,
-                variant: "destructive",
             });
         } finally {
             setIsExporting(false);

@@ -1,39 +1,71 @@
-import { useState, useEffect } from 'react';
-import { ReporteOperativoData } from '@/types/reporte-operativo';
-import { mockReporteOperativo } from '@/mocks/reporteOperativoMock'; // Asumiendo que guardaste el mock aquí
+import { useState } from 'react';
+import { api } from '@/lib/api';
+import type {
+    ReporteSimpleDTO,
+    ReporteEstadoDTO,
+    ReporteGranoDTO,
+    ReporteEficienciaDTO
+} from '@/types/reporte-operativo';
+
+export interface FiltrosReporte {
+    fechaInicio: string;
+    fechaFin: string;
+}
+
+export interface DashboardReporteData {
+    operativo: ReporteSimpleDTO | null;
+    estados: ReporteEstadoDTO[];
+    granos: ReporteGranoDTO[];
+    eficiencia: ReporteEficienciaDTO | null;
+}
 
 export const useReporteOperativo = () => {
-    const [data, setData] = useState<ReporteOperativoData | null>(null);
-    const [isLoading, setIsLoading] = useState<boolean>(true);
+    // Inicializamos en null para saber que la pantalla está en estado inicial (sin buscar)
+    const [data, setData] = useState<DashboardReporteData | null>(null);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
-        const fetchReporte = async () => {
-            setIsLoading(true);
-            setError(null);
+    const ejecutarBusqueda = async (filtros: FiltrosReporte) => {
+        setIsLoading(true);
+        setError(null);
 
-            try {
-                // Simulamos una latencia de red de 1.5 segundos
-                await new Promise((resolve) => setTimeout(resolve, 1500));
+        try {
+            const { fechaInicio, fechaFin } = filtros;
 
-                // --- FUTURA INTEGRACIÓN BACKEND ---
-                // Cuando Spring Boot tenga el endpoint listo, solo reemplazas la línea de abajo 
-                // por tu llamada real usando la utilidad api.ts o un fetch estándar:
-                // const response = await api.get('/endpoints/reporte-operativo');
-                // setData(response.data);
-                // ----------------------------------
-
-                setData(mockReporteOperativo);
-            } catch (err) {
-                setError('Ocurrió un error al cargar el reporte operativo.');
-                console.error("Error cargando el reporte:", err);
-            } finally {
+            // Validación de seguridad por si acaso
+            if ((fechaInicio && !fechaFin) || (!fechaInicio && fechaFin)) {
+                setError('Debe proporcionar ambas fechas para la búsqueda.');
                 setIsLoading(false);
+                return;
             }
-        };
 
-        fetchReporte();
-    }, []);
+            // Gracias a la Fase 1, ahora todos los endpoints consumen fechaInicio y fechaFin
+            const reqOperativo = api.getReporteOperativo(fechaInicio, fechaFin);
+            const reqEstados = api.getReporteEstados(fechaInicio, fechaFin);
+            const reqGranos = api.getReporteGranos(fechaInicio, fechaFin);
+            const reqEficiencia = api.getReporteATiempo(fechaInicio, fechaFin);
 
-    return { data, isLoading, error };
+            const [operativo, estados, granos, eficiencia] = await Promise.all([
+                reqOperativo,
+                reqEstados,
+                reqGranos,
+                reqEficiencia
+            ]);
+
+            setData({ operativo, estados, granos, eficiencia });
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Ocurrió un error al cargar los reportes.');
+            setData(null); // Si hay error, volvemos al estado vacío
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // Función para resetear el panel
+    const limpiarDatos = () => {
+        setData(null);
+        setError(null);
+    };
+
+    return { data, isLoading, error, ejecutarBusqueda, limpiarDatos };
 };
