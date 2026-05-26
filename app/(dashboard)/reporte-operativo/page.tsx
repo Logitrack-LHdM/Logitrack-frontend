@@ -26,6 +26,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { Input } from "@/components/ui/input";
 
 // Importamos nuestros custom hooks y tipos actualizados
 import { useReporteOperativo } from '@/hooks/use-reporte-operativo';
@@ -233,7 +234,36 @@ export default function ReporteOperativoPage() {
                         </Select>
                     </div>
 
-                    {/* Espacio reservado para los selectores de fecha (Fase 3.3) */}
+                    {/* Filtros: Rango de Fechas (Fase 3.3) */}
+                    <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto sm:ml-auto">
+                        <div className="flex flex-col gap-1.5 w-full sm:w-[160px]">
+                            <label className="text-sm font-medium text-muted-foreground px-1">
+                                Fecha Inicio
+                            </label>
+                            <Input
+                                type="date"
+                                value={fechaInicio}
+                                onChange={(e) => setFechaInicio(e.target.value)}
+                                className="w-full bg-background"
+                                // Definimos el máximo como la fecha fin si existe, para evitar rangos ilógicos
+                                max={fechaFin || undefined}
+                            />
+                        </div>
+
+                        <div className="flex flex-col gap-1.5 w-full sm:w-[160px]">
+                            <label className="text-sm font-medium text-muted-foreground px-1">
+                                Fecha Fin
+                            </label>
+                            <Input
+                                type="date"
+                                value={fechaFin}
+                                onChange={(e) => setFechaFin(e.target.value)}
+                                className="w-full bg-background"
+                                // Definimos el mínimo como la fecha de inicio
+                                min={fechaInicio || undefined}
+                            />
+                        </div>
+                    </div>
 
                 </div>
 
