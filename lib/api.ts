@@ -441,31 +441,46 @@ class ApiClient {
 
   // === ALERTAS (MOCKS TEMPORALES PARA FRONTEND) ===
 
+  // async getAlertas(): Promise<AlertaListadoDTO[]> {
+  //   console.log('[MOCK API] Obteniendo listado de alertas...');
+
+  //   // Importación dinámica para no afectar el bundle inicial si no se usa
+  //   const { mockAlertas } = await import('@/mocks/alertasMock');
+
+  //   return new Promise((resolve) => {
+  //     setTimeout(() => {
+  //       // En una API real, esto devolvería los datos ordenados desde BD.
+  //       // Aquí simulamos que llegan tal cual los definimos.
+  //       resolve([...mockAlertas]);
+  //     }, 800); // Simulamos 800ms de latencia
+  //   });
+  // }
+
+  // async resolverAlerta(idAlerta: number, notas?: string): Promise<void> {
+  //   console.log(`[MOCK API] Resolviendo alerta ${idAlerta}... Notas:`, notas);
+
+  //   return new Promise((resolve) => {
+  //     setTimeout(() => {
+  //       // Al ser un mock estático en el cliente, la actualización de estado real 
+  //       // la manejaremos en el propio componente React para reflejar el cambio visual.
+  //       console.log('[MOCK API] Alerta resuelta con éxito.');
+  //       resolve();
+  //     }, 1000);
+  //   });
+  // }
+
+  // === ALERTAS (US 33 - SUPERVISOR) ===
   async getAlertas(): Promise<AlertaListadoDTO[]> {
-    console.log('[MOCK API] Obteniendo listado de alertas...');
-
-    // Importación dinámica para no afectar el bundle inicial si no se usa
-    const { mockAlertas } = await import('@/mocks/alertasMock');
-
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        // En una API real, esto devolvería los datos ordenados desde BD.
-        // Aquí simulamos que llegan tal cual los definimos.
-        resolve([...mockAlertas]);
-      }, 800); // Simulamos 800ms de latencia
-    });
+    // Hace un GET al endpoint protegido del supervisor
+    return this.request<AlertaListadoDTO[]>('/incidencias/alertas');
   }
 
-  async resolverAlerta(idAlerta: number, notas?: string): Promise<void> {
-    console.log(`[MOCK API] Resolviendo alerta ${idAlerta}... Notas:`, notas);
-
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        // Al ser un mock estático en el cliente, la actualización de estado real 
-        // la manejaremos en el propio componente React para reflejar el cambio visual.
-        console.log('[MOCK API] Alerta resuelta con éxito.');
-        resolve();
-      }, 1000);
+  async resolverAlerta(idAlerta: number, notasSupervisor?: string): Promise<void> {
+    // Hace un PATCH para cambiar el estado a RESUELTA
+    // Enviamos el cuerpo (dto) si hay notas, o un objeto vacío/solo con la nota
+    return this.request<void>(`/incidencias/${idAlerta}/resolver`, {
+      method: 'PATCH',
+      body: JSON.stringify({ notasSupervisor }),
     });
   }
 }
