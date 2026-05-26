@@ -15,51 +15,55 @@ import {
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useReporteOperativo } from '@/hooks/use-reporte-operativo';
-import { DesgloseEstados } from '@/types/reporte-operativo';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button'; // <-- Importamos el componente Button
+import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { api } from '@/lib/api'; // Importas tu cliente API real
 
-// Importamos nuestra función mock (Fase 2.2)
+// Importamos nuestros custom hooks y tipos actualizados
+import { useReporteOperativo } from '@/hooks/use-reporte-operativo';
+import { RangoReporte } from '@/types/reporte-operativo';
+
+// Importamos las funciones utilitarias
 import { exportReporteOperativoCsvMock } from '@/lib/export-mock';
-
-// Función para adaptar los datos crudos al formato del gráfico inyectando variables CSS
-const adaptarDatosParaGrafico = (desglose: DesgloseEstados | undefined) => {
-    if (!desglose) return [];
-    return [
-        { estado: 'Pendientes', cantidad: desglose.pendientes, fill: 'var(--status-pending)' },
-        { estado: 'En Tránsito', cantidad: desglose.enTransito, fill: 'var(--status-transit)' },
-        { estado: 'En Recolección', cantidad: desglose.enPuntoRecoleccion, fill: 'var(--status-pickup)' },
-        { estado: 'Entregados', cantidad: desglose.entregados, fill: 'var(--status-delivered)' },
-        { estado: 'Cancelados', cantidad: desglose.cancelados, fill: 'var(--status-cancelled)' }
-    ];
-};
+import { adaptarDatosParaGrafico } from '@/utils/formatters';
 
 export default function ReporteOperativoPage() {
-    // Conectamos nuestro servicio simulado
-    const { data, isLoading, error } = useReporteOperativo();
+    // 1. Definimos los estados locales para los filtros
+    const [fechaInicio, setFechaInicio] = useState<string>('');
+    const [fechaFin, setFechaFin] = useState<string>('');
+    const [rango, setRango] = useState<RangoReporte | undefined>(undefined);
 
+    // 2. Conectamos el servicio pasando los filtros dinámicos
+    // Si la fecha es un string vacío, pasamos undefined para no romper la URL
+    const { data, isLoading, error } = useReporteOperativo({
+        fechaInicio: fechaInicio || undefined,
+        fechaFin: fechaFin || undefined,
+        rango
+    });
+
+    // 3. Memorizamos los datos del gráfico delegando la lógica a formatters.ts
     // Memorizamos los datos del gráfico para evitar re-renderizados innecesarios
-    const datosGrafico = useMemo(() => adaptarDatosParaGrafico(data?.desgloseEstados), [data]);
+    const datosGrafico = useMemo(() => {
+        // En tu nuevo backend, los estados vienen dentro del array `data.estados`
+        return adaptarDatosParaGrafico(data.estados || []);
+    }, [data.estados]);
 
-
-    // Estados y hooks para la exportación (Fases 3.1 y 3.2)
+    // Estado para la exportación
     const [isExporting, setIsExporting] = useState(false);
 
-    // Controlador del botón de exportación
+    // 4. Controlador del botón de exportación actualizado
     const handleExport = async () => {
         setIsExporting(true);
         try {
-            await exportReporteOperativoCsvMock();
+            // Ahora le pasamos la "foto" exacta de los datos actuales con filtros aplicados
+            await exportReporteOperativoCsvMock(data);
             toast.success('¡Exportación exitosa!', {
                 description: 'El archivo CSV se ha descargado correctamente en su dispositivo.',
             });
         } catch (err) {
             console.error("Error en exportación:", err);
             toast.error('Error al exportar', {
-                description: 'Hubo un problema al generar el archivo. Por favor, intente nuevamente.',
+                description: err instanceof Error ? err.message : 'Hubo un problema al generar el archivo. Por favor, intente nuevamente.',
             });
         } finally {
             setIsExporting(false);
@@ -101,20 +105,6 @@ export default function ReporteOperativoPage() {
     //     }
     // };
 
-    // Manejo de estado de error
-    if (error) {
-        return (
-            <div className="container mx-auto px-4 py-8">
-                <div className="max-w-6xl mx-auto">
-                    <div className="p-4 rounded-xl bg-destructive/10 text-destructive border border-destructive/20">
-                        <h2 className="font-semibold text-lg">Error al cargar el reporte</h2>
-                        <p>{error}</p>
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
     // Función auxiliar para formatear los kilos con separadores de miles y decimales
     const formatearKilos = (kilos: number | undefined) => {
         if (kilos === undefined) return '0';
@@ -123,6 +113,25 @@ export default function ReporteOperativoPage() {
             maximumFractionDigits: 2,
         }).format(kilos);
     };
+
+    // Manejo de estado de error visual
+    if (error) {
+        return (
+            <div className="container mx-auto px-4 py-8">
+                <div className="max-w-6xl mx-auto">
+                    <div className="p-4 rounded-xl bg-destructive/10 text-destructive border border-destructive/20 flex justify-between items-center">
+                        <div>
+                            <h2 className="font-semibold text-lg">Error en el reporte</h2>
+                            <p>{error}</p>
+                        </div>
+                        <Button variant="outline" onClick={() => { setFechaInicio(''); setFechaFin(''); }}>
+                            Limpiar Filtros
+                        </Button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="container mx-auto px-4 py-8">
