@@ -13,6 +13,14 @@ import {
     Cell
 } from 'recharts';
 
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
@@ -197,6 +205,35 @@ export default function ReporteOperativoPage() {
                             {isExporting ? 'Exportando...' : 'Exportar'}
                         </span>
                     </Button>
+
+                </div>
+                {/* ... Fin del Encabezado Principal ... */}
+
+                {/* --- NUEVA BARRA DE FILTROS --- */}
+                <div className="bg-card p-4 md:p-5 rounded-xl border border-border shadow-sm flex flex-col sm:flex-row gap-4 items-start sm:items-end mb-2">
+
+                    {/* Filtro: Rango de Estados (Fase 3.2) */}
+                    <div className="flex flex-col gap-1.5 w-full sm:w-auto">
+                        <label className="text-sm font-medium text-muted-foreground px-1">
+                            Rango de Estados
+                        </label>
+                        <Select
+                            value={rango || "historico"}
+                            onValueChange={(value) => setRango(value === "historico" ? undefined : value as RangoReporte)}
+                        >
+                            <SelectTrigger className="w-full sm:w-[220px] bg-background">
+                                <SelectValue placeholder="Seleccione un rango" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="historico">Histórico Completo</SelectItem>
+                                <SelectItem value="ultimos7dias">Últimos 7 días</SelectItem>
+                                <SelectItem value="ultimos30dias">Últimos 30 días</SelectItem>
+                                <SelectItem value="ultimos90dias">Últimos 90 días</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    {/* Espacio reservado para los selectores de fecha (Fase 3.3) */}
 
                 </div>
 
