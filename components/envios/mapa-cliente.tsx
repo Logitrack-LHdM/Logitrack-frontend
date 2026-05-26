@@ -89,26 +89,29 @@ function AjusteEncuadre({
     camion?: [number, number];
     ruta?: [number, number][];
 }) {
-    const map = useMap(); // Obtenemos la instancia real de Leaflet
-    // Usamos una referencia para saber si ya hicimos el zoom inicial
-    const encuadreRealizado = useRef(false);
+    const map = useMap();
+
+    // 1. Ref para saber si ya encuadramos específicamente la RUTA completa
+    const rutaEncuadrada = useRef(false);
+
+    // 2. Ref para saber si ya hicimos el encuadre básico (origen/destino) cuando no había ruta
+    const encuadreBasicoRealizado = useRef(false);
 
     useEffect(() => {
-        // Si ya encuadramos, no hacemos nada más para dejar al usuario navegar tranquilo
-        if (encuadreRealizado.current) return;
-
-        // Prioridad 1: Encuadrar usando toda la ruta planificada
-        if (ruta && ruta.length > 0) {
-            // Creamos una "caja" (bounding box) que envuelve ambos puntos
+        // Prioridad Absoluta: Si llegó la ruta y AÚN NO la encuadramos
+        if (ruta && ruta.length > 0 && !rutaEncuadrada.current) {
             const bounds = L.latLngBounds(ruta);
-
-            // Le pedimos a Leaflet que ajuste el zoom para que la caja entre en pantalla.
-            // El padding asegura que los pines no queden pegados a los bordes del contenedor.
             map.fitBounds(bounds, { padding: [50, 50] });
-            encuadreRealizado.current = true;
+
+            // Marcamos la ruta como encuadrada para que no vuelva a saltar la cámara 
+            // con las actualizaciones de 30 segundos del camión
+            rutaEncuadrada.current = true;
+            encuadreBasicoRealizado.current = true; // Cancelamos el básico por las dudas
+            return; // Salimos del efecto
         }
-        // Prioridad 2: Fallback (Si la ruta aún no cargó, encuadramos los puntos sueltos)
-        else {
+
+        // Fallback: Si no hay ruta todavía, y no hicimos el encuadre básico
+        if (!rutaEncuadrada.current && !encuadreBasicoRealizado.current) {
             const puntosBase = [];
             if (origen) puntosBase.push(origen);
             if (destino) puntosBase.push(destino);
@@ -117,15 +120,15 @@ function AjusteEncuadre({
             if (puntosBase.length > 1) {
                 const bounds = L.latLngBounds(puntosBase);
                 map.fitBounds(bounds, { padding: [50, 50] });
-                encuadreRealizado.current = true;
+                encuadreBasicoRealizado.current = true;
             } else if (puntosBase.length === 1) {
                 map.setView(puntosBase[0], 13);
-                encuadreRealizado.current = true;
+                encuadreBasicoRealizado.current = true;
             }
         }
     }, [map, origen, destino, camion, ruta]);
 
-    return null; // No renderiza nada en el DOM
+    return null;
 }
 
 const MapaCliente = memo(function MapaCliente({
