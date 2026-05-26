@@ -31,6 +31,7 @@ import type {
 } from '@/types/reporte-operativo';
 
 import { adaptarRutaParaLeaflet } from '@/lib/utils';
+import { RespuestaCumplimiento } from '@/types/cumplimiento';
 
 // Base URL de la API - usar variable de entorno en produccion
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
@@ -252,23 +253,23 @@ class ApiClient {
   }
 
   async reportarIncidencia(id: string | number, incidencia: IncidenciaDTO): Promise<void> {
-    // MOCK: Simulación de petición al backend para la historia de usuario
-    console.log(`[MOCK API] Enviando reporte de incidencia para el viaje ${id}:`, incidencia);
+    // // MOCK: Simulación de petición al backend para la historia de usuario
+    // console.log(`[MOCK API] Enviando reporte de incidencia para el viaje ${id}:`, incidencia);
 
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        console.log('[MOCK API] Reporte procesado correctamente por el servidor simulado.');
-        resolve();
-      }, 1500); // Simulamos 1.5 segundos de latencia de red
-    });
+    // return new Promise((resolve) => {
+    //   setTimeout(() => {
+    //     console.log('[MOCK API] Reporte procesado correctamente por el servidor simulado.');
+    //     resolve();
+    //   }, 1500); // Simulamos 1.5 segundos de latencia de red
+    // });
 
-    /* 
-    Código original para restaurar cuando el endpoint en Spring Boot esté listo:
+
+    // Código original para restaurar cuando el endpoint en Spring Boot esté listo:
     return this.request<void>(`/envios/${id}/incidencias`, {
       method: 'POST',
       body: JSON.stringify(incidencia),
     });
-    */
+
   }
 
 
@@ -400,7 +401,7 @@ class ApiClient {
 
   async getReporteEstados(fechaInicio: string, fechaFin: string): Promise<ReporteEstadoDTO[]> {
     // El backend ahora se adaptará para recibir fechas también en este endpoint
-    return this.request<ReporteEstadoDTO[]>(`/reportes/estados?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`);
+    return this.request<ReporteEstadoDTO[]>(`/reportes/estadosPorFechas?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`);
   }
 
   async getReporteGranos(fechaInicio: string, fechaFin: string): Promise<ReporteGranoDTO[]> {
@@ -410,6 +411,11 @@ class ApiClient {
   async getReporteATiempo(fechaInicio: string, fechaFin: string): Promise<ReporteEficienciaDTO> {
     return this.request<ReporteEficienciaDTO>(`/reportes/a-tiempo?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`);
   }
+
+  async getReporteCumplimiento(fechaInicio: string, fechaFin: string): Promise<RespuestaCumplimiento> {
+    return this.request<RespuestaCumplimiento>(`/reportes/cumplimiento?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`);
+  }
+
 
   // === EXPORTACIONES (Archivos) ===
   async descargarArchivoCsv(endpoint: string): Promise<Blob> {
@@ -435,31 +441,46 @@ class ApiClient {
 
   // === ALERTAS (MOCKS TEMPORALES PARA FRONTEND) ===
 
+  // async getAlertas(): Promise<AlertaListadoDTO[]> {
+  //   console.log('[MOCK API] Obteniendo listado de alertas...');
+
+  //   // Importación dinámica para no afectar el bundle inicial si no se usa
+  //   const { mockAlertas } = await import('@/mocks/alertasMock');
+
+  //   return new Promise((resolve) => {
+  //     setTimeout(() => {
+  //       // En una API real, esto devolvería los datos ordenados desde BD.
+  //       // Aquí simulamos que llegan tal cual los definimos.
+  //       resolve([...mockAlertas]);
+  //     }, 800); // Simulamos 800ms de latencia
+  //   });
+  // }
+
+  // async resolverAlerta(idAlerta: number, notas?: string): Promise<void> {
+  //   console.log(`[MOCK API] Resolviendo alerta ${idAlerta}... Notas:`, notas);
+
+  //   return new Promise((resolve) => {
+  //     setTimeout(() => {
+  //       // Al ser un mock estático en el cliente, la actualización de estado real 
+  //       // la manejaremos en el propio componente React para reflejar el cambio visual.
+  //       console.log('[MOCK API] Alerta resuelta con éxito.');
+  //       resolve();
+  //     }, 1000);
+  //   });
+  // }
+
+  // === ALERTAS (US 33 - SUPERVISOR) ===
   async getAlertas(): Promise<AlertaListadoDTO[]> {
-    console.log('[MOCK API] Obteniendo listado de alertas...');
-
-    // Importación dinámica para no afectar el bundle inicial si no se usa
-    const { mockAlertas } = await import('@/mocks/alertasMock');
-
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        // En una API real, esto devolvería los datos ordenados desde BD.
-        // Aquí simulamos que llegan tal cual los definimos.
-        resolve([...mockAlertas]);
-      }, 800); // Simulamos 800ms de latencia
-    });
+    // Hace un GET al endpoint protegido del supervisor
+    return this.request<AlertaListadoDTO[]>('/incidencias/alertas');
   }
 
-  async resolverAlerta(idAlerta: number, notas?: string): Promise<void> {
-    console.log(`[MOCK API] Resolviendo alerta ${idAlerta}... Notas:`, notas);
-
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        // Al ser un mock estático en el cliente, la actualización de estado real 
-        // la manejaremos en el propio componente React para reflejar el cambio visual.
-        console.log('[MOCK API] Alerta resuelta con éxito.');
-        resolve();
-      }, 1000);
+  async resolverAlerta(idAlerta: number, notasSupervisor?: string): Promise<void> {
+    // Hace un PATCH para cambiar el estado a RESUELTA
+    // Enviamos el cuerpo (dto) si hay notas, o un objeto vacío/solo con la nota
+    return this.request<void>(`/incidencias/${idAlerta}/resolver`, {
+      method: 'PATCH',
+      body: JSON.stringify({ notasSupervisor }),
     });
   }
 }

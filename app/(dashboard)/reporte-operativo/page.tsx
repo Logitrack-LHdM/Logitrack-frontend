@@ -43,6 +43,7 @@ import { RangoReporte } from '@/types/reporte-operativo';
 // Importamos las funciones utilitarias
 import { exportReporteOperativoCsvMock } from '@/lib/export-mock';
 import { adaptarDatosParaGrafico, formatearTextoEnum, formatearFechaIsoLocal } from '@/utils/formatters';
+import { api } from '@/lib/api';
 
 export default function ReporteOperativoPage() {
     // 1. Estados iniciales: Ahora por defecto arranca en "historico"
@@ -134,58 +135,60 @@ export default function ReporteOperativoPage() {
     const [isExporting, setIsExporting] = useState(false);
 
     // 4. Controlador del botón de exportación actualizado
-    const handleExport = async () => {
-        setIsExporting(true);
-        try {
-            // Ahora le pasamos la "foto" exacta de los datos actuales con filtros aplicados
-            await exportReporteOperativoCsvMock(data);
-            toast.success('¡Exportación exitosa!', {
-                description: 'El archivo CSV se ha descargado correctamente en su dispositivo.',
-            });
-        } catch (err) {
-            console.error("Error en exportación:", err);
-            toast.error('Error al exportar', {
-                description: err instanceof Error ? err.message : 'Hubo un problema al generar el archivo. Por favor, intente nuevamente.',
-            });
-        } finally {
-            setIsExporting(false);
-        }
-    };
-
     // const handleExport = async () => {
     //     setIsExporting(true);
     //     try {
-    //         // 1. Llamas al endpoint real de Spring Boot (la URL dependerá de lo que defina el backend)
-    //         const blob = await api.descargarArchivoCsv('/reportes/operativo/exportar');
-
-    //         // 2. Creas una URL temporal para el archivo recibido
-    //         const url = window.URL.createObjectURL(blob);
-    //         const link = document.createElement('a');
-    //         link.href = url;
-
-    //         // 3. Fuerzas la descarga
-    //         link.setAttribute('download', `Logitrack_Reporte_${new Date().toISOString().split('T')[0]}.csv`);
-    //         document.body.appendChild(link);
-    //         link.click();
-
-    //         // 4. Limpias el DOM
-    //         document.body.removeChild(link);
-    //         window.URL.revokeObjectURL(url);
-
-    //         toast({
-    //             title: "¡Exportación exitosa!",
-    //             description: "El archivo se descargó correctamente desde el servidor.",
+    //         // Ahora le pasamos la "foto" exacta de los datos actuales con filtros aplicados
+    //         await exportReporteOperativoCsvMock(data);
+    //         toast.success('¡Exportación exitosa!', {
+    //             description: 'El archivo CSV se ha descargado correctamente en su dispositivo.',
     //         });
     //     } catch (err) {
-    //         toast({
-    //             title: "Error al exportar",
-    //             description: "El servidor no pudo generar el archivo.",
-    //             variant: "destructive",
+    //         console.error("Error en exportación:", err);
+    //         toast.error('Error al exportar', {
+    //             description: err instanceof Error ? err.message : 'Hubo un problema al generar el archivo. Por favor, intente nuevamente.',
     //         });
     //     } finally {
     //         setIsExporting(false);
     //     }
     // };
+
+    const handleExport = async () => {
+        setIsExporting(true);
+        try {
+
+            // CONSTRUIMOS EL ENDPOINT CON LOS QUERY PARAMETERS
+            const endpoint = `/reportes/operativo/exportar?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`;
+
+            // 1. Llamas al endpoint real de Spring Boot (la URL dependerá de lo que defina el backend)
+            const blob = await api.descargarArchivoCsv(endpoint);
+
+            // 2. Creas una URL temporal para el archivo recibido
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+
+            // 3. Fuerzas la descarga
+            link.setAttribute('download', `Logitrack_Reporte_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+
+            // 4. Limpias el DOM
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+
+            toast.success('¡Exportación exitosa!', {
+                description: 'El archivo se descargó correctamente desde el servidor.',
+            });
+        } catch (err) {
+            console.error("Error en exportación:", err);
+            toast.error('Error al exportar', {
+                description: err instanceof Error ? err.message : 'El servidor no pudo generar el archivo. Por favor, intente nuevamente.',
+            });
+        } finally {
+            setIsExporting(false);
+        }
+    };
 
     // Función auxiliar para formatear los kilos con separadores de miles y decimales
     const formatearKilos = (kilos: number | undefined) => {
