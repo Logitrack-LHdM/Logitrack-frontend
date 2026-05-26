@@ -27,4 +27,4 @@ export interface ReporteEficienciaDTO {
 }
 
 // Opcional: Tipado estricto para los parámetros de rango de la API
-export type RangoReporte = 'ultimos7dias' | 'ultimos30dias' | 'ultimos90dias';
+export type RangoReporte = 'historico' | 'ultimos7dias' | 'ultimos30dias' | 'ultimos90dias' | 'otro';

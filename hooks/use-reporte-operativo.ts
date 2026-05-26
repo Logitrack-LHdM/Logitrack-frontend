@@ -1,21 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { api } from '@/lib/api';
 import type {
     ReporteSimpleDTO,
     ReporteEstadoDTO,
     ReporteGranoDTO,
-    ReporteEficienciaDTO,
-    RangoReporte
+    ReporteEficienciaDTO
 } from '@/types/reporte-operativo';
 
-// Interfaz para los parámetros de entrada del hook
 export interface FiltrosReporte {
-    fechaInicio?: string;
-    fechaFin?: string;
-    rango?: RangoReporte;
+    fechaInicio: string;
+    fechaFin: string;
 }
 
-// Nueva estructura que agrupa todas las respuestas para la vista
 export interface DashboardReporteData {
     operativo: ReporteSimpleDTO | null;
     estados: ReporteEstadoDTO[];
@@ -23,69 +19,53 @@ export interface DashboardReporteData {
     eficiencia: ReporteEficienciaDTO | null;
 }
 
-export const useReporteOperativo = (filtros: FiltrosReporte = {}) => {
-    const [data, setData] = useState<DashboardReporteData>({
-        operativo: null,
-        estados: [],
-        granos: [],
-        eficiencia: null
-    });
-    const [isLoading, setIsLoading] = useState<boolean>(true);
+export const useReporteOperativo = () => {
+    // Inicializamos en null para saber que la pantalla está en estado inicial (sin buscar)
+    const [data, setData] = useState<DashboardReporteData | null>(null);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
-        const fetchReportes = async () => {
-            setIsLoading(true);
-            setError(null);
+    const ejecutarBusqueda = async (filtros: FiltrosReporte) => {
+        setIsLoading(true);
+        setError(null);
 
-            try {
-                const { fechaInicio, fechaFin, rango } = filtros;
+        try {
+            const { fechaInicio, fechaFin } = filtros;
 
-                // --- INTERCEPTOR DE REGLAS DE NEGOCIO ---
-                // Regla 1: Si se envía una fecha, la otra es obligatoria.
-                if ((fechaInicio && !fechaFin) || (!fechaInicio && fechaFin)) {
-                    setError('Debe seleccionar tanto la fecha de inicio como la fecha de fin.');
-                    setIsLoading(false);
-                    return; // Salimos de la función sin borrar los datos previos ni llamar a la API
-                }
-
-                const hasFechasCompletas = Boolean(fechaInicio && fechaFin);
-
-                // Preparamos las promesas
-                const reqOperativo = api.getReporteOperativo(fechaInicio, fechaFin);
-                const reqEstados = api.getReporteEstados(rango);
-
-                // Regla 2: Granos y Eficiencia requieren fechas obligatorias.
-                // Si no hay fechas, interceptamos y devolvemos arrays/null vacíos sin llamar al backend.
-                const reqGranos = hasFechasCompletas
-                    ? api.getReporteGranos(fechaInicio!, fechaFin!)
-                    : Promise.resolve([]);
-
-                const reqEficiencia = hasFechasCompletas
-                    ? api.getReporteATiempo(fechaInicio!, fechaFin!)
-                    : Promise.resolve(null);
-
-                // Ejecutamos todas las peticiones en paralelo para mayor velocidad
-                const [operativo, estados, granos, eficiencia] = await Promise.all([
-                    reqOperativo,
-                    reqEstados,
-                    reqGranos,
-                    reqEficiencia
-                ]);
-
-                setData({ operativo, estados, granos, eficiencia });
-            } catch (err) {
-                // Capturamos el error (ya sea de nuestra validación o del backend)
-                setError(err instanceof Error ? err.message : 'Ocurrió un error al cargar los reportes.');
-                // Limpiamos los datos visuales si hay un error para evitar inconsistencias
-                setData({ operativo: null, estados: [], granos: [], eficiencia: null });
-            } finally {
+            // Validación de seguridad por si acaso
+            if ((fechaInicio && !fechaFin) || (!fechaInicio && fechaFin)) {
+                setError('Debe proporcionar ambas fechas para la búsqueda.');
                 setIsLoading(false);
+                return;
             }
-        };
 
-        fetchReportes();
-    }, [filtros.fechaInicio, filtros.fechaFin, filtros.rango]);
+            // Gracias a la Fase 1, ahora todos los endpoints consumen fechaInicio y fechaFin
+            const reqOperativo = api.getReporteOperativo(fechaInicio, fechaFin);
+            const reqEstados = api.getReporteEstados(fechaInicio, fechaFin);
+            const reqGranos = api.getReporteGranos(fechaInicio, fechaFin);
+            const reqEficiencia = api.getReporteATiempo(fechaInicio, fechaFin);
 
-    return { data, isLoading, error };
+            const [operativo, estados, granos, eficiencia] = await Promise.all([
+                reqOperativo,
+                reqEstados,
+                reqGranos,
+                reqEficiencia
+            ]);
+
+            setData({ operativo, estados, granos, eficiencia });
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Ocurrió un error al cargar los reportes.');
+            setData(null); // Si hay error, volvemos al estado vacío
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // Función para resetear el panel
+    const limpiarDatos = () => {
+        setData(null);
+        setError(null);
+    };
+
+    return { data, isLoading, error, ejecutarBusqueda, limpiarDatos };
 };

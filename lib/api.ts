@@ -377,18 +377,30 @@ class ApiClient {
   }
 
   // === REPORTES ===
-  async getReporteOperativo(fechaInicio?: string, fechaFin?: string): Promise<ReporteSimpleDTO> {
-    const searchParams = new URLSearchParams();
-    if (fechaInicio) searchParams.append('fechaInicio', fechaInicio);
-    if (fechaFin) searchParams.append('fechaFin', fechaFin);
+  // Constante para simular el histórico completo (1 de Enero del año 2000)
+  private readonly FECHA_HISTORICO_INICIO = '2000-01-01';
 
-    const query = searchParams.toString() ? `?${searchParams.toString()}` : '';
-    return this.request<ReporteSimpleDTO>(`/reportes/operativo${query}`);
+  // Helper interno para obtener la fecha de hoy en formato YYYY-MM-DD (hora de Argentina)
+  private getFechaHoyIso(): string {
+    const date = new Date();
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 
-  async getReporteEstados(rango?: RangoReporte): Promise<ReporteEstadoDTO[]> {
-    const query = rango ? `?rango=${rango}` : '';
-    return this.request<ReporteEstadoDTO[]>(`/reportes/estados${query}`);
+  async getReporteOperativo(fechaInicio?: string, fechaFin?: string): Promise<ReporteSimpleDTO> {
+    const searchParams = new URLSearchParams();
+    // Si no vienen fechas, asumimos histórico por defecto para la URL
+    searchParams.append('fechaInicio', fechaInicio || this.FECHA_HISTORICO_INICIO);
+    searchParams.append('fechaFin', fechaFin || this.getFechaHoyIso());
+
+    return this.request<ReporteSimpleDTO>(`/reportes/operativo?${searchParams.toString()}`);
+  }
+
+  async getReporteEstados(fechaInicio: string, fechaFin: string): Promise<ReporteEstadoDTO[]> {
+    // El backend ahora se adaptará para recibir fechas también en este endpoint
+    return this.request<ReporteEstadoDTO[]>(`/reportes/estados?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`);
   }
 
   async getReporteGranos(fechaInicio: string, fechaFin: string): Promise<ReporteGranoDTO[]> {

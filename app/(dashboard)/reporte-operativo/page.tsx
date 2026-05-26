@@ -42,28 +42,93 @@ import { RangoReporte } from '@/types/reporte-operativo';
 
 // Importamos las funciones utilitarias
 import { exportReporteOperativoCsvMock } from '@/lib/export-mock';
-import { adaptarDatosParaGrafico, formatearTextoEnum } from '@/utils/formatters';
+import { adaptarDatosParaGrafico, formatearTextoEnum, formatearFechaIsoLocal } from '@/utils/formatters';
 
 export default function ReporteOperativoPage() {
-    // 1. Definimos los estados locales para los filtros
+    // 1. Estados iniciales: Ahora por defecto arranca en "historico"
     const [fechaInicio, setFechaInicio] = useState<string>('');
     const [fechaFin, setFechaFin] = useState<string>('');
-    const [rango, setRango] = useState<RangoReporte | undefined>(undefined);
+    const [rango, setRango] = useState<RangoReporte | ''>('');
+    // 2. Conectamos nuestro nuevo hook manual
+    const { data, isLoading, error, ejecutarBusqueda, limpiarDatos } = useReporteOperativo();
 
-    // 2. Conectamos el servicio pasando los filtros dinámicos
-    // Si la fecha es un string vacío, pasamos undefined para no romper la URL
-    const { data, isLoading, error } = useReporteOperativo({
-        fechaInicio: fechaInicio || undefined,
-        fechaFin: fechaFin || undefined,
-        rango
-    });
-
-    // 3. Memorizamos los datos del gráfico delegando la lógica a formatters.ts
-    // Memorizamos los datos del gráfico para evitar re-renderizados innecesarios
+    // 3. Modificamos el useMemo para que soporte que data sea null inicialmente
     const datosGrafico = useMemo(() => {
-        // En tu nuevo backend, los estados vienen dentro del array `data.estados`
-        return adaptarDatosParaGrafico(data.estados || []);
-    }, [data.estados]);
+        return adaptarDatosParaGrafico(data?.estados || []);
+    }, [data?.estados]);
+
+    // --- NUEVAS FUNCIONES DE BÚSQUEDA (Fase 3) ---
+    const handleBuscar = () => {
+        // Preparamos las fechas. Si es histórico, simulamos las fechas extremas.
+        const fechaHistorico = '2000-01-01';
+        const fechaHoy = formatearFechaIsoLocal(new Date()) || '';
+
+        const filtros = {
+            fechaInicio: rango === 'historico' ? fechaHistorico : fechaInicio,
+            fechaFin: rango === 'historico' ? fechaHoy : fechaFin
+        };
+
+        ejecutarBusqueda(filtros);
+    };
+
+    const handleLimpiar = () => {
+        setRango(''); // Vuelve al estado inicial "Seleccione un rango"
+        setFechaInicio('');
+        setFechaFin('');
+        limpiarDatos();
+    };
+
+    // Validación en tiempo real para la advertencia
+    const faltaUnaFecha = Boolean((fechaInicio && !fechaFin) || (!fechaInicio && fechaFin));
+
+    // NUEVO: El botón buscar se deshabilita si NO es histórico y faltan fechas (una o ambas)
+    const faltanFechas = !fechaInicio || !fechaFin;
+    const isBotonBuscarDeshabilitado = isLoading || (rango !== 'historico' && faltanFechas);
+
+    // --- LÓGICA DE SINCRONIZACIÓN DE FILTROS (Fase 2) ---
+
+    // Función para calcular las fechas restando días a la fecha de hoy
+    const calcularFechasRango = (diasAtras: number) => {
+        const fechaActual = new Date();
+        const fechaPasada = new Date();
+        fechaPasada.setDate(fechaActual.getDate() - diasAtras);
+
+        return {
+            inicio: formatearFechaIsoLocal(fechaPasada) || '',
+            fin: formatearFechaIsoLocal(fechaActual) || ''
+        };
+    };
+
+    // Manejador del cambio en el Selector de Rango
+    const handleRangoChange = (nuevoRango: RangoReporte) => {
+        setRango(nuevoRango);
+
+        if (nuevoRango === 'historico') {
+            setFechaInicio('');
+            setFechaFin('');
+        } else if (nuevoRango === 'ultimos7dias') {
+            const fechas = calcularFechasRango(7);
+            setFechaInicio(fechas.inicio);
+            setFechaFin(fechas.fin);
+        } else if (nuevoRango === 'ultimos30dias') {
+            const fechas = calcularFechasRango(30);
+            setFechaInicio(fechas.inicio);
+            setFechaFin(fechas.fin);
+        } else if (nuevoRango === 'ultimos90dias') {
+            const fechas = calcularFechasRango(90);
+            setFechaInicio(fechas.inicio);
+            setFechaFin(fechas.fin);
+        }
+    };
+
+    // Manejador del cambio manual en los Inputs de Fecha
+    const handleFechaChange = (tipo: 'inicio' | 'fin', valor: string) => {
+        if (tipo === 'inicio') setFechaInicio(valor);
+        if (tipo === 'fin') setFechaFin(valor);
+
+        // Si el usuario toca las fechas manualmente, el selector cambia a "Otro"
+        setRango('otro');
+    };
 
     // Estado para la exportación
     const [isExporting, setIsExporting] = useState(false);
@@ -234,60 +299,92 @@ export default function ReporteOperativoPage() {
                 )}
 
                 {/* --- NUEVA BARRA DE FILTROS --- */}
-                <div className="bg-card p-4 md:p-5 rounded-xl border border-border shadow-sm flex flex-col sm:flex-row gap-4 items-start sm:items-end mb-2">
+                <div className="bg-card p-4 md:p-5 rounded-xl border border-border shadow-sm mb-6 relative">
 
-                    {/* Filtro: Rango de Estados (Fase 3.2) */}
-                    <div className="flex flex-col gap-1.5 w-full sm:w-auto">
-                        <label className="text-sm font-medium text-muted-foreground px-1">
-                            Rango de Estados
-                        </label>
-                        <Select
-                            value={rango || "historico"}
-                            onValueChange={(value) => setRango(value === "historico" ? undefined : value as RangoReporte)}
-                        >
-                            <SelectTrigger className="w-full sm:w-[220px] bg-background">
-                                <SelectValue placeholder="Seleccione un rango" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="historico">Histórico Completo</SelectItem>
-                                <SelectItem value="ultimos7dias">Últimos 7 días</SelectItem>
-                                <SelectItem value="ultimos30dias">Últimos 30 días</SelectItem>
-                                <SelectItem value="ultimos90dias">Últimos 90 días</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
+                    {/* Alerta si falta una fecha (Flotante arriba) */}
+                    {faltaUnaFecha && (
+                        <div className="absolute -top-6 right-0 text-xs text-destructive font-medium bg-destructive/10 px-2 py-1 rounded-md animate-in fade-in zoom-in">
+                            Debe seleccionar ambas fechas
+                        </div>
+                    )}
 
-                    {/* Filtros: Rango de Fechas (Fase 3.3) */}
-                    <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto sm:ml-auto">
-                        <div className="flex flex-col gap-1.5 w-full sm:w-[160px]">
+                    {/* Usamos un Grid de 4 columnas, alineando el contenido hacia abajo (items-end) para que los botones cuadren con los inputs */}
+                    <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-4 items-end">
+
+                        {/* 1. Rango de Días */}
+                        <div className="flex flex-col gap-1.5 w-full">
+                            <label className="text-sm font-medium text-muted-foreground px-1">
+                                Rango de Días
+                            </label>
+                            <Select
+                                value={rango}
+                                onValueChange={(value) => handleRangoChange(value as RangoReporte)}
+                            >
+                                <SelectTrigger className="w-full bg-background">
+                                    <SelectValue placeholder="Seleccione un rango" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="historico">Histórico Completo</SelectItem>
+                                    <SelectItem value="ultimos7dias">Últimos 7 días</SelectItem>
+                                    <SelectItem value="ultimos30dias">Últimos 30 días</SelectItem>
+                                    <SelectItem value="ultimos90dias">Últimos 90 días</SelectItem>
+                                    <SelectItem value="otro">Otro</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        {/* 2. Fecha Inicio */}
+                        <div className="flex flex-col gap-1.5 w-full">
                             <label className="text-sm font-medium text-muted-foreground px-1">
                                 Fecha Inicio
                             </label>
                             <Input
                                 type="date"
                                 value={fechaInicio}
-                                onChange={(e) => setFechaInicio(e.target.value)}
-                                className="w-full bg-background"
-                                // Definimos el máximo como la fecha fin si existe, para evitar rangos ilógicos
+                                onChange={(e) => handleFechaChange('inicio', e.target.value)}
+                                className="w-full bg-background disabled:opacity-50"
                                 max={fechaFin || undefined}
+                                disabled={rango === 'historico'}
                             />
                         </div>
 
-                        <div className="flex flex-col gap-1.5 w-full sm:w-[160px]">
+                        {/* 3. Fecha Fin */}
+                        <div className="flex flex-col gap-1.5 w-full">
                             <label className="text-sm font-medium text-muted-foreground px-1">
                                 Fecha Fin
                             </label>
                             <Input
                                 type="date"
                                 value={fechaFin}
-                                onChange={(e) => setFechaFin(e.target.value)}
-                                className="w-full bg-background"
-                                // Definimos el mínimo como la fecha de inicio
+                                onChange={(e) => handleFechaChange('fin', e.target.value)}
+                                className="w-full bg-background disabled:opacity-50"
                                 min={fechaInicio || undefined}
+                                disabled={rango === 'historico'}
                             />
                         </div>
-                    </div>
 
+                        {/* 4. Botones de Acción */}
+                        <div className="grid grid-cols-2 gap-2 w-full">
+                            <Button
+                                variant="outline"
+                                onClick={handleLimpiar}
+                                className="w-full"
+                                disabled={isLoading}
+                            >
+                                Limpiar
+                            </Button>
+
+                            <Button
+                                onClick={handleBuscar}
+                                disabled={isBotonBuscarDeshabilitado}
+                                className="w-full bg-[#1b4332] hover:bg-[#2d6a4f] text-white"
+                            >
+                                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                Buscar
+                            </Button>
+                        </div>
+
+                    </div>
                 </div>
 
                 {/* Grilla de Métricas Globales */}
@@ -305,98 +402,86 @@ export default function ReporteOperativoPage() {
                             {/* Tarjeta 1: Total de Viajes */}
                             <Card className="shadow-sm hover:shadow-md transition-shadow">
                                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                    <CardTitle className="text-sm font-medium text-muted-foreground">
-                                        Total de Viajes
-                                    </CardTitle>
+                                    <CardTitle className="text-sm font-medium text-muted-foreground">Total de Viajes</CardTitle>
                                     <div className="p-2 bg-primary/10 rounded-full">
                                         <Truck className="h-4 w-4 text-primary" />
                                     </div>
                                 </CardHeader>
                                 <CardContent>
-                                    <div className="text-3xl font-bold text-foreground">
-                                        {data?.operativo?.totalViajes || 0}
-                                    </div>
-                                    <p className="text-xs text-muted-foreground mt-1">
-                                        Viajes registrados en el período
-                                    </p>
+                                    {data ? (
+                                        <>
+                                            <div className="text-3xl font-bold text-foreground">{data.operativo?.totalViajes || 0}</div>
+                                            <p className="text-xs text-muted-foreground mt-1">Viajes registrados en el período</p>
+                                        </>
+                                    ) : (
+                                        <div className="flex items-center h-full pt-3">
+                                            <p className="text-sm text-muted-foreground italic bg-muted/50 p-2 rounded-md w-full text-center">Filtre por fechas para calcular</p>
+                                        </div>
+                                    )}
                                 </CardContent>
                             </Card>
 
                             {/* Tarjeta 2: Kilos Transportados */}
                             <Card className="shadow-sm hover:shadow-md transition-shadow">
                                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                    <CardTitle className="text-sm font-medium text-muted-foreground">
-                                        Kilos Transportados
-                                    </CardTitle>
+                                    <CardTitle className="text-sm font-medium text-muted-foreground">Kilos Transportados</CardTitle>
                                     <div className="p-2 bg-primary/10 rounded-full">
                                         <Scale className="h-4 w-4 text-primary" />
                                     </div>
                                 </CardHeader>
                                 <CardContent>
-                                    <div className="text-3xl font-bold text-foreground">
-                                        {formatearKilos(data?.operativo?.totalKilos)} <span className="text-lg font-normal text-muted-foreground">kg</span>
-                                    </div>
-                                    <p className="text-xs text-muted-foreground mt-1">
-                                        Volumen total de carga gestionada
-                                    </p>
-                                </CardContent>
-                            </Card>
-
-                            {/* Tarjeta 3: Envíos a Tiempo (Fase 4.1) */}
-                            <Card className="shadow-sm hover:shadow-md transition-shadow">
-                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                    <CardTitle className="text-sm font-medium text-muted-foreground">
-                                        Envíos a Tiempo
-                                    </CardTitle>
-                                    <div className="p-2 bg-primary/10 rounded-full">
-                                        <CheckCircle className="h-4 w-4 text-primary" />
-                                    </div>
-                                </CardHeader>
-                                <CardContent>
-                                    {fechaInicio && fechaFin ? (
+                                    {data ? (
                                         <>
-                                            <div className="text-3xl font-bold text-foreground">
-                                                {data?.eficiencia?.cantidadEnviosATiempo || 0}
-                                            </div>
-                                            <p className="text-xs text-muted-foreground mt-1">
-                                                Entregas dentro del plazo
-                                            </p>
+                                            <div className="text-3xl font-bold text-foreground">{formatearKilos(data.operativo?.totalKilos)} <span className="text-lg font-normal text-muted-foreground">kg</span></div>
+                                            <p className="text-xs text-muted-foreground mt-1">Volumen total de carga gestionada</p>
                                         </>
                                     ) : (
                                         <div className="flex items-center h-full pt-3">
-                                            <p className="text-sm text-muted-foreground italic bg-muted/50 p-2 rounded-md w-full text-center">
-                                                Filtre por fechas para calcular
-                                            </p>
+                                            <p className="text-sm text-muted-foreground italic bg-muted/50 p-2 rounded-md w-full text-center">Filtre por fechas para calcular</p>
                                         </div>
                                     )}
                                 </CardContent>
                             </Card>
 
-                            {/* Tarjeta 4: Kilos Entregados a Tiempo (Fase 4.1) */}
+                            {/* Tarjeta 3: Envíos a Tiempo */}
                             <Card className="shadow-sm hover:shadow-md transition-shadow">
                                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                    <CardTitle className="text-sm font-medium text-muted-foreground">
-                                        Kilos a Tiempo
-                                    </CardTitle>
+                                    <CardTitle className="text-sm font-medium text-muted-foreground">Envíos a Tiempo</CardTitle>
+                                    <div className="p-2 bg-primary/10 rounded-full">
+                                        <CheckCircle className="h-4 w-4 text-primary" />
+                                    </div>
+                                </CardHeader>
+                                <CardContent>
+                                    {data ? (
+                                        <>
+                                            <div className="text-3xl font-bold text-foreground">{data.eficiencia?.cantidadEnviosATiempo || 0}</div>
+                                            <p className="text-xs text-muted-foreground mt-1">Entregas dentro del plazo</p>
+                                        </>
+                                    ) : (
+                                        <div className="flex items-center h-full pt-3">
+                                            <p className="text-sm text-muted-foreground italic bg-muted/50 p-2 rounded-md w-full text-center">Filtre por fechas para calcular</p>
+                                        </div>
+                                    )}
+                                </CardContent>
+                            </Card>
+
+                            {/* Tarjeta 4: Kilos a Tiempo */}
+                            <Card className="shadow-sm hover:shadow-md transition-shadow">
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                    <CardTitle className="text-sm font-medium text-muted-foreground">Kilos a Tiempo</CardTitle>
                                     <div className="p-2 bg-primary/10 rounded-full">
                                         <Clock className="h-4 w-4 text-primary" />
                                     </div>
                                 </CardHeader>
                                 <CardContent>
-                                    {fechaInicio && fechaFin ? (
+                                    {data ? (
                                         <>
-                                            <div className="text-3xl font-bold text-foreground">
-                                                {formatearKilos(data?.eficiencia?.totalKilosEnTiempo)} <span className="text-lg font-normal text-muted-foreground">kg</span>
-                                            </div>
-                                            <p className="text-xs text-muted-foreground mt-1">
-                                                Volumen entregado puntualmente
-                                            </p>
+                                            <div className="text-3xl font-bold text-foreground">{formatearKilos(data.eficiencia?.totalKilosEnTiempo)} <span className="text-lg font-normal text-muted-foreground">kg</span></div>
+                                            <p className="text-xs text-muted-foreground mt-1">Volumen entregado puntualmente</p>
                                         </>
                                     ) : (
                                         <div className="flex items-center h-full pt-3">
-                                            <p className="text-sm text-muted-foreground italic bg-muted/50 p-2 rounded-md w-full text-center">
-                                                Filtre por fechas para calcular
-                                            </p>
+                                            <p className="text-sm text-muted-foreground italic bg-muted/50 p-2 rounded-md w-full text-center">Filtre por fechas para calcular</p>
                                         </div>
                                     )}
                                 </CardContent>
@@ -408,7 +493,7 @@ export default function ReporteOperativoPage() {
                 {/* Contenedor de Gráficos y Tablas */}
                 <div className="grid gap-6 grid-cols-1 lg:grid-cols-2 pb-8">
 
-                    {/* Gráfico de Estados (Fase 4.2) */}
+                    {/* Gráfico de Estados */}
                     {isLoading ? (
                         <Skeleton className="h-[400px] rounded-xl w-full" />
                     ) : (
@@ -418,32 +503,21 @@ export default function ReporteOperativoPage() {
                                 <CardDescription>Distribución de las operaciones logísticas</CardDescription>
                             </CardHeader>
                             <CardContent className="flex-1">
-                                {datosGrafico.length > 0 ? (
+                                {!data ? (
+                                    <div className="h-[300px] flex flex-col items-center justify-center text-muted-foreground space-y-3 mt-2 border-2 border-dashed border-border rounded-xl">
+                                        <ChartColumnBig className="h-10 w-10 opacity-20" />
+                                        <p className="text-sm">Realice una búsqueda para ver el desglose por estados.</p>
+                                    </div>
+                                ) : datosGrafico.length > 0 ? (
                                     <div className="h-[300px] w-full mt-2">
                                         <ResponsiveContainer width="100%" height="100%">
                                             <BarChart data={datosGrafico} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
                                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--muted-foreground)/0.2)" />
-                                                <XAxis
-                                                    dataKey="estado"
-                                                    axisLine={false}
-                                                    tickLine={false}
-                                                    tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }}
-                                                    dy={10}
-                                                />
-                                                <YAxis
-                                                    axisLine={false}
-                                                    tickLine={false}
-                                                    tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }}
-                                                />
+                                                <XAxis dataKey="estado" axisLine={false} tickLine={false} tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }} dy={10} />
+                                                <YAxis axisLine={false} tickLine={false} tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }} />
                                                 <Tooltip
                                                     cursor={{ fill: 'var(--muted)', opacity: 0.4 }}
-                                                    contentStyle={{
-                                                        backgroundColor: 'var(--card)',
-                                                        borderRadius: '8px',
-                                                        border: '1px solid var(--border)',
-                                                        color: 'var(--foreground)',
-                                                        boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)'
-                                                    }}
+                                                    contentStyle={{ backgroundColor: 'var(--card)', borderRadius: '8px', border: '1px solid var(--border)', color: 'var(--foreground)', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                                                     itemStyle={{ color: 'var(--foreground)' }}
                                                 />
                                                 <Bar dataKey="cantidad" radius={[4, 4, 0, 0]}>
@@ -464,7 +538,7 @@ export default function ReporteOperativoPage() {
                         </Card>
                     )}
 
-                    {/* Tabla de Granos (Fase 4.3) */}
+                    {/* Tabla de Granos */}
                     {isLoading ? (
                         <Skeleton className="h-[400px] rounded-xl w-full" />
                     ) : (
@@ -474,14 +548,12 @@ export default function ReporteOperativoPage() {
                                 <CardDescription>Desglose de envíos y peso transportado</CardDescription>
                             </CardHeader>
                             <CardContent className="flex-1 flex flex-col">
-                                {!fechaInicio || !fechaFin ? (
-                                    /* Estado 1: Faltan fechas (Regla de negocio) */
+                                {!data ? (
                                     <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground space-y-3 border-2 border-dashed border-border rounded-xl p-6 text-center mt-2">
                                         <PackageOpen className="h-10 w-10 opacity-20" />
-                                        <p className="text-sm">Seleccione una fecha de inicio y fin para visualizar el desglose por tipo de grano.</p>
+                                        <p className="text-sm">Realice una búsqueda para visualizar el desglose por tipo de grano.</p>
                                     </div>
-                                ) : data?.granos && data.granos.length > 0 ? (
-                                    /* Estado 2: Con datos */
+                                ) : data.granos && data.granos.length > 0 ? (
                                     <div className="border rounded-md mt-2 overflow-hidden flex-1">
                                         <Table>
                                             <TableHeader className="bg-muted/50">
@@ -503,7 +575,6 @@ export default function ReporteOperativoPage() {
                                         </Table>
                                     </div>
                                 ) : (
-                                    /* Estado 3: Sin datos para las fechas seleccionadas */
                                     <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground space-y-3 border-2 border-dashed border-border rounded-xl p-6 text-center mt-2">
                                         <PackageOpen className="h-10 w-10 opacity-20" />
                                         <p className="text-sm">No se encontraron movimientos de granos en el período seleccionado.</p>
@@ -512,9 +583,7 @@ export default function ReporteOperativoPage() {
                             </CardContent>
                         </Card>
                     )}
-
                 </div>
-
             </div>
         </div>
     );
