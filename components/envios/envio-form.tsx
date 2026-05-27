@@ -143,7 +143,7 @@ export function EnvioForm({ modo = 'crear', envioInicial, envioId }: EnvioFormPr
         <h4 className="text-xl md:text-2xl font-bold text-gray-900 flex items-center gap-2 mb-1">
           {esEdicion
             ? <><Pencil className="h-6 w-6 text-[#198754]" /> Editar Envío #{envioId}</>
-            : <><Truck className="h-6 w-6 text-[#198754]" /> Registrar Nuevo Envío</>
+            : <><Truck className="h-6 w-6 text-[#198754]" /> Crear Nuevo Envío</>
           }
         </h4>
         <p className="text-muted-foreground text-sm m-0">
