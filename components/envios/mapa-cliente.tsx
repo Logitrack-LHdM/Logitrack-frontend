@@ -17,6 +17,7 @@ interface MapaClienteProps {
     camionLat?: number;
     camionLng?: number;
     ruta?: [number, number][]; // Array de tuplas [latitud, longitud] ya adaptadas
+    estadoActual?: string;
 }
 
 // Función para crear un pin SVG personalizado con el color que le pasemos
@@ -82,12 +83,14 @@ function AjusteEncuadre({
     origen,
     destino,
     camion,
-    ruta
+    ruta,
+    estadoActual // <-- 1. Recibimos el estado
 }: {
     origen?: [number, number];
     destino?: [number, number];
     camion?: [number, number];
     ruta?: [number, number][];
+    estadoActual?: string;
 }) {
     const map = useMap();
 
@@ -97,8 +100,19 @@ function AjusteEncuadre({
     // 2. Ref para saber si ya hicimos el encuadre básico (origen/destino) cuando no había ruta
     const encuadreBasicoRealizado = useRef(false);
 
+    // 2. Nueva referencia para recordar en qué estado estábamos previamente
+    const estadoPrevio = useRef(estadoActual);
+
     useEffect(() => {
-        // Prioridad Absoluta: Si llegó la ruta y AÚN NO la encuadramos
+        // DETECCIÓN DE CAMBIO DE ESTADO:
+        // Si el estado actual es diferente al que teníamos guardado,
+        // significa que hubo una transición (ej: EN_PUNTO_DE_RECOLECCION -> EN_REPARTO)
+        if (estadoActual !== estadoPrevio.current) {
+            rutaEncuadrada.current = false; // "Apagamos" el seguro para permitir un nuevo encuadre
+            estadoPrevio.current = estadoActual; // Actualizamos el recuerdo del estado
+        }
+
+        // Prioridad Absoluta: Si llegó la ruta y AÚN NO la encuadramos en este estado
         if (ruta && ruta.length > 0 && !rutaEncuadrada.current) {
             const bounds = L.latLngBounds(ruta);
             map.fitBounds(bounds, { padding: [50, 50] });
@@ -126,7 +140,7 @@ function AjusteEncuadre({
                 encuadreBasicoRealizado.current = true;
             }
         }
-    }, [map, origen, destino, camion, ruta]);
+    }, [map, origen, destino, camion, ruta, estadoActual]); // <-- 3. Agregamos estadoActual a las dependencias
 
     return null;
 }
@@ -140,7 +154,8 @@ const MapaCliente = memo(function MapaCliente({
     destinoNombre = 'Destino',
     camionLat,
     camionLng,
-    ruta = [] // Por defecto un array vacío para evitar errores de iteración
+    ruta = [], // Por defecto un array vacío para evitar errores de iteración
+    estadoActual
 }: MapaClienteProps) {
 
     useEffect(() => {
@@ -182,6 +197,7 @@ const MapaCliente = memo(function MapaCliente({
                     destino={coordsDestino}
                     camion={coordsCamion}
                     ruta={ruta}
+                    estadoActual={estadoActual} // <-- Pasamos el estado al componente de encuadre
                 />
 
                 {/* 3. Renderizamos la Polyline (Ruta planificada) solo si hay coordenadas */}
