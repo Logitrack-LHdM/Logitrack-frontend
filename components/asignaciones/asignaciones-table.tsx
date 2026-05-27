@@ -44,7 +44,7 @@ export function AsignacionesTable() {
         api.getEnviosSinAsignar(),
         api.getChoferesDisponibles(),
         api.getCamionesDisponibles(),
-        ]);
+      ]);
 
       setEnvios(enviosData);
       setChoferes(choferesData);
@@ -119,7 +119,7 @@ export function AsignacionesTable() {
       ]);
       setChoferes(choferesData);
       setCamiones(camionesData);
-      
+
       // Quitar el envío de la lista (ya quedó asignado)
       setEnvios((prev) => prev.filter((e) => e.idEnvio !== envioSeleccionado.idEnvio));
       cerrarModal();
@@ -135,7 +135,8 @@ export function AsignacionesTable() {
 
   // ── Camiones aptos para la carga del envío seleccionado ────────────────────
   const kgCarga = envioSeleccionado?.kgOrigen ?? 0;
-  const camionesAptos = camiones
+  const camionesAptos2 = camiones
+  const camionesAptos = camiones.filter(e => e.capacidadCargaKg >= kgCarga);
 
   // ── Loading ────────────────────────────────────────────────────────────────
   if (loadingDatos) {
@@ -355,7 +356,7 @@ export function AsignacionesTable() {
                 <User className="h-3.5 w-3.5" /> Chofer <span className="text-destructive">*</span>
               </Label>
               <Select value={choferSeleccionado} onValueChange={setChoferSeleccionado}>
-                <SelectTrigger className="bg-muted/30 border-0 shadow-sm h-11">
+                <SelectTrigger className="bg-muted/30 border-0 shadow-sm h-11 w-full">
                   <SelectValue placeholder="Seleccione un chofer..." />
                 </SelectTrigger>
                 <SelectContent>
@@ -374,8 +375,15 @@ export function AsignacionesTable() {
                 <Truck className="h-3.5 w-3.5" /> Camión <span className="text-destructive">*</span>
               </Label>
               <Select value={camionSeleccionado} onValueChange={setCamionSeleccionado}>
-                <SelectTrigger className="bg-muted/30 border-0 shadow-sm h-11">
-                  <SelectValue placeholder="Seleccione un camión..." />
+                <SelectTrigger className="bg-muted/30 border-0 shadow-sm h-11 w-full">
+                  {camionesAptos.length === 0 && kgCarga > 0 ? (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <AlertCircle className="h-4 w-4 text-amber-500 shrink-0" />
+                      <span>Sin camiones con cap. suficiente.</span>
+                    </div>
+                  ) : (
+                    <SelectValue placeholder="Seleccione un camión..." />
+                  )}
                 </SelectTrigger>
                 <SelectContent>
                   {camionesAptos.length === 0 ? (

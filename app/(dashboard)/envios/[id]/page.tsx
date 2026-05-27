@@ -140,7 +140,7 @@ export default function DetalleEnvioPage({
       month: 'short',
       hour: '2-digit',
       minute: '2-digit'
-    }).format(fecha).replace(',', ' -') + ' hs';
+    }).format(fecha).replace(',', ' -');
   };
 
   return (
