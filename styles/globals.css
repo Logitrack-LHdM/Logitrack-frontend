@@ -1,3 +1,5 @@
+/* styles/globals.css */
+
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
@@ -119,6 +121,7 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
@@ -126,9 +129,18 @@
 
 /* Animación del Timeline de LogiTrack */
 @keyframes pulse-warning {
-  0% { box-shadow: 0 0 0 0 rgba(245, 157, 11, 0.6); } /* amber-500 */
-  70% { box-shadow: 0 0 0 10px rgba(245, 157, 11, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(245, 157, 11, 0); }
+  0% {
+    box-shadow: 0 0 0 0 rgba(245, 157, 11, 0.6);
+  }
+
+  /* amber-500 */
+  70% {
+    box-shadow: 0 0 0 10px rgba(245, 157, 11, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(245, 157, 11, 0);
+  }
 }
 
 .animate-pulse-warning {

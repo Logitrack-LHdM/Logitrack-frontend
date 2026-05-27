@@ -1,7 +1,7 @@
 'use client';
 
 import { toast } from 'sonner';
-import { Package, RefreshCw } from 'lucide-react';
+import { Loader2, Package, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import {
@@ -20,6 +20,7 @@ import { ActionButton } from '@/components/chofer/action-button';
 import { IncidenciaDrawer } from '@/components/chofer/incidencia-drawer';
 import { useViajeChofer } from '@/hooks/use-viaje-chofer';
 import { FLUJO_LOGISTICO } from '@/lib/constants';
+import type { IncidenciaDTO } from '@/types';
 
 export default function MiViajePage() {
   const {
@@ -42,13 +43,18 @@ export default function MiViajePage() {
     }
   };
 
-  const handleReportarIncidencia = async (descripcion: string) => {
+  // Cambiamos el parámetro 'descripcion: string' por 'datos: IncidenciaDTO'
+  const handleReportarIncidencia = async (datos: IncidenciaDTO) => {
     try {
-      await reportarIncidencia(descripcion);
+      await reportarIncidencia(datos); // Pasamos el objeto completo al hook
       toast.success('Incidencia reportada correctamente');
+
+      // Recargamos los datos del viaje para sincronizar con el backend
+      await recargar();
+
     } catch (err) {
       toast.error('Error al reportar la incidencia');
-      throw err;
+      throw err; // Propagamos el error para que el Drawer no se cierre (lo veremos en el Paso 4.2)
     }
   };
 
@@ -100,6 +106,9 @@ export default function MiViajePage() {
   const flujo = FLUJO_LOGISTICO[viaje.estadoActual];
   const isCompleted = !flujo.siguiente;
 
+  // Validamos que el viaje esté efectivamente en curso, excluyendo PENDIENTE y ENTREGADO/CANCELADO
+  const esViajeEnCurso = ['EN_TRANSITO', 'EN_PUNTO_DE_RECOLECCION', 'EN_REPARTO'].includes(viaje.estadoActual);
+
   return (
     <div className="container mx-auto px-4 py-6">
       <div className="max-w-lg mx-auto space-y-6">
@@ -107,6 +116,8 @@ export default function MiViajePage() {
         <ViajeCard viaje={viaje} />
 
         {/* Acciones */}
+
+        {/* Si aún el viaje no está completado */}
         {!isCompleted && (
           <div className="space-y-3">
             {/* Boton de accion principal con confirmacion */}
@@ -131,19 +142,34 @@ export default function MiViajePage() {
                   <AlertDialogCancel>Cancelar</AlertDialogCancel>
                   <AlertDialogAction
                     onClick={handleAvanzarEstado}
-                    className="bg-gradient-to-r from-[#1b4332] to-[#2d6a4f]"
+                    disabled={isUpdating}
+                    className="bg-gradient-to-r from-[#1b4332] to-[#2d6a4f] disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Confirmar
+                    {isUpdating ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Procesando...
+                      </>
+                    ) : (
+                      'Confirmar'
+                    )}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
 
             {/* Boton de incidencia */}
-            {/* <IncidenciaDrawer
+            <IncidenciaDrawer
               onSubmit={handleReportarIncidencia}
               isLoading={isUpdating}
-            /> */}
+              disabled={!esViajeEnCurso} // NUEVO: Deshabilita si el viaje no está en curso
+            />
+            {/* NUEVO: Mensaje explicativo (Criterio 3) */}
+            {!esViajeEnCurso && (
+              <p className="text-xs text-muted-foreground text-center pt-1 px-2">
+                Solo se pueden reportar incidencias sobre viajes en curso.
+              </p>
+            )}
           </div>
         )}
 

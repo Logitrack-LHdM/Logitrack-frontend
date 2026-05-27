@@ -1,6 +1,6 @@
 'use client';
-
-import { Search, PlusCircle, FileText, Truck } from 'lucide-react';
+// Modificar la importación existente en las primeras líneas del archivo
+import { Search, PlusCircle, FileText, Truck, ChartColumnBig, Activity, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/contexts/auth-context';
@@ -75,6 +75,27 @@ export default function MenuPage() {
       title: 'Asignar Transporte',
       description: 'Asigná chofer y camión a los envíos pendientes',
       show: permisos.asignarTransporte,
+    },
+    {
+      href: '/reporte-operativo',
+      icon: <ChartColumnBig className="h-8 w-8" />,
+      title: 'Reporte Operativo',
+      description: 'Visualiza el volumen y estado de la actividad diaria',
+      show: permisos.verReporteOperativo,
+    },
+    {
+      href: '/cumplimiento',
+      icon: <Activity className="h-8 w-8" />,
+      title: 'Análisis de Cumplimiento',
+      description: 'Evalúa la puntualidad y detecta desvíos en los viajes',
+      show: permisos.verReporteCumplimiento,
+    },
+    {
+      href: '/alertas',
+      icon: <AlertTriangle className="h-8 w-8" />,
+      title: 'Panel de Alertas',
+      description: 'Gestiona y resuelve las incidencias reportadas en ruta',
+      show: permisos.gestionarAlertas,
     },
   ];
 

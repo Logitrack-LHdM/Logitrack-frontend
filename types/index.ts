@@ -21,8 +21,30 @@ export type TipoGrano =
 export type RolUsuario =
   | 'ROLE_OPERADOR'
   | 'ROLE_SUPERVISOR'
-  | 'ROLE_ADMIN'
+  | 'ROLE_ADMINISTRADOR'
   | 'ROLE_CHOFER';
+
+export type TipoIncidencia =
+  | 'MECANICA'
+  | 'CLIMA'
+  | 'TRAFICO'
+  | 'CONTROLES'
+  | 'OTRO';
+
+// Tipos de problemas comunes que el chofer podría reportar
+// export type TipoIncidencia =
+//   | 'MECANICO'
+//   | 'CLIMATICO'
+//   | 'ACCIDENTE'
+//   | 'DEMORA_CARGA'
+//   | 'DEMORA_DESCARGA'
+//   | 'OTRO';
+
+// Tipos de estado específicos para las alertas de incidencias
+export type EstadoAlerta =
+  | 'PENDIENTE'
+  | 'NO_RESUELTA'
+  | 'RESUELTA';
 
 // === AUTH ===
 export interface Usuario {
@@ -50,9 +72,11 @@ export interface Empresa {
 
 export interface Establecimiento {
   idEstablecimiento: number;
+  empresa: Empresa;
   nombreLugar: string;
   direccion: string;
-  empresa: Empresa;
+  latitud: number;
+  longitud: number;
 }
 
 export interface PersonaAsociada {
@@ -68,23 +92,26 @@ export interface Chofer {
 
 export interface Camion {
   patente: string;
+  capacidadCargaKg: number;
   taraVacioKg: number;
 }
 
 export interface Envio {
   idEnvio: string | number;
-  // trackingCtg: string;
   cpe: string;
   estadoActual: EstadoEnvio;
   prioridadIa: Prioridad;
   tipoGrano: TipoGrano;
   kgOrigen: number;
   fechaCreacion: string;
+  fechaSalida?: string;
+  fechaLlegada?: string;
   fechaEstimadaLlegada?: string;
   origen: Establecimiento;
   destino: Establecimiento;
   chofer: Chofer;
   camion: Camion;
+  distanciaKm?: number;
 }
 
 export interface RegistroHistorial {
@@ -99,14 +126,13 @@ export interface RegistroHistorial {
 
 // === DTOs ===
 export interface EnvioRequestDTO {
-  // trackingCtg: string;
   cpe: string;
   idOrigen: number;
   idDestino: number;
   idChofer: number;
   patenteCamion: string;
   tipoGrano: TipoGrano;
-  prioridadIa?: Prioridad; // Ahora es opcional
+  prioridadIa?: Prioridad;
   kgOrigen: number;
 }
 
@@ -114,14 +140,42 @@ export interface EnvioUpdateDTO {
   estado?: EstadoEnvio;
   prioridadIa?: Prioridad;
 }
+
 export interface IncidenciaDTO {
-  descripcion: string;
+  tipoIncidencia: TipoIncidencia;
+  descripcion?: string; // Ahora es opcional según el Criterio 2
+}
+
+export interface UsuarioResponseDTO {
+  idUsuario: number;
+  username: string;
+  rol: RolUsuario;
+  activo: boolean;
+  idPersona: number;
+  nombre: string;
+  apellido: string;
+  cuil: string;
+  telefono: string;
+}
+
+export interface UsuarioRequestDTO {
+  username: string;
+  password?: string; // Opcional para la edición, obligatorio para la creación
+  rol: RolUsuario;
+  nombre: string;
+  apellido: string;
+  cuil: string;
+  telefono: string;
+  // --- Datos de Chofer (Opcionales, solo se usan si rol == CHOFER) ---
+  nroLicencia?: string;
+  vtoLicencia?: string;
+  vtoLinti?: string;
 }
 
 export interface BusquedaEnviosParams {
   query?: string;
   estado?: EstadoEnvio | '';
-  fecha?: string; // <-- Unificamos a una sola fecha
+  fecha?: string;
   page: number;
   size: number;
 }
@@ -151,7 +205,6 @@ export interface LugarResumen {
 
 export interface EnvioChofer {
   idEnvio: string;
-  // trackingCtg: string;
   cpe: string;
   estadoActual: EstadoEnvio;
   tipoGrano: TipoGrano;
@@ -159,6 +212,46 @@ export interface EnvioChofer {
   origen: LugarResumen;
   destino: LugarResumen;
   patenteCamion: string;
-  // nombreChofer: string;
-  prioridadIa: Prioridad;   // ← agregar
+  prioridadIa: Prioridad;
+}
+
+// === MAPAS ===
+// Interface para la respuesta del endpoint de polling (cada 30 seg)
+export interface UbicacionTiempoRealResponse {
+  idEnvio: string;
+  estadoActual: EstadoEnvio; // Reutilizamos el tipo que ya tienes en tu proyecto
+  latitudActual: number;
+  longitudActual: number;
+  porcentajeCompletado: number;
+}
+
+// Interface para la respuesta de la ruta completa (Polyline)
+export interface RutaCamionResponse {
+  idEnvio: string;
+  // Usamos un array de tuplas de dos números.
+  // El backend envía el formato GeoJSON: [longitud, latitud]
+  coordinates: [number, number][];
+}
+
+// === INCIDENCIAS ===
+// DTO para la visualización en el Panel del Supervisor (Lectura)
+export interface AlertaListadoDTO {
+  id: number;
+  idEnvio: string; // Referencia al código de viaje (ej. "ENV-2026-001")
+  chofer: {
+    id: number;
+    nombreCompleto: string; // Ya concatenado para facilitar el frontend
+    telefono?: string; // Útil para que el supervisor llame directamente
+  };
+  tipoIncidencia: TipoIncidencia;
+  descripcion: string;
+  estado: EstadoAlerta;
+  fechaReporte: string; // Formato ISO 8601 (UTC)
+  fechaResolucion?: string; // Nulo si sigue pendiente
+}
+
+// Interfaz para la actualización de estado (Escritura)
+export interface ResolverAlertaDTO {
+  estado: 'RESUELTA';
+  notasSupervisor?: string; // Opcional por si el supervisor quiere dejar registro de cómo se resolvió
 }

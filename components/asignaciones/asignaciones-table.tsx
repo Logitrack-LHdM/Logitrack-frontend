@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Truck, User, MapPin, AlertCircle, Loader2, CheckCircle2 } from 'lucide-react';
+import { Truck, User, MapPin, AlertCircle, Loader2, CheckCircle2, RefreshCw } from 'lucide-react';
+import { AsignacionesSearch } from './asignaciones-search';
 import { toast } from 'sonner';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -31,16 +32,20 @@ export function AsignacionesTable() {
   const [choferSeleccionado, setChoferSeleccionado] = useState('');
   const [camionSeleccionado, setCamionSeleccionado] = useState('');
   const [guardando, setGuardando] = useState(false);
+  const [modoModal, setModoModal] = useState<'asignar' | 'reasignar'>('asignar');
 
-  // ── Carga inicial ──────────────────────────────────────────────────────────
+  // ── Carga inicial ─ Temporal ─────────────────────────────────────────────────────
   const cargarDatos = useCallback(async () => {
     setLoadingDatos(true);
     try {
+      // Intentar con los endpoints de disponibles primero.
+      // Si cualquiera falla, hacer fallback silencioso a los endpoints generales.
       const [enviosData, choferesData, camionesData] = await Promise.all([
         api.getEnviosSinAsignar(),
-        api.getChoferes(),
-        api.getCamiones(),
+        api.getChoferesDisponibles(),
+        api.getCamionesDisponibles(),
       ]);
+
       setEnvios(enviosData);
       setChoferes(choferesData);
       setCamiones(camionesData);
@@ -51,15 +56,41 @@ export function AsignacionesTable() {
     }
   }, []);
 
+
+  // ── Carga inicial ─ A implementar ─────────────────────────────────────────────────────────
+  // const cargarDatos = useCallback(async () => {
+  //   setLoadingDatos(true);
+  //   try {
+  //     const [enviosData, choferesData, camionesData] = await Promise.all([
+  //       api.getEnviosSinAsignar(),
+  //       api.getChoferesDisponibles(),
+  //       api.getCamionesDisponibles(),
+  //     ]);
+  //     setEnvios(enviosData);
+  //     setChoferes(choferesData);
+  //     setCamiones(camionesData);
+  //   } catch (error) {
+  //     toast.error('Error al cargar los datos');
+  //   } finally {
+  //     setLoadingDatos(false);
+  //   }
+  // }, []);
+
   useEffect(() => {
     cargarDatos();
   }, [cargarDatos]);
 
   // ── Abrir / cerrar modal ───────────────────────────────────────────────────
-  const abrirModal = (envio: Envio) => {
+  const abrirModal = (envio: Envio, modo: 'asignar' | 'reasignar' = 'asignar') => {
     setEnvioSeleccionado(envio);
-    setChoferSeleccionado('');
-    setCamionSeleccionado('');
+    setModoModal(modo);
+    if (modo === 'reasignar') {
+      setChoferSeleccionado(envio.chofer?.idChofer?.toString() ?? '');
+      setCamionSeleccionado(envio.camion?.patente ?? '');
+    } else {
+      setChoferSeleccionado('');
+      setCamionSeleccionado('');
+    }
   };
 
   const cerrarModal = () => {
@@ -82,18 +113,30 @@ export function AsignacionesTable() {
 
       toast.success(`Transporte asignado al envío ${envioSeleccionado.idEnvio}`);
 
+      const [choferesData, camionesData] = await Promise.all([
+        api.getChoferesDisponibles(),
+        api.getCamionesDisponibles(),
+      ]);
+      setChoferes(choferesData);
+      setCamiones(camionesData);
+
       // Quitar el envío de la lista (ya quedó asignado)
       setEnvios((prev) => prev.filter((e) => e.idEnvio !== envioSeleccionado.idEnvio));
       cerrarModal();
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Error al asignar el transporte';
-      toast.error('No se pudo asignar', { description: message });
+      toast.error('Error al asignar transporte', { description: message });
     } finally {
       setGuardando(false);
     }
   };
 
   const puedeConfirmar = !!choferSeleccionado && !!camionSeleccionado && !guardando;
+
+  // ── Camiones aptos para la carga del envío seleccionado ────────────────────
+  const kgCarga = envioSeleccionado?.kgOrigen ?? 0;
+  const camionesAptos2 = camiones
+  const camionesAptos = camiones.filter(e => e.capacidadCargaKg >= kgCarga);
 
   // ── Loading ────────────────────────────────────────────────────────────────
   if (loadingDatos) {
@@ -253,17 +296,25 @@ export function AsignacionesTable() {
         )}
       </div>
 
+      <AsignacionesSearch onReasignar={(envio) => abrirModal(envio, 'reasignar')} />
       {/* ── Modal de Asignación ──────────────────────────────────────────────── */}
       <Dialog open={!!envioSeleccionado} onOpenChange={(open) => !open && cerrarModal()}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-gray-900">
-              <Truck className="h-5 w-5 text-[#198754]" />
-              Asignar Transporte
+              {modoModal === 'reasignar' ? (
+                <RefreshCw className="h-5 w-5 text-blue-600" />
+              ) : (
+                <Truck className="h-5 w-5 text-[#198754]" />
+              )}
+              {modoModal === 'reasignar' ? 'Reasignar Transporte' : 'Asignar Transporte'}
             </DialogTitle>
             {envioSeleccionado && (
               <DialogDescription>
-                Envío <span className="font-semibold text-[#198754]">{envioSeleccionado.idEnvio}</span>
+                Envío{' '}
+                <span className={`font-semibold ${modoModal === 'reasignar' ? 'text-blue-600' : 'text-[#198754]'}`}>
+                  {envioSeleccionado.idEnvio}
+                </span>
                 {' '}— {envioSeleccionado.origen?.empresa?.razonSocial || ''}
               </DialogDescription>
             )}
@@ -274,9 +325,30 @@ export function AsignacionesTable() {
             <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-lg p-3">
               <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5 shrink-0" />
               <p className="text-xs text-amber-700">
-                Debe seleccionar <strong>ambos</strong> (chofer y camión) para confirmar la asignación.
+                {modoModal === 'reasignar'
+                  ? 'Podés cambiar uno o ambos. Confirmá para guardar los cambios.'
+                  : <>Debe seleccionar <strong>ambos</strong> (chofer y camión) para confirmar la asignación.</>
+                }
               </p>
             </div>
+
+            {modoModal === 'reasignar' && envioSeleccionado && (envioSeleccionado.chofer || envioSeleccionado.camion) && (
+              <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 space-y-1">
+                <p className="text-xs font-bold text-blue-700 uppercase tracking-wide mb-2">Asignación actual</p>
+                {envioSeleccionado.chofer && (
+                  <p className="text-xs text-blue-800 flex items-center gap-1.5">
+                    <User className="h-3.5 w-3.5" />
+                    {getNombreChofer(envioSeleccionado.chofer)}
+                  </p>
+                )}
+                {envioSeleccionado.camion && (
+                  <p className="text-xs text-blue-800 flex items-center gap-1.5">
+                    <Truck className="h-3.5 w-3.5" />
+                    {envioSeleccionado.camion.patente}
+                  </p>
+                )}
+              </div>
+            )}
 
             {/* Select Chofer */}
             <div className="space-y-2">
@@ -284,7 +356,7 @@ export function AsignacionesTable() {
                 <User className="h-3.5 w-3.5" /> Chofer <span className="text-destructive">*</span>
               </Label>
               <Select value={choferSeleccionado} onValueChange={setChoferSeleccionado}>
-                <SelectTrigger className="bg-muted/30 border-0 shadow-sm h-11">
+                <SelectTrigger className="bg-muted/30 border-0 shadow-sm h-11 w-full">
                   <SelectValue placeholder="Seleccione un chofer..." />
                 </SelectTrigger>
                 <SelectContent>
@@ -303,17 +375,41 @@ export function AsignacionesTable() {
                 <Truck className="h-3.5 w-3.5" /> Camión <span className="text-destructive">*</span>
               </Label>
               <Select value={camionSeleccionado} onValueChange={setCamionSeleccionado}>
-                <SelectTrigger className="bg-muted/30 border-0 shadow-sm h-11">
-                  <SelectValue placeholder="Seleccione un camión..." />
+                <SelectTrigger className="bg-muted/30 border-0 shadow-sm h-11 w-full">
+                  {camionesAptos.length === 0 && kgCarga > 0 ? (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <AlertCircle className="h-4 w-4 text-amber-500 shrink-0" />
+                      <span>Sin camiones con cap. suficiente.</span>
+                    </div>
+                  ) : (
+                    <SelectValue placeholder="Seleccione un camión..." />
+                  )}
                 </SelectTrigger>
                 <SelectContent>
-                  {camiones.map((camion) => (
-                    <SelectItem key={camion.patente} value={camion.patente}>
-                      Patente: {camion.patente} — Tara: {camion.taraVacioKg} kg
-                    </SelectItem>
-                  ))}
+                  {camionesAptos.length === 0 ? (
+                    <div className="flex items-center gap-2 px-3 py-4 text-sm text-muted-foreground">
+                      <AlertCircle className="h-4 w-4 text-amber-500 shrink-0" />
+                      No hay camiones con capacidad suficiente para esta carga
+                      ({(kgCarga / 1000).toFixed(1)} Tn).
+                    </div>
+                  ) : (
+                    camionesAptos.map((camion) => (
+                      <SelectItem key={camion.patente} value={camion.patente}>
+                        {camion.patente} — Cap: {(camion.capacidadCargaKg / 1000).toFixed(1)} Tn
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
+              {kgCarga > 0 && (
+                <p className="text-xs text-muted-foreground">
+                  Se muestran solo camiones con capacidad ≥{' '}
+                  <span className="font-semibold text-gray-700">
+                    {(kgCarga / 1000).toFixed(1)} Tn
+                  </span>
+                  {' '}({camionesAptos.length} de {camiones.length} disponibles).
+                </p>
+              )}
             </div>
           </div>
 
@@ -331,11 +427,19 @@ export function AsignacionesTable() {
               type="button"
               onClick={confirmarAsignacion}
               disabled={!puedeConfirmar}
-              className="bg-gradient-to-r from-[#1b4332] to-[#2d6a4f] hover:from-[#2d6a4f] hover:to-[#40916c] text-white border-none shadow-sm"
+              className={
+                modoModal === 'reasignar'
+                  ? 'bg-gradient-to-r from-blue-700 to-blue-500 hover:from-blue-800 hover:to-blue-600 text-white border-none shadow-sm'
+                  : 'bg-gradient-to-r from-[#1b4332] to-[#2d6a4f] hover:from-[#2d6a4f] hover:to-[#40916c] text-white border-none shadow-sm'
+              }
             >
               {guardando ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Guardando...
+                </>
+              ) : modoModal === 'reasignar' ? (
+                <>
+                  <RefreshCw className="mr-2 h-4 w-4" /> Confirmar Reasignación
                 </>
               ) : (
                 <>

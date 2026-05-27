@@ -33,10 +33,10 @@ export function SearchFilters({
         <div className="bg-blue-600/10 text-blue-600 p-2 rounded-lg">
           <Search className="h-6 w-6" />
         </div>
-        <h4 className="text-xl font-bold text-gray-900 m-0">Rastreo de Envío</h4>
+        <h4 className="text-xl font-bold text-gray-900 m-0">Buscar Envío</h4>
       </div>
       <p className="text-muted-foreground text-sm mb-6 md:ml-14">
-        Busca por ID Interno, Código CTG, Empresa de Origen/Destino o Tipo de Grano.
+        Buscá por ID Interno, Código CTG, Empresa de Origen/Destino o Tipo de Grano.
       </p>
 
       <form onSubmit={handleSubmit} className="md:ml-14">

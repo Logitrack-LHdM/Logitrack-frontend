@@ -45,7 +45,7 @@ export default function AuditoriaPage() {
           <History className="h-7 w-7" />
         </div>
         <div>
-          <h4 className="font-bold text-gray-900 mb-1 text-xl md:text-2xl">Auditoría Global</h4>
+          <h4 className="font-bold text-gray-900 mb-1 text-xl md:text-2xl">Historial Completo</h4>
           <p className="text-muted-foreground text-sm m-0">
             Registro histórico de modificaciones de estado y prioridad en la red logística.
           </p>
