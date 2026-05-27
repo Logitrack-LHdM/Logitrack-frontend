@@ -70,9 +70,9 @@ const iconoCamion = crearIconoCamion('#f59e0b');
 
 // Configuración visual para la Polyline (Ruta planificada)
 const opcionesRuta = {
-    color: '#64748b', // Gris pizarra (slate-500 de Tailwind)
+    color: '#1b4332', // Gris pizarra (slate-500 de Tailwind)
     weight: 4,        // Grosor de la línea
-    opacity: 0.8,     // Ligeramente transparente para no tapar calles del mapa base
+    opacity: 0.9,     // Ligeramente transparente para no tapar calles del mapa base
     dashArray: '10, 10', // Crea el efecto de línea punteada
     lineJoin: 'round' as const // Suaviza las esquinas de la línea cuando el camión dobla
 };
