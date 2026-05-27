@@ -27,7 +27,7 @@ export function useRastreoTiempoReal(idEnvio: string, estadoGlobal?: string) {
     useEffect(() => {
         // 2. BLOQUEO: Si no hay ID, si el envío no terminó de cargar, 
         // o si está PENDIENTE, abortamos la ejecución silenciosamente.
-        if (!idEnvio || !estadoGlobal || estadoGlobal === 'PENDIENTE') return;
+        if (!idEnvio || !estadoGlobal || estadoGlobal === 'PENDIENTE' || estadoGlobal === 'EN_PUNTO_DE_RECOLECCION' || estadoGlobal === 'ENTREGADO' || estadoGlobal === 'CANCELADO') return;
 
         const controller = new AbortController();
 
@@ -81,8 +81,8 @@ export function useRastreoTiempoReal(idEnvio: string, estadoGlobal?: string) {
 
     // --- EFECTO 2: Polling de Ubicación con Cancelación Integral ---
     useEffect(() => {
-        // 3. BLOQUEO: Tampoco iniciamos el tracking si está PENDIENTE
-        if (!idEnvio || !estadoGlobal || estadoGlobal === 'PENDIENTE') return;
+        // 3. BLOQUEO: Tampoco iniciamos el tracking si está PENDIENTE, EN_PUNTO_DE_RECOLECCION, ENTREGADO o CANCELADO
+        if (!idEnvio || !estadoGlobal || estadoGlobal === 'PENDIENTE' || estadoGlobal == 'EN_PUNTO_DE_RECOLECCION' || estadoGlobal === 'ENTREGADO' || estadoGlobal === 'CANCELADO') return;
 
         // Creamos un controlador para el ciclo de polling
         const controller = new AbortController();
@@ -93,9 +93,9 @@ export function useRastreoTiempoReal(idEnvio: string, estadoGlobal?: string) {
         // Control de intervalo: Declaramos la variable para el temporizador
         let intervalId: NodeJS.Timeout;
 
-        // 3. Validación: Solo iniciamos el temporizador si el estado es EN_TRANSITO, EN_PUNTO_DE_RECOLECCION o EN_REPARTO
+        // 3. Validación: Solo iniciamos el temporizador si el estado es EN_TRANSITO
         // (O si es null, lo que significa que es la primera carga y aún no sabemos el estado)
-        if (estadoActual === 'EN_TRANSITO' || estadoActual === 'EN_PUNTO_DE_RECOLECCION' || estadoActual === 'EN_REPARTO' || estadoActual === null) {
+        if (estadoActual === 'EN_TRANSITO' || estadoActual === 'EN_REPARTO' || estadoActual === null) {
             intervalId = setInterval(() => {
                 fetchUbicacion(controller.signal);
             }, INTERVALO_POLLING_MS);
