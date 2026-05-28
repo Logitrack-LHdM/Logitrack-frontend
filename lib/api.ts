@@ -453,8 +453,8 @@ class ApiClient {
   }
 
   // === ALERTAS (MOCKS TEMPORALES PARA FRONTEND) ===
-  async getAlertas(): Promise<AlertaListadoDTO[]> {
-    console.log('[MOCK API] Obteniendo listado de alertas...');
+  //async getAlertas(): Promise<AlertaListadoDTO[]> {
+  //  console.log('[MOCK API] Obteniendo listado de alertas...');
 
   //   // Importación dinámica para no afectar el bundle inicial si no se usa
   //   const { mockAlertas } = await import('@/mocks/alertasMock');
