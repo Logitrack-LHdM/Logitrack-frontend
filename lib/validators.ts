@@ -54,3 +54,49 @@ export const usuarioFormSchema = z.object({
 
 // Inferimos el tipo directamente del esquema de Zod
 export type UsuarioFormValues = z.infer<typeof usuarioFormSchema>;
+
+// ── Cliente (US-38) ──────────────────────────────────────────
+
+
+export const clienteSchema = z.object({
+  cuit: z
+    .string()
+    .min(1, 'El CUIT es obligatorio'),
+
+  razonSocial: z
+    .string()
+    .min(1, 'La razón social es obligatoria')
+    .max(150, 'Máximo 150 caracteres'),
+
+  tipoEmpresa: z
+    .string()
+    .min(1, 'Seleccioná un tipo de empresa'),
+
+  email: z
+  .string()
+  .min(1, 'El email es obligatorio')
+  .email('El formato del email no es válido'),
+
+  rucaNro: z.string().optional(),
+  vtoRuca: z.string().optional(),
+
+  // Sede opcional — se valida solo si latitud/longitud tienen valor
+  sede: z.object({
+    nombreLugar: z.string().optional(),
+    direccion: z.string().optional(),
+    latitud: z.string()
+      .refine((v) => !v || !isNaN(parseFloat(v)), { message: 'Debe ser un número. Ej: -34.5547' })
+      .optional(),
+    longitud: z.string()
+      .refine((v) => !v || !isNaN(parseFloat(v)), { message: 'Debe ser un número. Ej: -58.7080' })
+      .optional(),
+  }).optional(),
+
+  aceptaTerminos: z
+    .boolean()
+    .refine((v) => v === true, {
+      message: 'Debés aceptar el tratamiento de datos para continuar',
+    }),
+});
+
+export type ClienteFormData = z.infer<typeof clienteSchema>;
