@@ -3,9 +3,9 @@ import { api } from '@/lib/api';
 import type { EstadoEnvio } from '@/types';
 
 // Definimos el tiempo de actualización como constante para facilitar cambios futuros
-const INTERVALO_POLLING_MS = 30000;
+const INTERVALO_POLLING_MS = 1000;
 
-export function useRastreoTiempoReal(idEnvio: string) {
+export function useRastreoTiempoReal(idEnvio: string, estadoGlobal?: string) {
     // Definición de Estados
     // Inicializamos la ruta como un arreglo vacío para evitar errores en el primer renderizado
     const [ruta, setRuta] = useState<[number, number][]>([]);
@@ -23,10 +23,12 @@ export function useRastreoTiempoReal(idEnvio: string) {
 
     // --- EFECTO 1: Cargar la Ruta Planificada con Cancelación ---
     // Efecto para cargar la ruta (Se ejecuta solo al montar o si cambia el idEnvio)
+    // --- EFECTO 1: Cargar la Ruta Planificada ---
     useEffect(() => {
-        if (!idEnvio) return;
+        // 2. BLOQUEO: Si no hay ID, si el envío no terminó de cargar, 
+        // o si está PENDIENTE, abortamos la ejecución silenciosamente.
+        if (!idEnvio || !estadoGlobal || estadoGlobal === 'PENDIENTE' || estadoGlobal === 'EN_PUNTO_DE_RECOLECCION' || estadoGlobal === 'ENTREGADO' || estadoGlobal === 'CANCELADO') return;
 
-        // Creamos el controlador para la petición de la ruta
         const controller = new AbortController();
 
         const fetchRuta = async () => {
@@ -54,7 +56,7 @@ export function useRastreoTiempoReal(idEnvio: string) {
         return () => {
             controller.abort();
         };
-    }, [idEnvio]);
+    }, [idEnvio, estadoGlobal]);
 
     // --- FUNCIÓN DE SEGUIMIENTO (Consulta de Ubicación en Tiempo Real): Acepta el AbortSignal ---
     // Memorizamos la función con useCallback para evitar recreaciones innecesarias
@@ -79,6 +81,9 @@ export function useRastreoTiempoReal(idEnvio: string) {
 
     // --- EFECTO 2: Polling de Ubicación con Cancelación Integral ---
     useEffect(() => {
+        // 3. BLOQUEO: Tampoco iniciamos el tracking si está PENDIENTE, EN_PUNTO_DE_RECOLECCION, ENTREGADO o CANCELADO
+        if (!idEnvio || !estadoGlobal || estadoGlobal === 'PENDIENTE' || estadoGlobal == 'EN_PUNTO_DE_RECOLECCION' || estadoGlobal === 'ENTREGADO' || estadoGlobal === 'CANCELADO') return;
+
         // Creamos un controlador para el ciclo de polling
         const controller = new AbortController();
 
@@ -88,9 +93,9 @@ export function useRastreoTiempoReal(idEnvio: string) {
         // Control de intervalo: Declaramos la variable para el temporizador
         let intervalId: NodeJS.Timeout;
 
-        // 3. Validación: Solo iniciamos el temporizador si el estado es EN_TRANSITO, EN_PUNTO_DE_RECOLECCION o EN_REPARTO
+        // 3. Validación: Solo iniciamos el temporizador si el estado es EN_TRANSITO
         // (O si es null, lo que significa que es la primera carga y aún no sabemos el estado)
-        if (estadoActual === 'EN_TRANSITO' || estadoActual === 'EN_PUNTO_DE_RECOLECCION' || estadoActual === 'EN_REPARTO' || estadoActual === null) {
+        if (estadoActual === 'EN_TRANSITO' || estadoActual === 'EN_REPARTO' || estadoActual === null) {
             intervalId = setInterval(() => {
                 fetchUbicacion(controller.signal);
             }, INTERVALO_POLLING_MS);
@@ -103,7 +108,8 @@ export function useRastreoTiempoReal(idEnvio: string) {
             }
             controller.abort();
         };
-    }, [fetchUbicacion, estadoActual]);
+    }, [fetchUbicacion, estadoActual, estadoGlobal, idEnvio]); // <-- Agregamos dependencias
+
     // Dependencias: 
     // - fetchUbicacion está memorizada por useCallback.
     // - estadoActual nos permite detener el temporizador si el viaje finaliza (ej. pasa a ENTREGADO).

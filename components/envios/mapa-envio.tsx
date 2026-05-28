@@ -14,6 +14,7 @@ interface MapaEnvioProps {
     camionLat?: number;
     camionLng?: number;
     ruta?: [number, number][];
+    estadoActual?: string;
 }
 
 const MapaInteractivo = dynamic(

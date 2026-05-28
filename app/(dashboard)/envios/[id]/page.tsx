@@ -44,7 +44,8 @@ export default function DetalleEnvioPage({
   const { envio, historial, isLoading, isUpdating, error, actualizarEnvio } = useEnvioDetail(id);
 
   // Consumimos la ruta desde el nuevo hook independiente. Extraemos también las coordenadas dinámicas del camión y el estado de error
-  const { ruta, camionLat, camionLng, errorTracking } = useRastreoTiempoReal(id);
+  // MODIFICACIÓN: Le inyectamos 'envio?.estadoActual' al hook
+  const { ruta, camionLat, camionLng, errorTracking } = useRastreoTiempoReal(id, envio?.estadoActual);
 
   const { permisos } = useAuth();
 
@@ -62,10 +63,10 @@ export default function DetalleEnvioPage({
   // Feedback visual si se pierde la conexión con el camión
   useEffect(() => {
     if (errorTracking) {
-      toast.warning('Atención', {
-        description: 'Se perdió la conexión temporal con el vehículo. Mostrando la última ubicación conocida en el mapa.',
-        duration: 6000, // Le damos un poco más de tiempo para que el operador lo lea
-      });
+      // toast.warning('Atención', {
+      //   description: 'Se perdió la conexión temporal con el vehículo. Mostrando la última ubicación conocida en el mapa.',
+      //   duration: 6000, // Le damos un poco más de tiempo para que el operador lo lea
+      // });
     }
   }, [errorTracking]);
 
@@ -139,7 +140,7 @@ export default function DetalleEnvioPage({
       month: 'short',
       hour: '2-digit',
       minute: '2-digit'
-    }).format(fecha).replace(',', ' -') + ' hs';
+    }).format(fecha).replace(',', ' -');
   };
 
   return (
@@ -223,7 +224,8 @@ export default function DetalleEnvioPage({
 
           {/* Geolocalización con tolerancia a fallos*/}
           <h6 className="font-bold text-[#198754] mb-4 border-b border-[#198754]/20 pb-2 flex items-center gap-2">
-            <MapPin className="h-4 w-4" /> Geolocalización del Recorrido
+            {/* <MapPin className="h-4 w-4" /> Geolocalización del Recorrido */}
+            <MapPin className="h-4 w-4" /> Mapa interactivo
           </h6>
           <div className="mb-10">
             <div className="w-full h-[320px] md:h-[480px] bg-gray-50 border border-gray-100 rounded-2xl overflow-hidden shadow-sm relative">
@@ -240,6 +242,7 @@ export default function DetalleEnvioPage({
                   ruta={ruta}
                   camionLat={camionLat} // Latitud en tiempo real
                   camionLng={camionLng} // Longitud en tiempo real
+                  estadoActual={envio.estadoActual}
                 />
               ) : (
                 /* Empty State: UI amigable cuando no hay coordenadas */

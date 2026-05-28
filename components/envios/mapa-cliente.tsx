@@ -17,6 +17,7 @@ interface MapaClienteProps {
     camionLat?: number;
     camionLng?: number;
     ruta?: [number, number][]; // Array de tuplas [latitud, longitud] ya adaptadas
+    estadoActual?: string;
 }
 
 // Función para crear un pin SVG personalizado con el color que le pasemos
@@ -70,9 +71,9 @@ const iconoCamion = crearIconoCamion('#f59e0b');
 
 // Configuración visual para la Polyline (Ruta planificada)
 const opcionesRuta = {
-    color: '#64748b', // Gris pizarra (slate-500 de Tailwind)
+    color: '#1b4332', // Gris pizarra (slate-500 de Tailwind)
     weight: 4,        // Grosor de la línea
-    opacity: 0.8,     // Ligeramente transparente para no tapar calles del mapa base
+    opacity: 0.9,     // Ligeramente transparente para no tapar calles del mapa base
     dashArray: '10, 10', // Crea el efecto de línea punteada
     lineJoin: 'round' as const // Suaviza las esquinas de la línea cuando el camión dobla
 };
@@ -82,33 +83,49 @@ function AjusteEncuadre({
     origen,
     destino,
     camion,
-    ruta
+    ruta,
+    estadoActual // <-- 1. Recibimos el estado
 }: {
     origen?: [number, number];
     destino?: [number, number];
     camion?: [number, number];
     ruta?: [number, number][];
+    estadoActual?: string;
 }) {
-    const map = useMap(); // Obtenemos la instancia real de Leaflet
-    // Usamos una referencia para saber si ya hicimos el zoom inicial
-    const encuadreRealizado = useRef(false);
+    const map = useMap();
+
+    // 1. Ref para saber si ya encuadramos específicamente la RUTA completa
+    const rutaEncuadrada = useRef(false);
+
+    // 2. Ref para saber si ya hicimos el encuadre básico (origen/destino) cuando no había ruta
+    const encuadreBasicoRealizado = useRef(false);
+
+    // 2. Nueva referencia para recordar en qué estado estábamos previamente
+    const estadoPrevio = useRef(estadoActual);
 
     useEffect(() => {
-        // Si ya encuadramos, no hacemos nada más para dejar al usuario navegar tranquilo
-        if (encuadreRealizado.current) return;
-
-        // Prioridad 1: Encuadrar usando toda la ruta planificada
-        if (ruta && ruta.length > 0) {
-            // Creamos una "caja" (bounding box) que envuelve ambos puntos
-            const bounds = L.latLngBounds(ruta);
-
-            // Le pedimos a Leaflet que ajuste el zoom para que la caja entre en pantalla.
-            // El padding asegura que los pines no queden pegados a los bordes del contenedor.
-            map.fitBounds(bounds, { padding: [50, 50] });
-            encuadreRealizado.current = true;
+        // DETECCIÓN DE CAMBIO DE ESTADO:
+        // Si el estado actual es diferente al que teníamos guardado,
+        // significa que hubo una transición (ej: EN_PUNTO_DE_RECOLECCION -> EN_REPARTO)
+        if (estadoActual !== estadoPrevio.current) {
+            rutaEncuadrada.current = false; // "Apagamos" el seguro para permitir un nuevo encuadre
+            estadoPrevio.current = estadoActual; // Actualizamos el recuerdo del estado
         }
-        // Prioridad 2: Fallback (Si la ruta aún no cargó, encuadramos los puntos sueltos)
-        else {
+
+        // Prioridad Absoluta: Si llegó la ruta y AÚN NO la encuadramos en este estado
+        if (ruta && ruta.length > 0 && !rutaEncuadrada.current) {
+            const bounds = L.latLngBounds(ruta);
+            map.fitBounds(bounds, { padding: [50, 50] });
+
+            // Marcamos la ruta como encuadrada para que no vuelva a saltar la cámara 
+            // con las actualizaciones de 30 segundos del camión
+            rutaEncuadrada.current = true;
+            encuadreBasicoRealizado.current = true; // Cancelamos el básico por las dudas
+            return; // Salimos del efecto
+        }
+
+        // Fallback: Si no hay ruta todavía, y no hicimos el encuadre básico
+        if (!rutaEncuadrada.current && !encuadreBasicoRealizado.current) {
             const puntosBase = [];
             if (origen) puntosBase.push(origen);
             if (destino) puntosBase.push(destino);
@@ -117,15 +134,15 @@ function AjusteEncuadre({
             if (puntosBase.length > 1) {
                 const bounds = L.latLngBounds(puntosBase);
                 map.fitBounds(bounds, { padding: [50, 50] });
-                encuadreRealizado.current = true;
+                encuadreBasicoRealizado.current = true;
             } else if (puntosBase.length === 1) {
                 map.setView(puntosBase[0], 13);
-                encuadreRealizado.current = true;
+                encuadreBasicoRealizado.current = true;
             }
         }
-    }, [map, origen, destino, camion, ruta]);
+    }, [map, origen, destino, camion, ruta, estadoActual]); // <-- 3. Agregamos estadoActual a las dependencias
 
-    return null; // No renderiza nada en el DOM
+    return null;
 }
 
 const MapaCliente = memo(function MapaCliente({
@@ -137,7 +154,8 @@ const MapaCliente = memo(function MapaCliente({
     destinoNombre = 'Destino',
     camionLat,
     camionLng,
-    ruta = [] // Por defecto un array vacío para evitar errores de iteración
+    ruta = [], // Por defecto un array vacío para evitar errores de iteración
+    estadoActual
 }: MapaClienteProps) {
 
     useEffect(() => {
@@ -179,6 +197,7 @@ const MapaCliente = memo(function MapaCliente({
                     destino={coordsDestino}
                     camion={coordsCamion}
                     ruta={ruta}
+                    estadoActual={estadoActual} // <-- Pasamos el estado al componente de encuadre
                 />
 
                 {/* 3. Renderizamos la Polyline (Ruta planificada) solo si hay coordenadas */}

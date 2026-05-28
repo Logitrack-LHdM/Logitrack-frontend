@@ -4,12 +4,13 @@ import React, { useState } from 'react';
 import { ResumenPuntualidad } from './resumen-puntualidad';
 import { GraficoPuntualidad } from './grafico-puntualidad';
 import { TablaDesvios } from './tabla-desvios';
-import { useCumplimiento } from '@/hooks/use-cumplimiento';
+import { useCumplimiento, obtenerRangoMesActual } from '@/hooks/use-cumplimiento';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Activity, AlertCircle, FileDown, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { exportCumplimientoCsvMock } from '@/lib/export-mock';
+import { api } from '@/lib/api';
 
 export function CumplimientoDashboard() {
     // Consumimos el mock a través de nuestro hook simulado
@@ -17,67 +18,68 @@ export function CumplimientoDashboard() {
 
     // Estados y hooks para la exportación
     const [isExporting, setIsExporting] = useState(false);
-    const { toast } = useToast();
 
     // Controlador del botón de exportación
-    const handleExport = async () => {
-        setIsExporting(true);
-        try {
-            await exportCumplimientoCsvMock();
-
-            toast({
-                title: "¡Exportación exitosa!",
-                description: "El análisis de viajes y desvíos se ha descargado correctamente.",
-                variant: "default",
-            });
-        } catch (err) {
-            console.error("Error en exportación:", err);
-            // Si el error viene de nuestro mock (ej. "No hay viajes completados"), lo mostramos
-            const mensajeError = err instanceof Error ? err.message : "Hubo un problema al generar el archivo. Por favor, intente nuevamente.";
-            toast({
-                title: "Error al exportar",
-                description: mensajeError,
-                variant: "destructive",
-            });
-        } finally {
-            setIsExporting(false);
-        }
-    };
-
     // const handleExport = async () => {
     //     setIsExporting(true);
     //     try {
-    //         // 1. Llamas al endpoint real de Spring Boot (la URL dependerá de lo que defina el backend)
-    //         const blob = await api.descargarArchivoCsv('/reportes/operativo/exportar');
-
-    //         // 2. Creas una URL temporal para el archivo recibido
-    //         const url = window.URL.createObjectURL(blob);
-    //         const link = document.createElement('a');
-    //         link.href = url;
-
-    //         // 3. Fuerzas la descarga
-    //         link.setAttribute('download', `Logitrack_Reporte_${new Date().toISOString().split('T')[0]}.csv`);
-    //         document.body.appendChild(link);
-    //         link.click();
-
-    //         // 4. Limpias el DOM
-    //         document.body.removeChild(link);
-    //         window.URL.revokeObjectURL(url);
-
-    //         toast({
-    //             title: "¡Exportación exitosa!",
-    //             description: "El archivo se descargó correctamente desde el servidor.",
+    //         await exportCumplimientoCsvMock();
+    //         toast.success('¡Exportación exitosa!', {
+    //             description: 'El análisis de viajes y desvíos se ha descargado correctamente.',
     //         });
     //     } catch (err) {
-    //         toast({
-    //             title: "Error al exportar",
-    //             description: "El servidor no pudo generar el archivo.",
-    //             variant: "destructive",
+    //         console.error("Error en exportación:", err);
+    //         // Si el error viene de nuestro mock (ej. "No hay viajes completados"), lo mostramos
+    //         const mensajeError = err instanceof Error ? err.message : "Hubo un problema al generar el archivo. Por favor, intente nuevamente.";
+    //         toast.error('Error al exportar', {
+    //             description: mensajeError,
     //         });
     //     } finally {
     //         setIsExporting(false);
     //     }
     // };
+
+    const handleExport = async () => {
+        setIsExporting(true);
+        try {
+            // 1. Llamas al endpoint real de Spring Boot (la URL dependerá de lo que defina el backend)
+            // OBTENEMOS LAS FECHAS DINÁMICAMENTE
+            const { fechaInicio, fechaFin } = obtenerRangoMesActual();
+
+            // CONSTRUIMOS EL ENDPOINT CON LOS QUERY PARAMETERS
+            const endpoint = `/reportes/cumplimiento/viajes/exportar?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`;
+
+            // Llamamos a la API con la URL dinámica
+            const blob = await api.descargarArchivoCsv(endpoint);
+
+            // 2. Creas una URL temporal para el archivo recibido
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+
+            // 3. Fuerzas la descarga
+            link.setAttribute('download', `Logitrack_Reporte_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+
+            // 4. Limpias el DOM
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+
+            toast.success('¡Exportación exitosa!', {
+                description: 'El archivo se descargó correctamente desde el servidor.',
+            });
+        } catch (err) {
+            console.error("Error en exportación:", err);
+            // Si el error viene de nuestro mock (ej. "No hay viajes completados"), lo mostramos
+            const mensajeError = err instanceof Error ? err.message : "El servidor no pudo generar el archivo. Por favor, intente nuevamente.";
+            toast.error('Error al exportar', {
+                description: mensajeError,
+            });
+        } finally {
+            setIsExporting(false);
+        }
+    };
 
     // Manejo de estado de error
     if (error) {
@@ -104,7 +106,7 @@ export function CumplimientoDashboard() {
                         <Activity className="h-7 w-7" />
                     </div>
                     <div>
-                        <h4 className="font-bold text-gray-900 mb-1 text-xl md:text-2xl">Resumen de Cumplimiento</h4>
+                        <h4 className="font-bold text-gray-900 mb-1 text-xl md:text-2xl">Análisis de Cumplimiento</h4>
                         <p className="text-muted-foreground text-sm m-0">
                             Métricas globales correspondientes a Mayo 2026.
                         </p>
