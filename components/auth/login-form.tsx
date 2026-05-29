@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/auth-context';
 import { cn } from '@/lib/utils';
+import { api } from '@/lib/api';
 
 const loginSchema = z.object({
   username: z.string().min(1, 'El usuario es requerido'),
@@ -52,6 +53,64 @@ export function LoginForm() {
   } = useForm<LoginFormData>({ resolver: zodResolver(loginSchema) });
 
   const camposCompletos = watch('username') && watch('password');
+
+  // --- LÓGICA DE PRE-WARMING DEL SERVIDOR ---
+  useEffect(() => {
+    let isMounted = true;
+    let timeoutId: NodeJS.Timeout;
+
+    const wakeUpRender = async () => {
+      // Configuramos un umbral: si el servidor no responde en 1.5s, asumimos que está dormido
+      timeoutId = setTimeout(() => {
+        if (isMounted) {
+          toast.loading(
+            'Iniciando servidor (puede demorar ~50 segundos). Por favor, espere...',
+            {
+              id: 'server-wakeup',
+              duration: Infinity, // Evita que el toast desaparezca solo
+              style: {
+                backgroundColor: '#fef3c7', // Un fondo amber-100 suave
+                color: '#78350f',           // Texto amber-900 para alto contraste
+                border: '1px solid #fde68a', // Borde amber-200 sutil
+              }
+            }
+          );
+        }
+      }, 1500);
+
+      const startTime = Date.now();
+
+      // Disparamos el estímulo hacia el backend
+      await api.pingServer();
+
+      const duration = Date.now() - startTime;
+
+      // Si respondió rápido, cancelamos el temporizador para que no aparezca el toast
+      clearTimeout(timeoutId);
+
+      if (isMounted) {
+        if (duration > 1500) {
+          // Si tardó más de 1.5s (el usuario vio el toast de carga), lo actualizamos a éxito
+          toast.success('¡Servidor operativo y listo!', {
+            id: 'server-wakeup',
+            duration: 4000
+          });
+        } else {
+          // Por seguridad, si el toast llegó a renderizarse por una fracción de segundo, lo cerramos
+          toast.dismiss('server-wakeup');
+        }
+      }
+    };
+
+    wakeUpRender();
+
+    // Cleanup function para evitar fugas de memoria si el usuario navega rápido a otra página
+    return () => {
+      isMounted = false;
+      clearTimeout(timeoutId);
+    };
+  }, []);
+  // --- FIN LÓGICA DE PRE-WARMING ---
 
   const onSubmit = async (data: LoginFormData) => {
     try {

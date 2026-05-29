@@ -528,8 +528,8 @@ export default function DetalleEnvioPage({
             )
           }
 
-          {/* Auditoría de Ruta */}
-          <h6 className="font-bold text-gray-900 mb-4">Auditoría de Ruta</h6>
+          {/* Auditoría */}
+          <h6 className="font-bold text-gray-900 mb-4">Auditoría</h6>
           <div className="border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
             <HistorialTable historial={historial} />
           </div>
