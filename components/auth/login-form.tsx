@@ -64,7 +64,7 @@ export function LoginForm() {
       timeoutId = setTimeout(() => {
         if (isMounted) {
           toast.loading(
-            'Iniciando servidor (puede demorar ~50 segundos). Por favor, espere...',
+            'Iniciando servidor (puede demorar ~1 minuto). Por favor, espere...',
             {
               id: 'server-wakeup',
               duration: Infinity, // Evita que el toast desaparezca solo
@@ -90,13 +90,15 @@ export function LoginForm() {
 
       if (isMounted) {
         if (duration > 1500) {
-          // Si tardó más de 1.5s (el usuario vio el toast de carga), lo actualizamos a éxito
+          // 1. Eliminamos por completo el toast de carga y sus estilos ámbar/oscuros
+          toast.dismiss('server-wakeup');
+
+          // 2. Creamos un nuevo toast independiente que será verde nativo
           toast.success('¡Servidor operativo y listo!', {
-            id: 'server-wakeup',
-            duration: 4000
+            duration: 10000
           });
         } else {
-          // Por seguridad, si el toast llegó a renderizarse por una fracción de segundo, lo cerramos
+          // Si el servidor ya estaba despierto, simplemente limpiamos por las dudas
           toast.dismiss('server-wakeup');
         }
       }
