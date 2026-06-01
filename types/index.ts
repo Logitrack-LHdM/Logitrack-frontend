@@ -18,6 +18,16 @@ export type TipoGrano =
   | 'CEBADA'
   | 'AVENA';
 
+  export type TipoEmpresa =
+  | 'ACOPIO'
+  | 'PUERTO'
+  | 'PRODUCTOR'
+  | 'EXPORTADORA'
+  | 'MOLINO'
+  | 'COOPERATIVA'
+  | 'PRODUCTORA'
+  | 'OTRA';
+  
 export type RolUsuario =
   | 'ROLE_OPERADOR'
   | 'ROLE_SUPERVISOR'
@@ -30,6 +40,21 @@ export type TipoIncidencia =
   | 'TRAFICO'
   | 'CONTROLES'
   | 'OTRO';
+
+export interface ClienteRequestDTO {
+  cuit: string;
+  razonSocial: string;
+  tipoEmpresa: string;
+  email: string;
+  rucaNro?: string;
+  vtoRuca?: string; // "YYYY-MM-DD"
+  sede?: {
+    nombreLugar: string;
+    direccion: string;
+    latitud?: number;
+    longitud?: number;
+  };
+}
 
 // Tipos de problemas comunes que el chofer podría reportar
 // export type TipoIncidencia =

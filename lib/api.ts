@@ -19,6 +19,7 @@ import type {
   UbicacionTiempoRealResponse,
   RutaCamionResponse,
   AlertaListadoDTO,
+  ClienteRequestDTO,
 } from '@/types';
 
 // Agrega esta importación junto a las demás
@@ -452,10 +453,21 @@ class ApiClient {
     return response.blob();
   }
 
-  // === ALERTAS (MOCKS TEMPORALES PARA FRONTEND) ===
+  // === CLIENTES ===
+  async crearCliente(data: ClienteRequestDTO): Promise<Empresa> {
+    return this.request<Empresa>('/clientes', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
 
-  // async getAlertas(): Promise<AlertaListadoDTO[]> {
-  //   console.log('[MOCK API] Obteniendo listado de alertas...');
+  async listarClientes(): Promise<Empresa[]> {
+    return this.request<Empresa[]>('/clientes');
+  }
+
+  // === ALERTAS (MOCKS TEMPORALES PARA FRONTEND) ===
+  //async getAlertas(): Promise<AlertaListadoDTO[]> {
+  //  console.log('[MOCK API] Obteniendo listado de alertas...');
 
   //   // Importación dinámica para no afectar el bundle inicial si no se usa
   //   const { mockAlertas } = await import('@/mocks/alertasMock');

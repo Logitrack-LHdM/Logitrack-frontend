@@ -1,11 +1,12 @@
 'use client';
 // Modificar la importación existente en las primeras líneas del archivo
-import { Search, PlusCircle, FileText, Truck, ChartColumnBig, Activity, AlertTriangle } from 'lucide-react';
+import { Search, PlusCircle, FileText, Truck, ChartColumnBig, Activity, AlertTriangle, UserPlus } from 'lucide-react';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/contexts/auth-context';
 import { cn } from '@/lib/utils';
 import { Route } from 'next';
+
 
 interface MenuCardProps {
   href: string;
@@ -75,6 +76,13 @@ export default function MenuPage() {
       title: 'Asignar Transporte',
       description: 'Asigná chofer y camión a los envíos pendientes',
       show: permisos.asignarTransporte,
+    },
+    {
+      href: '/clientes/nuevo',
+      icon: <UserPlus className="h-8 w-8" />,
+      title: 'Nuevo Cliente',
+      description: 'Registra una nueva empresa cliente en el sistema',
+      show: permisos.crearCliente,
     },
     {
       href: '/reporte-operativo',
