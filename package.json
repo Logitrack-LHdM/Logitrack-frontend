@@ -64,14 +64,18 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.2.0",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
     "@types/leaflet": "^1.9.21",
     "@types/node": "^22",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
+    "jsdom": "^29.1.1",
     "postcss": "^8.5",
     "tailwindcss": "^4.2.0",
     "tw-animate-css": "1.3.3",
-    "typescript": "5.7.3"
+    "typescript": "5.7.3",
+    "vitest": "^4.1.7"
   },
   "engines": {
     "npm": "please-use-pnpm",
