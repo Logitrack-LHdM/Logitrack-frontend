@@ -156,6 +156,19 @@ class ApiClient {
     });
   }
 
+  // === ESTADO DEL SERVIDOR (RENDER COLD START) ===
+  async pingServer(): Promise<void> {
+    try {
+      // Hacemos una petición GET simple. 
+      // Render mantendrá la petición pendiente hasta que el backend en Spring Boot despierte.
+      // Si no tienes un endpoint '/health', puedes pegarle a '/catalogos/metadatos'
+      await fetch(`${API_BASE_URL}/catalogos/metadatos`, { method: 'GET' });
+    } catch (error) {
+      // Ignoramos errores de CORS o red prematuros; el objetivo es enviar el estímulo de red
+      console.warn('Ping de inicialización finalizado.');
+    }
+  }
+
   // === ENVIOS ===
   async buscarEnvios(params: BusquedaEnviosParams): Promise<PaginatedResponse<Envio>> {
     const searchParams = new URLSearchParams();
