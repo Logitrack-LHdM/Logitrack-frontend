@@ -30,7 +30,7 @@ export function SearchFilters({
   return (
     <div className="bg-white rounded-2xl shadow-sm border-0 p-6 md:p-8">
       <div className="flex items-center gap-3 mb-2">
-        <div className="bg-blue-600/10 text-blue-600 p-2 rounded-lg">
+        <div className="p-2 rounded-lg bg-gradient-to-br from-[#1b4332] to-[#2d6a4f] text-white shadow-md group-hover:shadow-lg transition-shadow">
           <Search className="h-6 w-6" />
         </div>
         <h4 className="text-xl font-bold text-gray-900 m-0">Buscar Envío</h4>

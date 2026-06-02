@@ -41,7 +41,10 @@ export default function AuditoriaPage() {
 
       {/* Encabezado Principal (Réplica exacta de tu HTML) */}
       <div className="flex items-center gap-3 mb-6 mt-2 px-2 md:px-0">
-        <div className="bg-amber-500/10 text-amber-500 p-3 rounded-xl border border-amber-500/25 shadow-sm shrink-0">
+        {/* <div className="bg-amber-500/10 text-amber-500 p-3 rounded-xl border border-amber-500/25 shadow-sm shrink-0">
+          <History className="h-7 w-7" />
+        </div> */}
+        <div className="p-4 rounded-2xl bg-gradient-to-br from-[#1b4332] to-[#2d6a4f] text-white shadow-md group-hover:shadow-lg transition-shadow">
           <History className="h-7 w-7" />
         </div>
         <div>
