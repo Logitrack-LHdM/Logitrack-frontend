@@ -34,13 +34,18 @@ export function EnvioForm({ modo = 'crear', envioInicial, envioId }: EnvioFormPr
   const router = useRouter();
 
   const {
-    empresas, choferes, camiones, tiposGrano, establecimientos,
+    empresas, tiposGrano, establecimientos,
     loadingEstablecimientos, isLoading: loadingCatalogos,
     cargarEstablecimientos, buscarEmpresas, buscarGranos,
   } = useCatalogos();
 
   const [filteredEmpresas, setFilteredEmpresas] = useState(empresas);
   const [filteredGranos, setFilteredGranos] = useState<TipoGrano[]>(tiposGrano);
+
+  // Sincroniza las empresas cuando terminan de cargar
+  useEffect(() => {
+    setFilteredEmpresas(empresas);
+  }, [empresas]);
 
   // En edición, el CUIT viene del establecimiento origen del envío
   const cuitInicial = esEdicion ? envioInicial?.origen?.empresa?.cuit ?? '' : '';
@@ -51,7 +56,6 @@ export function EnvioForm({ modo = 'crear', envioInicial, envioId }: EnvioFormPr
   } = useForm<EnvioFormData>({
     resolver: zodResolver(envioSchema),
     defaultValues: {
-      // trackingCtg: esEdicion ? envioInicial?.trackingCtg ?? '' : '',
       cpe: esEdicion ? envioInicial?.cpe ?? '' : '',
       clienteCuit: cuitInicial,
       idOrigen: esEdicion ? envioInicial?.origen?.idEstablecimiento ?? 0 : 0,
