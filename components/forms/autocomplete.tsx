@@ -140,7 +140,7 @@ export function Autocomplete({
           disabled={disabled}
           className={cn('pl-10 pr-10', error && 'border-destructive')}
         />
-        {value && (
+        {value && !disabled && (
           <button
             type="button"
             onClick={handleClear}
