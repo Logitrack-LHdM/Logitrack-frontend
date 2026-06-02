@@ -1,6 +1,6 @@
 'use client';
 // Modificar la importación existente en las primeras líneas del archivo
-import { Search, PlusCircle, FileText, Truck, ChartColumnBig, Activity, AlertTriangle, UserPlus } from 'lucide-react';
+import { Search, PlusCircle, History, Truck, ChartColumnBig, Activity, AlertTriangle, UserPlus } from 'lucide-react';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/contexts/auth-context';
@@ -65,7 +65,7 @@ export default function MenuPage() {
     },
     {
       href: '/auditoria',
-      icon: <FileText className="h-8 w-8" />,
+      icon: <History className="h-8 w-8" />,
       title: 'Historial Completo',
       description: 'Revisa el registro completo de auditoria',
       show: permisos.verAuditoria,

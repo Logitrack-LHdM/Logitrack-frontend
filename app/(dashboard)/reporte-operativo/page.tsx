@@ -345,7 +345,7 @@ export default function ReporteOperativoPage() {
                                 type="date"
                                 value={fechaInicio}
                                 onChange={(e) => handleFechaChange('inicio', e.target.value)}
-                                className="w-full bg-background disabled:opacity-50"
+                                className="w-full bg-background disabled:opacity-50 focus-visible:ring-[#198754]"
                                 max={fechaFin || undefined}
                                 disabled={rango === 'historico'}
                             />
@@ -360,7 +360,7 @@ export default function ReporteOperativoPage() {
                                 type="date"
                                 value={fechaFin}
                                 onChange={(e) => handleFechaChange('fin', e.target.value)}
-                                className="w-full bg-background disabled:opacity-50"
+                                className="w-full bg-background disabled:opacity-50 focus-visible:ring-[#198754]"
                                 min={fechaInicio || undefined}
                                 disabled={rango === 'historico'}
                             />

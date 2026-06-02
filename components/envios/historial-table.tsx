@@ -118,7 +118,7 @@ function EventoCell({ registro, isMobile = false }: { registro: RegistroHistoria
   return (
     <span className="text-sm font-medium text-gray-900 flex items-center gap-1.5 justify-end md:justify-start text-right md:text-left">
       {!isMobile && <ArrowRight className="h-4 w-4 text-[#198754]" />}
-      Envío creado y puesto en {estadoNuevo}
+      Envío creado y puesto En {estadoNuevo}
     </span>
   );
 }
