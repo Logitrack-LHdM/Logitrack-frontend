@@ -11,22 +11,53 @@ export function cn(...inputs: ClassValue[]) {
  * Normaliza un enum de Java para mostrar en UI
  * "EN_TRANSITO" -> "En Transito"
  */
+// export function normalizarEnum(valorEnum: string): string {
+//   if (!valorEnum) return '';
+//   return valorEnum
+//     .toLowerCase()
+//     .replace(/_/g, ' ')
+//     .replace(/\b\w/g, (c) => c.toUpperCase());
+// }
+// Diccionario con las excepciones que llevan tilde
+const DICCIONARIO_TILDES: Record<string, string> = {
+  'EN_TRANSITO': 'En Tránsito',
+  'EN_PUNTO_DE_RECOLECCION': 'En Punto De Recolección',
+  'MAIZ': 'Maíz',
+  // Agrega aquí las palabras que vayas necesitando
+};
+
 export function normalizarEnum(valorEnum: string): string {
   if (!valorEnum) return '';
+
+  // 1. Buscamos primero si la palabra requiere una tilde obligatoria
+  if (DICCIONARIO_TILDES[valorEnum]) {
+    return DICCIONARIO_TILDES[valorEnum];
+  }
+
+  // 2. Si no está en el diccionario, aplica el formato genérico estándar
   return valorEnum
     .toLowerCase()
     .replace(/_/g, ' ')
-    .replace(/\b\w/g, (c) => c.toUpperCase());
+    .replace(/(^\p{L}|\s\p{L})/gu, (c) => c.toUpperCase());
 }
 
 /**
  * Convierte texto UI a enum Java
- * "En Transito" -> "EN_TRANSITO"
+ * "En Tránsito" -> "EN_TRANSITO"
  */
+// export function enumParaJava(textoSelect: string): string {
+//   if (!textoSelect) return '';
+//   return textoSelect.toUpperCase().replace(/ /g, '_');
+// }
 export function enumParaJava(textoSelect: string): string {
   if (!textoSelect) return '';
-  return textoSelect.toUpperCase().replace(/ /g, '_');
+  return textoSelect
+    .normalize("NFD")                      // Separa la letra de su tilde (ej: 'ó' pasa a ser 'o' + '´')
+    .replace(/[\u0300-\u036f]/g, "")      // Borra físicamente todas las tildes separadas
+    .toUpperCase()
+    .replace(/ /g, '_');
 }
+
 
 /**
  * Retorna la configuracion de estado (label, color, bgColor, icon)
