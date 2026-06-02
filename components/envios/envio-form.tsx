@@ -62,7 +62,7 @@ export function EnvioForm({ modo = 'crear', envioInicial, envioId }: EnvioFormPr
       idDestino: esEdicion ? envioInicial?.destino?.idEstablecimiento ?? 0 : 0,
       tipoGrano: esEdicion ? envioInicial?.tipoGrano ?? '' : '',
       kgOrigen: esEdicion ? (envioInicial?.kgOrigen ?? 0) / 1000 : 0,
-      aceptaTerminos: false,
+      aceptaTerminos: esEdicion,
     },
   });
 
