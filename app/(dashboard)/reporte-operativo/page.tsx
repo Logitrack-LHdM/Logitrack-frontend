@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
-import { Truck, Scale, ArrowLeftCircle, ChartColumnBig, FileDown, Loader2, Clock, CheckCircle, PackageOpen } from 'lucide-react'; import {
+import { Truck, Scale, ArrowLeftCircle, ChartColumnBig, FileDown, Loader2, Clock, CheckCircle, PackageOpen, AlertTriangle, Percent } from 'lucide-react';
+import {
     BarChart,
     Bar,
     XAxis,
@@ -180,6 +181,14 @@ export default function ReporteOperativoPage() {
         }).format(kilos);
     };
 
+    // Formateador para el porcentaje a tiempo
+    const formatearPorcentaje = (valor: number | undefined) => {
+        if (valor === undefined) return '0,00';
+        return new Intl.NumberFormat('es-AR', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        }).format(valor);
+    };
     return (
         <div className="container mx-auto px-4 py-8">
             <div className="max-w-6xl mx-auto space-y-8">
@@ -339,11 +348,14 @@ export default function ReporteOperativoPage() {
 
                 {/* Grilla de Métricas Globales */}
                 {/* Contenedor principal de la grilla (Layout Responsivo) */}
-                <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
+                <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
                     {isLoading ? (
                         <>
                             <Skeleton className="h-32 rounded-xl" />
                             <Skeleton className="h-32 rounded-xl" />
+                            <Skeleton className="h-32 rounded-xl" />
+                            <Skeleton className="h-32 rounded-xl" />
+                            {/* Nuevos Skeletons para Incidencias y Porcentaje */}
                             <Skeleton className="h-32 rounded-xl" />
                             <Skeleton className="h-32 rounded-xl" />
                         </>
@@ -436,6 +448,56 @@ export default function ReporteOperativoPage() {
                                     )}
                                 </CardContent>
                             </Card>
+
+                            {/* Tarjeta 5: Incidencias (Paso 3) */}
+                            <Card className="shadow-sm hover:shadow-md transition-shadow">
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                    <CardTitle className="text-sm font-medium text-muted-foreground">Incidencias</CardTitle>
+                                    <div className={`p-2 rounded-full ${data?.operativo?.totalIncidencias && data.operativo.totalIncidencias > 0 ? 'bg-destructive/10' : 'bg-primary/10'}`}>
+                                        <AlertTriangle className={`h-4 w-4 ${data?.operativo?.totalIncidencias && data.operativo.totalIncidencias > 0 ? 'text-destructive' : 'text-primary'}`} />
+                                    </div>
+                                </CardHeader>
+                                <CardContent>
+                                    {data ? (
+                                        <>
+                                            <div className={`text-3xl font-bold ${data.operativo?.totalIncidencias && data.operativo.totalIncidencias > 0 ? 'text-destructive' : 'text-foreground'}`}>
+                                                {data.operativo?.totalIncidencias || 0}
+                                            </div>
+                                            <p className="text-xs text-muted-foreground mt-1">Problemas reportados en el período</p>
+                                        </>
+                                    ) : (
+                                        <div className="flex items-center h-full pt-3">
+                                            <p className="text-sm text-muted-foreground italic bg-muted/50 p-2 rounded-md w-full text-center">Filtre por fechas para calcular</p>
+                                        </div>
+                                    )}
+                                </CardContent>
+                            </Card>
+
+                            {/* Tarjeta 6: Porcentaje a Tiempo / Efectividad (Paso 4) */}
+                            <Card className="shadow-sm hover:shadow-md transition-shadow">
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                    <CardTitle className="text-sm font-medium text-muted-foreground">Efectividad de Entrega</CardTitle>
+                                    <div className="p-2 bg-primary/10 rounded-full">
+                                        <Percent className="h-4 w-4 text-primary" />
+                                    </div>
+                                </CardHeader>
+                                <CardContent>
+                                    {data ? (
+                                        <>
+                                            <div className="text-3xl font-bold text-foreground">
+                                                {formatearPorcentaje(data.eficiencia?.porcentajeATiempo)}
+                                                <span className="text-lg font-normal text-muted-foreground"> %</span>
+                                            </div>
+                                            <p className="text-xs text-muted-foreground mt-1">Porcentaje de viajes entregados a tiempo</p>
+                                        </>
+                                    ) : (
+                                        <div className="flex items-center h-full pt-3">
+                                            <p className="text-sm text-muted-foreground italic bg-muted/50 p-2 rounded-md w-full text-center">Filtre por fechas para calcular</p>
+                                        </div>
+                                    )}
+                                </CardContent>
+                            </Card>
+
                         </>
                     )}
                 </div>
