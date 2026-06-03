@@ -4,6 +4,7 @@
 export interface ReporteSimpleDTO {
   totalViajes: number;
   totalKilos: number;
+  totalIncidencias: number;
 }
 
 // DTO para GET /api/reportes/estados
@@ -24,6 +25,7 @@ export interface ReporteGranoDTO {
 export interface ReporteEficienciaDTO {
   cantidadEnviosATiempo: number;
   totalKilosEnTiempo: number;
+  porcentajeATiempo: number;
 }
 
 // Opcional: Tipado estricto para los parámetros de rango de la API
