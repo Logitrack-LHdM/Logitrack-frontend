@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
@@ -34,13 +34,18 @@ export function EnvioForm({ modo = 'crear', envioInicial, envioId }: EnvioFormPr
   const router = useRouter();
 
   const {
-    empresas, choferes, camiones, tiposGrano, establecimientos,
+    empresas, tiposGrano, establecimientos,
     loadingEstablecimientos, isLoading: loadingCatalogos,
     cargarEstablecimientos, buscarEmpresas, buscarGranos,
   } = useCatalogos();
 
   const [filteredEmpresas, setFilteredEmpresas] = useState(empresas);
   const [filteredGranos, setFilteredGranos] = useState<TipoGrano[]>(tiposGrano);
+
+  // Sincroniza las empresas cuando terminan de cargar
+  useEffect(() => {
+    setFilteredEmpresas(empresas);
+  }, [empresas]);
 
   // En edición, el CUIT viene del establecimiento origen del envío
   const cuitInicial = esEdicion ? envioInicial?.origen?.empresa?.cuit ?? '' : '';
@@ -51,35 +56,38 @@ export function EnvioForm({ modo = 'crear', envioInicial, envioId }: EnvioFormPr
   } = useForm<EnvioFormData>({
     resolver: zodResolver(envioSchema),
     defaultValues: {
-      // trackingCtg: esEdicion ? envioInicial?.trackingCtg ?? '' : '',
       cpe: esEdicion ? envioInicial?.cpe ?? '' : '',
       clienteCuit: cuitInicial,
       idOrigen: esEdicion ? envioInicial?.origen?.idEstablecimiento ?? 0 : 0,
       idDestino: esEdicion ? envioInicial?.destino?.idEstablecimiento ?? 0 : 0,
       tipoGrano: esEdicion ? envioInicial?.tipoGrano ?? '' : '',
       kgOrigen: esEdicion ? (envioInicial?.kgOrigen ?? 0) / 1000 : 0,
-      aceptaTerminos: false,
+      aceptaTerminos: esEdicion,
     },
   });
 
   const clienteCuit = watch('clienteCuit');
   const aceptaTerminos = watch('aceptaTerminos');
 
-  // Cargar establecimientos al montar en modo edición
-  useEffect(() => {
-    if (esEdicion && cuitInicial) {
-      cargarEstablecimientos(cuitInicial);
-    }
-  }, [esEdicion, cuitInicial, cargarEstablecimientos]);
+  // Almacenamos el CUIT inicial/actual para comparar cambios reales de valor
+  const prevCuitRef = useRef<string>(clienteCuit);
 
-  // Cargar establecimientos al cambiar cliente en modo creación
   useEffect(() => {
-    if (!esEdicion && clienteCuit) {
-      cargarEstablecimientos(clienteCuit);
+    // Si el CUIT actual es diferente al que teníamos guardado (cambio real del usuario)
+    if (prevCuitRef.current !== clienteCuit) {
+      // Limpiamos la selección de establecimientos SOLO por interacción directa
       setValue('idOrigen', 0);
       setValue('idDestino', 0);
+
+      // Actualizamos la referencia con el nuevo valor
+      prevCuitRef.current = clienteCuit;
     }
-  }, [clienteCuit, esEdicion, cargarEstablecimientos, setValue]);
+
+    // Cargamos los establecimientos correspondientes si hay un CUIT activo
+    if (clienteCuit) {
+      cargarEstablecimientos(clienteCuit);
+    }
+  }, [clienteCuit, cargarEstablecimientos, setValue]);
 
   const empresaOptions = useMemo(
     () => filteredEmpresas.map((e) => ({
@@ -89,6 +97,24 @@ export function EnvioForm({ modo = 'crear', envioInicial, envioId }: EnvioFormPr
     })),
     [filteredEmpresas]
   );
+
+  // Agrega la observación de los IDs actuales
+  const idOrigenWatch = watch('idOrigen');
+  const idDestinoWatch = watch('idDestino');
+
+  const establecimientosFiltrados = useMemo(() => {
+    if (!clienteCuit) return [];
+    return establecimientos.filter((est) => {
+      // 1. Condición principal: que pertenezca al CUIT de la empresa
+      if (est.empresa?.cuit === clienteCuit) return true;
+
+      // 2. Salvaguarda: si es el ID cargado originalmente, lo preservamos 
+      // para asegurar que Radix UI lo dibuje correctamente en la edición
+      if (est.idEstablecimiento === idOrigenWatch || est.idEstablecimiento === idDestinoWatch) return true;
+
+      return false;
+    });
+  }, [establecimientos, clienteCuit, idOrigenWatch, idDestinoWatch]);
 
   const granoOptions = useMemo(
     () => filteredGranos.map((g) => ({
@@ -110,7 +136,7 @@ export function EnvioForm({ modo = 'crear', envioInicial, envioId }: EnvioFormPr
       } as any;
 
       if (esEdicion && envioId) {
-        await api.actualizarEnvio(envioId, payload);
+        await api.actualizarEnvioEdicion(envioId, payload);
         toast.success('Envío actualizado con éxito');
         router.push(`/envios/${envioId}`);
       } else {
@@ -179,6 +205,7 @@ export function EnvioForm({ modo = 'crear', envioInicial, envioId }: EnvioFormPr
                     onSearch={(query) => setFilteredEmpresas(buscarEmpresas(query))}
                     error={errors.clienteCuit?.message}
                     className="bg-muted/30"
+                    disabled={esEdicion}
                   />
                 )}
               />
@@ -200,15 +227,16 @@ export function EnvioForm({ modo = 'crear', envioInicial, envioId }: EnvioFormPr
                   control={control}
                   render={({ field }) => (
                     <Select
-                      value={field.value?.toString() || ''}
+                      // Si el valor es 0, enviamos '' para forzar visualmente el placeholder
+                      value={field.value === 0 ? '' : field.value?.toString() || ''}
                       onValueChange={(v) => field.onChange(parseInt(v, 10))}
-                      disabled={!clienteCuit || loadingEstablecimientos}
+                      disabled={esEdicion || !clienteCuit || loadingEstablecimientos}
                     >
                       <SelectTrigger className={`w-full bg-muted/30 border-0 shadow-sm h-11 ${errors.idOrigen ? 'ring-2 ring-destructive' : ''}`}>
-                        <SelectValue placeholder="Seleccione un cliente primero..." />
+                        <SelectValue placeholder="Seleccione un establecimiento..." />
                       </SelectTrigger>
                       <SelectContent>
-                        {establecimientos.map((est) => (
+                        {establecimientosFiltrados.map((est) => (
                           <SelectItem key={est.idEstablecimiento} value={est.idEstablecimiento.toString()}>
                             {est.nombreLugar} ({est.direccion})
                           </SelectItem>
@@ -232,15 +260,16 @@ export function EnvioForm({ modo = 'crear', envioInicial, envioId }: EnvioFormPr
                   control={control}
                   render={({ field }) => (
                     <Select
-                      value={field.value?.toString() || ''}
+                      // Si el valor es 0, enviamos '' para forzar visualmente el placeholder
+                      value={field.value === 0 ? '' : field.value?.toString() || ''}
                       onValueChange={(v) => field.onChange(parseInt(v, 10))}
-                      disabled={!clienteCuit || loadingEstablecimientos}
+                      disabled={esEdicion || !clienteCuit || loadingEstablecimientos}
                     >
                       <SelectTrigger className={`w-full bg-muted/30 border-0 shadow-sm h-11 ${errors.idDestino ? 'ring-2 ring-destructive' : ''}`}>
-                        <SelectValue placeholder="Seleccione un cliente primero..." />
+                        <SelectValue placeholder="Seleccione un establecimiento..." />
                       </SelectTrigger>
                       <SelectContent>
-                        {establecimientos.map((est) => (
+                        {establecimientosFiltrados.map((est) => (
                           <SelectItem key={est.idEstablecimiento} value={est.idEstablecimiento.toString()}>
                             {est.nombreLugar} ({est.direccion})
                           </SelectItem>
@@ -260,23 +289,13 @@ export function EnvioForm({ modo = 'crear', envioInicial, envioId }: EnvioFormPr
               <FileText className="h-5 w-5" /> Documentación Fiscal
             </h6>
             <div className="grid md:grid-cols-2 gap-6">
-              {/*<div className="space-y-2">
-               <Label className="text-xs font-bold uppercase text-muted-foreground">
-                  Código CTG <span className="text-destructive">*</span>
-                </Label>
-                 <Input
-                  placeholder="Nro. de Trazabilidad"
-                  {...register('trackingCtg')}
-                  className={`bg-muted/30 border-0 shadow-sm h-11 ${errors.trackingCtg ? 'ring-2 ring-destructive' : ''}`}
-                />
-                {errors.trackingCtg && <p className="text-xs text-destructive">{errors.trackingCtg.message}</p>} 
-              </div>*/}
               <div className="space-y-2">
                 <Label className="text-xs font-bold uppercase text-muted-foreground">
                   CPE (Carta de Porte) <span className="text-destructive">*</span>
                 </Label>
                 <Input
                   placeholder="Nro. de Carta de Porte"
+                  disabled={esEdicion}
                   {...register('cpe')}
                   className={`bg-muted/30 border-0 shadow-sm h-11 ${errors.cpe ? 'ring-2 ring-destructive' : ''}`}
                 />

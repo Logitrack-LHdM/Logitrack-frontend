@@ -78,7 +78,10 @@ export default function AlertasPage() {
 
             {/* Encabezado */}
             <div className="flex items-center gap-3 mb-6 mt-2 px-2 md:px-0">
-                <div className="bg-red-500/10 text-red-600 p-3 rounded-xl border border-red-500/25 shadow-sm shrink-0">
+                {/* <div className="bg-red-500/10 text-red-600 p-3 rounded-xl border border-red-500/25 shadow-sm shrink-0">
+                    <AlertTriangle className="h-7 w-7" />
+                </div> */}
+                <div className="p-4 rounded-2xl bg-gradient-to-br from-[#1b4332] to-[#2d6a4f] text-white shadow-md group-hover:shadow-lg transition-shadow">
                     <AlertTriangle className="h-7 w-7" />
                 </div>
                 <div>

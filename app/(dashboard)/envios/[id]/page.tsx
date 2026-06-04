@@ -92,6 +92,11 @@ export default function DetalleEnvioPage({
   const handleGuardarCambios = async () => {
     if (!nuevoEstado || !nuevaPrioridad) return;
 
+    if (!envio?.chofer && (nuevoEstado !== envio?.estadoActual)) {
+      toast.error('Error al cambiar el estado', { description: "No se puede iniciar el viaje sin un chofer asignado." });
+      return;
+    }
+
     try {
       // Usamos los nombres que espera el DTO de Java
       await actualizarEnvio({

@@ -30,7 +30,7 @@ export function SearchFilters({
   return (
     <div className="bg-white rounded-2xl shadow-sm border-0 p-6 md:p-8">
       <div className="flex items-center gap-3 mb-2">
-        <div className="bg-blue-600/10 text-blue-600 p-2 rounded-lg">
+        <div className="p-2 rounded-lg bg-gradient-to-br from-[#1b4332] to-[#2d6a4f] text-white shadow-md group-hover:shadow-lg transition-shadow">
           <Search className="h-6 w-6" />
         </div>
         <h4 className="text-xl font-bold text-gray-900 m-0">Buscar Envío</h4>
@@ -60,7 +60,7 @@ export function SearchFilters({
           <div className="md:col-span-4 space-y-1">
             <Label className="text-xs font-bold uppercase text-muted-foreground">Estado Operativo</Label>
             <Select value={estado || 'all'} onValueChange={(v) => onEstadoChange(v === 'all' ? '' : v as EstadoEnvio)}>
-              <SelectTrigger className="w-full h-11 bg-muted/30 border-0 shadow-sm focus:ring-[#198754]">
+              <SelectTrigger className="w-full h-11 bg-background disabled:opacity-50 focus-visible:ring-[#198754]">
                 <SelectValue placeholder="Cualquier Estado" />
               </SelectTrigger>
               <SelectContent>
@@ -73,15 +73,12 @@ export function SearchFilters({
 
           <div className="md:col-span-4 space-y-1">
             <Label className="text-xs font-bold uppercase text-muted-foreground">Fecha de Operación</Label>
-            <div className="relative">
-              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#198754]" />
-              <Input
-                type="date"
-                value={fecha} // <-- Usamos la variable unificada
-                onChange={(e) => onFechaChange(e.target.value)} // <-- Usamos el handler correcto
-                className="pl-10 h-11 bg-muted/30 border-0 shadow-sm focus-visible:ring-[#198754] text-muted-foreground"
-              />
-            </div>
+            <Input
+              type="date"
+              value={fecha} // <-- Usamos la variable unificada
+              onChange={(e) => onFechaChange(e.target.value)} // <-- Usamos el handler correcto
+              className="w-full h-11 bg-background disabled:opacity-50 focus-visible:ring-[#198754]"
+            />
           </div>
 
           <div className="md:col-span-4 flex gap-2">
