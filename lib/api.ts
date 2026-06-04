@@ -388,7 +388,7 @@ class ApiClient {
 
 
   // === EXPORTACIONES (Archivos) ===
-  async descargarArchivoCsv(endpoint: string): Promise<Blob> {
+  async descargarArchivo(endpoint: string): Promise<Blob> {
     const token = this.getToken();
     const headers: HeadersInit = {};
 
