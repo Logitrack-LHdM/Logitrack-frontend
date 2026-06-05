@@ -61,17 +61,44 @@ export const useCampanaAlertas = () => {
     const { isConnected } = useWebSocket({
         idUsuario: usuario?.id,
         onAlertaPrivada: handleNuevaAlerta,
-        // Nota: onMensajeGlobal se puede implementar en un hook separado (ej: useDashboardViajes) 
-        // para no mezclar la lógica de la tabla con la lógica de la campana.
     });
 
-    // Derivamos la cantidad de alertas no leídas para el "Badge" rojo
+    // FASE 3.3: Marcar como leída (Actualización Optimista)
+    const marcarComoLeida = useCallback(async (idAlerta: number) => {
+        // 1. Verificamos si ya está leída para no hacer trabajo innecesario
+        const alertaActual = alertas.find(a => a.id === idAlerta);
+        if (!alertaActual || alertaActual.leida) return;
+
+        // 2. UI Optimista: Actualizamos el estado local INMEDIATAMENTE
+        setAlertas(prevAlertas =>
+            prevAlertas.map(alerta =>
+                alerta.id === idAlerta ? { ...alerta, leida: true } : alerta
+            )
+        );
+
+        // 3. Hacemos la petición al backend en segundo plano
+        try {
+            await api.marcarAlertaWebComoLeida(idAlerta);
+        } catch (error) {
+            console.error('❌ Error al marcar la alerta como leída en el servidor:', error);
+
+            // Rollback: Si el servidor falla, devolvemos la alerta a "no leída"
+            setAlertas(prevAlertas =>
+                prevAlertas.map(alerta =>
+                    alerta.id === idAlerta ? { ...alerta, leida: false } : alerta
+                )
+            );
+            toast.error('Hubo un problema de conexión. La alerta vuelve a estar pendiente.');
+        }
+    }, [alertas]);
+
     const cantidadNoLeidas = alertas.filter(alerta => !alerta.leida).length;
 
     return {
         alertas,
         cantidadNoLeidas,
         isLoading,
-        isConnected
+        isConnected,
+        marcarComoLeida // Exportamos la nueva función
     };
 };
