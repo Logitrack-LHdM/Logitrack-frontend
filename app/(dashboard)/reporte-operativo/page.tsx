@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
-import { Truck, Scale, ArrowLeftCircle, ChartColumnBig, FileDown, Loader2, Clock, CheckCircle, PackageOpen, AlertTriangle, Percent } from 'lucide-react';
+import { Truck, Scale, ArrowLeftCircle, ChartColumnBig, FileDown, Loader2, Clock, CheckCircle, PackageOpen, AlertTriangle, Percent, FileSpreadsheet, ChevronDown } from 'lucide-react';
 import {
     BarChart,
     Bar,
@@ -29,6 +29,13 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -135,35 +142,38 @@ export default function ReporteOperativoPage() {
     // Estado para la exportación
     const [isExporting, setIsExporting] = useState(false);
 
-    const handleExport = async () => {
+    // Controlador del botón de exportación
+    const handleExport = async (formato: 'csv' | 'excel') => {
         setIsExporting(true);
         try {
+            // 1. Construimos el endpoint según el formato seleccionado
+            const rutaBase = formato === 'excel' ? '/reportes/operativo/exportar/excel' : '/reportes/operativo/exportar';
+            const endpoint = `${rutaBase}?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`;
 
-            // CONSTRUIMOS EL ENDPOINT CON LOS QUERY PARAMETERS
-            const endpoint = `/reportes/operativo/exportar?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`;
+            // 2. Consumimos el endpoint (el método recibe la URL completa y procesa el Blob)
+            const blob = await api.descargarArchivo(endpoint);
 
-            // 1. Llamas al endpoint real de Spring Boot (la URL dependerá de lo que defina el backend)
-            const blob = await api.descargarArchivoCsv(endpoint);
-
-            // 2. Creas una URL temporal para el archivo recibido
+            // 3. Creamos la URL temporal para el archivo recibido
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
 
-            // 3. Fuerzas la descarga
-            link.setAttribute('download', `Logitrack_Reporte_${new Date().toISOString().split('T')[0]}.csv`);
+            // 4. Definimos la extensión correcta de salida (.xlsx para Excel, .csv para CSV)
+            const extension = formato === 'excel' ? 'xlsx' : 'csv';
+            link.setAttribute('download', `Logitrack_Reporte_${new Date().toISOString().split('T')[0]}.${extension}`);
+
             document.body.appendChild(link);
             link.click();
 
-            // 4. Limpias el DOM
+            // 5. Limpiamos el DOM
             document.body.removeChild(link);
             window.URL.revokeObjectURL(url);
 
             toast.success('¡Exportación exitosa!', {
-                description: 'El archivo se descargó correctamente desde el servidor.',
+                description: `El archivo ${formato.toUpperCase()} se descargó correctamente desde el servidor.`,
             });
         } catch (err) {
-            console.error("Error en exportación:", err);
+            console.error(`Error en exportación (${formato}):`, err);
             toast.error('Error al exportar', {
                 description: err instanceof Error ? err.message : 'El servidor no pudo generar el archivo. Por favor, intente nuevamente.',
             });
@@ -216,28 +226,43 @@ export default function ReporteOperativoPage() {
                         </div>
                     </div>
 
-                    {/* Botón de Exportación (Derecha en PC / Abajo y full-width en Móviles) */}
-                    <Button
-                        className="bg-[#1b4332] hover:bg-[#2d6a4f] text-white w-full sm:w-auto shadow-sm flex items-center justify-center gap-2 transition-colors disabled:opacity-80 disabled:cursor-not-allowed"
-                        disabled={isExporting || isLoading || !data}
-                        onClick={handleExport}
-                    >
-                        {isExporting ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                            <FileDown className="h-4 w-4" />
-                        )}
+                    {/* Botón de Exportación con Menú Desplegable  (Derecha en PC / Abajo y full-width en Móviles)  */}
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button
+                                className="bg-[#1b4332] hover:bg-[#2d6a4f] text-white w-full sm:w-auto shadow-sm flex items-center justify-center gap-2 transition-colors disabled:opacity-80 disabled:cursor-not-allowed"
+                                disabled={isExporting || isLoading || !data}
+                            >
+                                {isExporting ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                    <FileDown className="h-4 w-4" />
+                                )}
 
-                        {/* Texto para PC */}
-                        <span className="hidden sm:inline">
-                            {isExporting ? 'Exportando...' : 'Exportar a CSV'}
-                        </span>
+                                <span>
+                                    {isExporting ? 'Exportando...' : 'Exportar'}
+                                </span>
 
-                        {/* Texto para Móviles */}
-                        <span className="sm:hidden">
-                            {isExporting ? 'Exportando...' : 'Exportar'}
-                        </span>
-                    </Button>
+                                {!isExporting && <ChevronDown className="h-4 w-4 opacity-70" />}
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-full sm:w-48 bg-card border-border">
+                            <DropdownMenuItem
+                                onClick={() => handleExport('csv')}
+                                className="flex items-center gap-2 cursor-pointer focus:bg-muted focus:text-foreground"
+                            >
+                                <FileDown className="h-4 w-4 text-muted-foreground" />
+                                <span>Exportar a CSV</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                                onClick={() => handleExport('excel')}
+                                className="flex items-center gap-2 cursor-pointer focus:bg-muted focus:text-foreground"
+                            >
+                                <FileSpreadsheet className="h-4 w-4 text-[#198754]" />
+                                <span>Exportar a Excel</span>
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
 
                 </div>
                 {/* ... Fin del Encabezado Principal ... */}
