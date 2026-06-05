@@ -1,78 +1,50 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { RespuestaCumplimiento } from '@/types/cumplimiento';
-import { cumplimientoMockData } from '@/mocks/cumplimientoMock';
 import { api } from '@/lib/api';
 
-/**
- * Helper para obtener el primer y último día del mes en curso.
- * Devuelve las fechas en formato 'YYYY-MM-DD' para evitar problemas de zona horaria con el backend.
- * EXTRAÍDO Y EXPORTADO para ser reutilizado en la descarga de CSV.
- */
-export const obtenerRangoMesActual = () => {
-    const hoy = new Date();
-    const year = hoy.getFullYear();
-    const month = hoy.getMonth(); // Los meses en JS van de 0 a 11
-
-    // Primer día del mes actual
-    const primerDia = new Date(year, month, 1);
-
-    // Último día del mes actual (al pasar el día 0 del mes siguiente, JS retrocede al último día del actual)
-    const ultimoDia = new Date(year, month + 1, 0);
-
-    // Formateador manual a YYYY-MM-DD
-    const formatFecha = (date: Date) => {
-        const y = date.getFullYear();
-        const m = String(date.getMonth() + 1).padStart(2, '0');
-        const d = String(date.getDate()).padStart(2, '0');
-        return `${y}-${m}-${d}`;
-    };
-
-    return {
-        fechaInicio: formatFecha(primerDia),
-        fechaFin: formatFecha(ultimoDia)
-    };
-};
+export interface FiltrosCumplimiento {
+    fechaInicio: string;
+    fechaFin: string;
+}
 
 export function useCumplimiento() {
+    // Inicializamos en null para saber que la pantalla está en estado inicial
     const [data, setData] = useState<RespuestaCumplimiento | null>(null);
-    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [isLoading, setIsLoading] = useState<boolean>(false); // Cambia a false por defecto
     const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
-        const fetchCumplimiento = async () => {
-            try {
-                setIsLoading(true);
-                setError(null);
+    const ejecutarBusqueda = async (filtros: FiltrosCumplimiento) => {
+        setIsLoading(true);
+        setError(null);
 
-                // // --- INICIO: MODO MOCK (Desarrollo Frontend) ---
-                // // Simulamos el tiempo de respuesta de la red (ej. 1.5 segundos)
-                // // Simula latencia de red para probar los Skeletons
-                // await new Promise((resolve) => setTimeout(resolve, 1500));
-                // setData(cumplimientoMockData);
-                // // --- FIN: MODO MOCK ---
+        try {
+            const { fechaInicio, fechaFin } = filtros;
 
-                // --- INICIO: MODO PRODUCCIÓN (Integración #242) ---
-                // Cuando el endpoint en Java Spring Boot esté listo, elimina el bloque de 
-                // "MODO MOCK" arriba y descomenta las siguientes líneas:
-
-                // Calculamos las fechas del mes en curso
-                const { fechaInicio, fechaFin } = obtenerRangoMesActual();
-
-                // Llamada real al backend
-                const response = await api.getReporteCumplimiento(fechaInicio, fechaFin);
-                setData(response);
-                // --- FIN: MODO PRODUCCIÓN ---
-
-            } catch (err) {
-                setError('Ocurrió un error al cargar las métricas de cumplimiento y puntualidad.');
-                console.error(err);
-            } finally {
+            // Validación de seguridad
+            if ((fechaInicio && !fechaFin) || (!fechaInicio && fechaFin)) {
+                setError('Debe proporcionar ambas fechas para la búsqueda.');
                 setIsLoading(false);
+                return;
             }
-        };
 
-        fetchCumplimiento();
-    }, []);
+            // Llamada real al backend con las fechas seleccionadas
+            const response = await api.getReporteCumplimiento(fechaInicio, fechaFin);
+            setData(response);
 
-    return { data, isLoading, error };
+        } catch (err) {
+            setError('Ocurrió un error al cargar las métricas de cumplimiento y puntualidad.');
+            console.error(err);
+            setData(null); // Limpiamos la data en caso de error
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // Función para resetear el panel
+    const limpiarDatos = () => {
+        setData(null);
+        setError(null);
+    };
+
+    return { data, isLoading, error, ejecutarBusqueda, limpiarDatos };
 }
