@@ -51,93 +51,33 @@ import { RangoReporte } from '@/types/reporte-operativo';
 // Importamos las funciones utilitarias
 import { adaptarDatosParaGrafico, formatearTextoEnum, formatearFechaIsoLocal } from '@/utils/formatters';
 
+import { DateRangeFilter } from '@/components/ui/date-range-filter';
+
 import { api } from '@/lib/api';
 
 export default function ReporteOperativoPage() {
-    // 1. Estados iniciales: Ahora por defecto arranca en "historico"
-    const [fechaInicio, setFechaInicio] = useState<string>('');
-    const [fechaFin, setFechaFin] = useState<string>('');
-    const [rango, setRango] = useState<RangoReporte | ''>('');
-    // 2. Conectamos nuestro nuevo hook manual
+
+    // 1. Conectamos nuestro hook operativo
     const { data, isLoading, error, ejecutarBusqueda, limpiarDatos } = useReporteOperativo();
 
-    // 3. Modificamos el useMemo para que soporte que data sea null inicialmente
-    const datosGrafico = useMemo(() => {
-        return adaptarDatosParaGrafico(data?.estados || []);
-    }, [data?.estados]);
+    // 2. Estado para recordar las fechas aplicadas activamente (evita el bug de exportar fechas no buscadas)
+    const [fechasAplicadas, setFechasAplicadas] = useState({ inicio: '', fin: '' });
 
-    // --- NUEVAS FUNCIONES DE BÚSQUEDA (Fase 3) ---
-    const handleBuscar = () => {
-        // Preparamos las fechas. Si es histórico, simulamos las fechas extremas.
-        const fechaHistorico = '2000-01-01';
-        const fechaHoy = formatearFechaIsoLocal(new Date()) || '';
-
-        const filtros = {
-            fechaInicio: rango === 'historico' ? fechaHistorico : fechaInicio,
-            fechaFin: rango === 'historico' ? fechaHoy : fechaFin
-        };
-
-        ejecutarBusqueda(filtros);
+    // 3. Handlers simplificados que se conectan al componente modular
+    const handleBuscar = (filtros: { fechaInicio: string; fechaFin: string }) => {
+        setFechasAplicadas({ inicio: filtros.fechaInicio, fin: filtros.fechaFin });
+        ejecutarBusqueda({ fechaInicio: filtros.fechaInicio, fechaFin: filtros.fechaFin });
     };
 
     const handleLimpiar = () => {
-        setRango(''); // Vuelve al estado inicial "Seleccione un rango"
-        setFechaInicio('');
-        setFechaFin('');
+        setFechasAplicadas({ inicio: '', fin: '' });
         limpiarDatos();
     };
 
-    // Validación en tiempo real para la advertencia
-    const faltaUnaFecha = Boolean((fechaInicio && !fechaFin) || (!fechaInicio && fechaFin));
-
-    // NUEVO: El botón buscar se deshabilita si NO es histórico y faltan fechas (una o ambas)
-    const faltanFechas = !fechaInicio || !fechaFin;
-    const isBotonBuscarDeshabilitado = isLoading || (rango !== 'historico' && faltanFechas);
-
-    // --- LÓGICA DE SINCRONIZACIÓN DE FILTROS (Fase 2) ---
-
-    // Función para calcular las fechas restando días a la fecha de hoy
-    const calcularFechasRango = (diasAtras: number) => {
-        const fechaActual = new Date();
-        const fechaPasada = new Date();
-        fechaPasada.setDate(fechaActual.getDate() - diasAtras);
-
-        return {
-            inicio: formatearFechaIsoLocal(fechaPasada) || '',
-            fin: formatearFechaIsoLocal(fechaActual) || ''
-        };
-    };
-
-    // Manejador del cambio en el Selector de Rango
-    const handleRangoChange = (nuevoRango: RangoReporte) => {
-        setRango(nuevoRango);
-
-        if (nuevoRango === 'historico') {
-            setFechaInicio('');
-            setFechaFin('');
-        } else if (nuevoRango === 'ultimos7dias') {
-            const fechas = calcularFechasRango(7);
-            setFechaInicio(fechas.inicio);
-            setFechaFin(fechas.fin);
-        } else if (nuevoRango === 'ultimos30dias') {
-            const fechas = calcularFechasRango(30);
-            setFechaInicio(fechas.inicio);
-            setFechaFin(fechas.fin);
-        } else if (nuevoRango === 'ultimos90dias') {
-            const fechas = calcularFechasRango(90);
-            setFechaInicio(fechas.inicio);
-            setFechaFin(fechas.fin);
-        }
-    };
-
-    // Manejador del cambio manual en los Inputs de Fecha
-    const handleFechaChange = (tipo: 'inicio' | 'fin', valor: string) => {
-        if (tipo === 'inicio') setFechaInicio(valor);
-        if (tipo === 'fin') setFechaFin(valor);
-
-        // Si el usuario toca las fechas manualmente, el selector cambia a "Otro"
-        setRango('otro');
-    };
+    // Modificamos el useMemo para que soporte que data sea null inicialmente
+    const datosGrafico = useMemo(() => {
+        return adaptarDatosParaGrafico(data?.estados || []);
+    }, [data?.estados]);
 
     // Estado para la exportación
     const [isExporting, setIsExporting] = useState(false);
@@ -147,8 +87,9 @@ export default function ReporteOperativoPage() {
         setIsExporting(true);
         try {
             // 1. Construimos el endpoint según el formato seleccionado
+            // Modificación: usar fechasAplicadas en lugar de los estados individuales borrados
             const rutaBase = formato === 'excel' ? '/reportes/operativo/exportar/excel' : '/reportes/operativo/exportar';
-            const endpoint = `${rutaBase}?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`;
+            const endpoint = `${rutaBase}?fechaInicio=${fechasAplicadas.inicio}&fechaFin=${fechasAplicadas.fin}`;
 
             // 2. Consumimos el endpoint (el método recibe la URL completa y procesa el Blob)
             const blob = await api.descargarArchivo(endpoint);
@@ -269,107 +210,18 @@ export default function ReporteOperativoPage() {
 
                 {/* --- CARTEL DE ADVERTENCIA NO INTRUSIVO --- */}
                 {error && (
-                    <div className="bg-destructive/10 text-destructive border border-destructive/20 p-3 rounded-lg flex justify-between items-center text-sm shadow-sm">
+                    <div className="bg-destructive/10 text-destructive border border-destructive/20 p-3 rounded-lg flex items-center text-sm shadow-sm mb-6">
+                        <AlertTriangle className="h-5 w-5 mr-3 shrink-0" />
                         <p className="font-medium">{error}</p>
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => { setFechaInicio(''); setFechaFin(''); }}
-                            className="hover:bg-destructive/20 text-destructive"
-                        >
-                            Limpiar fechas
-                        </Button>
                     </div>
                 )}
 
-                {/* --- NUEVA BARRA DE FILTROS --- */}
-                <div className="bg-card p-4 md:p-5 rounded-xl border border-border shadow-sm mb-6 relative">
-
-                    {/* Alerta si falta una fecha (Flotante arriba) */}
-                    {faltaUnaFecha && (
-                        <div className="absolute -top-6 right-0 text-xs text-destructive font-medium bg-destructive/10 px-2 py-1 rounded-md animate-in fade-in zoom-in">
-                            Debe seleccionar ambas fechas
-                        </div>
-                    )}
-
-                    {/* Usamos un Grid de 4 columnas, alineando el contenido hacia abajo (items-end) para que los botones cuadren con los inputs */}
-                    <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-4 items-end">
-
-                        {/* 1. Rango de Días */}
-                        <div className="flex flex-col gap-1.5 w-full">
-                            <label className="text-sm font-medium text-muted-foreground px-1">
-                                Rango de Días
-                            </label>
-                            <Select
-                                value={rango}
-                                onValueChange={(value) => handleRangoChange(value as RangoReporte)}
-                            >
-                                <SelectTrigger className="w-full bg-background">
-                                    <SelectValue placeholder="Seleccione un rango" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="historico">Histórico Completo</SelectItem>
-                                    <SelectItem value="ultimos7dias">Últimos 7 días</SelectItem>
-                                    <SelectItem value="ultimos30dias">Últimos 30 días</SelectItem>
-                                    <SelectItem value="ultimos90dias">Últimos 90 días</SelectItem>
-                                    <SelectItem value="otro">Otro</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        {/* 2. Fecha Inicio */}
-                        <div className="flex flex-col gap-1.5 w-full">
-                            <label className="text-sm font-medium text-muted-foreground px-1">
-                                Fecha Inicio
-                            </label>
-                            <Input
-                                type="date"
-                                value={fechaInicio}
-                                onChange={(e) => handleFechaChange('inicio', e.target.value)}
-                                className="w-full bg-background disabled:opacity-50 focus-visible:ring-[#198754]"
-                                max={fechaFin || undefined}
-                                disabled={rango === 'historico'}
-                            />
-                        </div>
-
-                        {/* 3. Fecha Fin */}
-                        <div className="flex flex-col gap-1.5 w-full">
-                            <label className="text-sm font-medium text-muted-foreground px-1">
-                                Fecha Fin
-                            </label>
-                            <Input
-                                type="date"
-                                value={fechaFin}
-                                onChange={(e) => handleFechaChange('fin', e.target.value)}
-                                className="w-full bg-background disabled:opacity-50 focus-visible:ring-[#198754]"
-                                min={fechaInicio || undefined}
-                                disabled={rango === 'historico'}
-                            />
-                        </div>
-
-                        {/* 4. Botones de Acción */}
-                        <div className="grid grid-cols-2 gap-2 w-full">
-                            <Button
-                                variant="outline"
-                                onClick={handleLimpiar}
-                                className="w-full"
-                                disabled={isLoading}
-                            >
-                                Limpiar
-                            </Button>
-
-                            <Button
-                                onClick={handleBuscar}
-                                disabled={isBotonBuscarDeshabilitado}
-                                className="w-full bg-[#1b4332] hover:bg-[#2d6a4f] text-white"
-                            >
-                                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                Buscar
-                            </Button>
-                        </div>
-
-                    </div>
-                </div>
+                {/* --- BARRA DE FILTROS MODULARIZADA --- */}
+                <DateRangeFilter
+                    isLoading={isLoading}
+                    onBuscar={handleBuscar}
+                    onLimpiar={handleLimpiar}
+                />
 
                 {/* Grilla de Métricas Globales */}
                 {/* Contenedor principal de la grilla (Layout Responsivo) */}
