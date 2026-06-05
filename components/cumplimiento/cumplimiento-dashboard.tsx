@@ -4,56 +4,71 @@ import { useState } from 'react';
 import { ResumenPuntualidad } from './resumen-puntualidad';
 import { GraficoPuntualidad } from './grafico-puntualidad';
 import { TablaDesvios } from './tabla-desvios';
-import { useCumplimiento, obtenerRangoMesActual } from '@/hooks/use-cumplimiento';
+import { useCumplimiento } from '@/hooks/use-cumplimiento';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Activity, AlertCircle, FileDown, Loader2 } from 'lucide-react';
+import { Activity, AlertCircle, FileDown, Loader2, ChevronDown, FileSpreadsheet } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { api } from '@/lib/api';
 
-export function CumplimientoDashboard() {
-    // Consumimos el mock a través de nuestro hook simulado
-    const { data, isLoading, error } = useCumplimiento();
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
-    // Estados y hooks para la exportación
+import { DateRangeFilter } from '@/components/ui/date-range-filter';
+
+export function CumplimientoDashboard() {
+    // Consumimos el hook refactorizado
+    const { data, isLoading, error, ejecutarBusqueda, limpiarDatos } = useCumplimiento();
+
+    // Estado para recordar las fechas aplicadas activamente
+    const [fechasAplicadas, setFechasAplicadas] = useState({ inicio: '', fin: '' });
     const [isExporting, setIsExporting] = useState(false);
 
-    const handleExport = async () => {
+    // Funciones puente para conectar la barra de filtros con el hook
+    const handleBuscar = (filtros: { fechaInicio: string; fechaFin: string }) => {
+        setFechasAplicadas({ inicio: filtros.fechaInicio, fin: filtros.fechaFin });
+        ejecutarBusqueda({ fechaInicio: filtros.fechaInicio, fechaFin: filtros.fechaFin });
+    };
+
+    const handleLimpiar = () => {
+        setFechasAplicadas({ inicio: '', fin: '' });
+        limpiarDatos();
+    };
+
+    // Exportación dinámica basada en las fechas aplicadas
+    const handleExport = async (formato: 'csv' | 'excel') => {
         setIsExporting(true);
         try {
-            // 1. Llamas al endpoint real de Spring Boot (la URL dependerá de lo que defina el backend)
-            // OBTENEMOS LAS FECHAS DINÁMICAMENTE
-            const { fechaInicio, fechaFin } = obtenerRangoMesActual();
+            const rutaBase = formato === 'excel'
+                ? '/reportes/cumplimiento/viajes/exportar/excel'
+                : '/reportes/cumplimiento/viajes/exportar';
 
-            // CONSTRUIMOS EL ENDPOINT CON LOS QUERY PARAMETERS
-            const endpoint = `/reportes/cumplimiento/viajes/exportar?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`;
+            const endpoint = `${rutaBase}?fechaInicio=${fechasAplicadas.inicio}&fechaFin=${fechasAplicadas.fin}`;
 
-            // Llamamos a la API con la URL dinámica
             const blob = await api.descargarArchivo(endpoint);
-
-            // 2. Creas una URL temporal para el archivo recibido
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
 
-            // 3. Fuerzas la descarga
-            link.setAttribute('download', `Logitrack_Reporte_${new Date().toISOString().split('T')[0]}.csv`);
+            const extension = formato === 'excel' ? 'xlsx' : 'csv';
+            link.setAttribute('download', `Logitrack_Cumplimiento_${new Date().toISOString().split('T')[0]}.${extension}`);
+
             document.body.appendChild(link);
             link.click();
-
-            // 4. Limpias el DOM
             document.body.removeChild(link);
             window.URL.revokeObjectURL(url);
 
             toast.success('¡Exportación exitosa!', {
-                description: 'El archivo se descargó correctamente desde el servidor.',
+                description: `El archivo ${formato.toUpperCase()} se descargó correctamente.`,
             });
         } catch (err) {
-            console.error("Error en exportación:", err);
-            // Si el error viene de nuestro mock (ej. "No hay viajes completados"), lo mostramos
-            const mensajeError = err instanceof Error ? err.message : "El servidor no pudo generar el archivo. Por favor, intente nuevamente.";
+            console.error(`Error en exportación (${formato}):`, err);
             toast.error('Error al exportar', {
-                description: mensajeError,
+                description: err instanceof Error ? err.message : 'El servidor no pudo generar el archivo. Por favor, intente nuevamente.',
             });
         } finally {
             setIsExporting(false);
@@ -85,36 +100,58 @@ export function CumplimientoDashboard() {
                     </div>
                     <div>
                         <h4 className="font-bold text-gray-900 mb-1 text-xl md:text-2xl">Análisis de Cumplimiento</h4>
+                        {/* Subtítulo dinámico/genérico */}
                         <p className="text-muted-foreground text-sm m-0">
-                            Métricas globales correspondientes a Mayo 2026.
+                            Resumen del desempeño de los viajes en el período seleccionado.
                         </p>
                     </div>
                 </div>
 
-                {/* Botón de Exportación (Derecha en PC / Abajo y full-width en Móviles) */}
-                <Button
-                    className="bg-[#1b4332] hover:bg-[#2d6a4f] text-white w-full sm:w-auto shadow-sm flex items-center justify-center gap-2 transition-colors disabled:opacity-80 disabled:cursor-not-allowed"
-                    disabled={isExporting || isLoading || !data}
-                    onClick={handleExport}
-                >
-                    {isExporting ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                        <FileDown className="h-4 w-4" />
-                    )}
+                {/* Botón de Exportación con Menú Desplegable */}
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button
+                            className="bg-[#1b4332] hover:bg-[#2d6a4f] text-white w-full sm:w-auto shadow-sm flex items-center justify-center gap-2 transition-colors disabled:opacity-80 disabled:cursor-not-allowed"
+                            disabled={isExporting || isLoading || !data}
+                        >
+                            {isExporting ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                                <FileDown className="h-4 w-4" />
+                            )}
 
-                    {/* Texto para PC */}
-                    <span className="hidden sm:inline">
-                        {isExporting ? 'Exportando...' : 'Exportar a CSV'}
-                    </span>
+                            <span>
+                                {isExporting ? 'Exportando...' : 'Exportar'}
+                            </span>
 
-                    {/* Texto para Móviles */}
-                    <span className="sm:hidden">
-                        {isExporting ? 'Exportando...' : 'Exportar'}
-                    </span>
-                </Button>
-
+                            {!isExporting && <ChevronDown className="h-4 w-4 opacity-70" />}
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-full sm:w-48 bg-card border-border">
+                        <DropdownMenuItem
+                            onClick={() => handleExport('csv')}
+                            className="flex items-center gap-2 cursor-pointer focus:bg-muted focus:text-foreground"
+                        >
+                            <FileDown className="h-4 w-4 text-muted-foreground" />
+                            <span>Exportar a CSV</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                            onClick={() => handleExport('excel')}
+                            className="flex items-center gap-2 cursor-pointer focus:bg-muted focus:text-foreground"
+                        >
+                            <FileSpreadsheet className="h-4 w-4 text-[#198754]" />
+                            <span>Exportar a Excel</span>
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
             </div>
+
+            {/* --- BARRA DE FILTROS MODULARIZADA --- */}
+            <DateRangeFilter
+                isLoading={isLoading}
+                onBuscar={handleBuscar}
+                onLimpiar={handleLimpiar}
+            />
 
             {/* Layout responsivo para móviles y PC:
             En pantallas grandes (lg), divide el espacio en 3 columnas.
