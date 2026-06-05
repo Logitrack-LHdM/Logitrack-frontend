@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { ResumenPuntualidad } from './resumen-puntualidad';
 import { GraficoPuntualidad } from './grafico-puntualidad';
 import { TablaDesvios } from './tabla-desvios';
@@ -9,7 +9,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Activity, AlertCircle, FileDown, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { exportCumplimientoCsvMock } from '@/lib/export-mock';
 import { api } from '@/lib/api';
 
 export function CumplimientoDashboard() {
@@ -18,26 +17,6 @@ export function CumplimientoDashboard() {
 
     // Estados y hooks para la exportación
     const [isExporting, setIsExporting] = useState(false);
-
-    // Controlador del botón de exportación
-    // const handleExport = async () => {
-    //     setIsExporting(true);
-    //     try {
-    //         await exportCumplimientoCsvMock();
-    //         toast.success('¡Exportación exitosa!', {
-    //             description: 'El análisis de viajes y desvíos se ha descargado correctamente.',
-    //         });
-    //     } catch (err) {
-    //         console.error("Error en exportación:", err);
-    //         // Si el error viene de nuestro mock (ej. "No hay viajes completados"), lo mostramos
-    //         const mensajeError = err instanceof Error ? err.message : "Hubo un problema al generar el archivo. Por favor, intente nuevamente.";
-    //         toast.error('Error al exportar', {
-    //             description: mensajeError,
-    //         });
-    //     } finally {
-    //         setIsExporting(false);
-    //     }
-    // };
 
     const handleExport = async () => {
         setIsExporting(true);
@@ -50,7 +29,7 @@ export function CumplimientoDashboard() {
             const endpoint = `/reportes/cumplimiento/viajes/exportar?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`;
 
             // Llamamos a la API con la URL dinámica
-            const blob = await api.descargarArchivoCsv(endpoint);
+            const blob = await api.descargarArchivo(endpoint);
 
             // 2. Creas una URL temporal para el archivo recibido
             const url = window.URL.createObjectURL(blob);
@@ -96,8 +75,7 @@ export function CumplimientoDashboard() {
 
     return (
         <div className="space-y-6">
-            {/* Encabezado temporal para orientar la vista (Mayo 2026) */}
-            {/* Encabezado adaptado con el botón de exportación */}
+            {/* Encabezado con el botón de exportación */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 mt-2 px-2 md:px-0">
 
                 {/* Título e Ícono (Izquierda en PC / Arriba en Móviles) */}
@@ -138,12 +116,10 @@ export function CumplimientoDashboard() {
 
             </div>
 
+            {/* Layout responsivo para móviles y PC:
+            En pantallas grandes (lg), divide el espacio en 3 columnas.
+            Asigna 2 columnas a los KPIs y 1 al gráfico. En móviles, se apilan. */}
 
-            {/* 
-        Layout responsivo para móviles y PC: 
-        En pantallas grandes (lg), divide el espacio en 3 columnas. 
-        Asigna 2 columnas a los KPIs y 1 al gráfico. En móviles, se apilan.
-      */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 flex flex-col justify-center">
                     {isLoading || !data ? (
