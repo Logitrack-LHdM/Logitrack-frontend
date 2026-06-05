@@ -32,6 +32,7 @@ import type {
 
 import { adaptarRutaParaLeaflet } from '@/lib/utils';
 import { RespuestaCumplimiento } from '@/types/cumplimiento';
+import { AlertaWebDTO } from '@/types/websockets';
 
 // Base URL de la API - usar variable de entorno en produccion
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
@@ -434,6 +435,34 @@ class ApiClient {
       method: 'PATCH',
       body: JSON.stringify({ notasSupervisor }),
     });
+  }
+  // === CAMPANA DE NOTIFICACIONES (WEBSOCKETS REST COMPLEMENTARIOS) ===
+
+  // GET /api/alertas-web/pendientes
+  async getAlertasWebPendientes(): Promise<AlertaWebDTO[]> {
+    return this.request<AlertaWebDTO[]>('/alertas-web/pendientes');
+  }
+
+  // PATCH /api/alertas-web/{id}/leer
+  async marcarAlertaWebComoLeida(idAlerta: number): Promise<void> {
+    // Como el endpoint retorna 204 No Content, no esperamos un JSON de respuesta
+    const token = this.getToken();
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
+    };
+
+    if (token) {
+      (headers as Record<string, string>)['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(`${API_BASE_URL}/alertas-web/${idAlerta}/leer`, {
+      method: 'PATCH',
+      headers,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error al marcar alerta como leída: ${response.status}`);
+    }
   }
 }
 
