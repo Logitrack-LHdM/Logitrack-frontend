@@ -21,6 +21,16 @@ export const useWebSocket = ({ idUsuario, onMensajeGlobal, onAlertaPrivada }: Us
     // a través de los re-renders sin disparar ciclos infinitos
     const clientRef = useRef<Client | null>(null);
 
+    // Guardamos las funciones en referencias para que siempre tengan su valor más reciente
+    // sin forzar al useEffect principal a volver a ejecutarse (lo que reiniciaría la conexión).
+    const onMensajeGlobalRef = useRef(onMensajeGlobal);
+    const onAlertaPrivadaRef = useRef(onAlertaPrivada);
+
+    useEffect(() => {
+        onMensajeGlobalRef.current = onMensajeGlobal;
+        onAlertaPrivadaRef.current = onAlertaPrivada;
+    }, [onMensajeGlobal, onAlertaPrivada]);
+
     useEffect(() => {
         // Si no hay ventana (SSR), no intentamos conectar
         if (typeof window === 'undefined') return;
@@ -32,7 +42,6 @@ export const useWebSocket = ({ idUsuario, onMensajeGlobal, onAlertaPrivada }: Us
             reconnectDelay: 5000,
             heartbeatIncoming: 4000,
             heartbeatOutgoing: 4000,
-
             // Ocultamos el debug en producción para mantener la consola limpia
             debug: (str) => {
                 if (process.env.NODE_ENV !== 'production') {
@@ -44,9 +53,33 @@ export const useWebSocket = ({ idUsuario, onMensajeGlobal, onAlertaPrivada }: Us
                 console.log('✅ Conectado a WebSockets LogiTrack');
                 setIsConnected(true);
 
-                // FASE 2.3: Aquí agregaremos las suscripciones en el siguiente paso...
-            },
+                // FASE 2.3: SUSCRIPCIÓN 1 - DASHBOARD GLOBAL (/topic/viajes)
+                client.subscribe('/topic/viajes', (mensaje) => {
+                    if (mensaje.body) {
+                        try {
+                            // El backend manda un JSON en este tópico
+                            const data = JSON.parse(mensaje.body) as MensajeGlobalViaje;
+                            if (onMensajeGlobalRef.current) {
+                                onMensajeGlobalRef.current(data);
+                            }
+                        } catch (error) {
+                            console.error("❌ Error al parsear el mensaje global:", error);
+                        }
+                    }
+                });
 
+                // FASE 2.3: SUSCRIPCIÓN 2 - CAMPANA PRIVADA (/queue/alertas-{id})
+                if (idUsuario) {
+                    client.subscribe(`/queue/alertas-${idUsuario}`, (mensaje) => {
+                        if (mensaje.body) {
+                            // El backend manda un String (texto plano) en este tópico
+                            if (onAlertaPrivadaRef.current) {
+                                onAlertaPrivadaRef.current(mensaje.body);
+                            }
+                        }
+                    });
+                }
+            },
             onStompError: (frame) => {
                 console.error('❌ Error STOMP:', frame.headers['message']);
             },
@@ -63,13 +96,13 @@ export const useWebSocket = ({ idUsuario, onMensajeGlobal, onAlertaPrivada }: Us
         client.activate();
         clientRef.current = client;
 
-        // Cleanup function: nos desconectamos limpiamente cuando el componente se desmonta
+        // Desconexión limpia al desmontar el componente (ej. cuando se cierra sesión)
         return () => {
             if (client.active) {
                 client.deactivate();
             }
         };
-    }, [idUsuario, onMensajeGlobal, onAlertaPrivada]); // Dependencias del useEffect
+    }, [idUsuario]); // Solo se reconecta si cambia el ID del usuario
 
     return { isConnected };
 };
