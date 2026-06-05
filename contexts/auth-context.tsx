@@ -169,6 +169,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const rolNormalizado = normalizarRol(response.rol);
 
       const nuevoUsuario: Usuario = {
+        id: response.id, // <-- Capturamos el ID que viene del backend
         username: response.username,
         rol: rolNormalizado,
       };
