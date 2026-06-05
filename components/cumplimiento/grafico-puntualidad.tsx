@@ -1,4 +1,3 @@
-import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { CheckCircle2, AlertTriangle } from 'lucide-react';
@@ -25,10 +24,10 @@ export function GraficoPuntualidad({ porcentajeATiempo, porcentajeRetraso }: Gra
                 <div className="h-[120px] w-[120px] relative flex-shrink-0">
                     <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
-                            <Tooltip
+                            {/* <Tooltip
                                 contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                                 itemStyle={{ color: 'var(--foreground)' }}
-                            />
+                            /> */}
                             <Pie
                                 data={data}
                                 cx="50%"
