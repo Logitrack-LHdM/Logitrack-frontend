@@ -153,26 +153,36 @@ export function CumplimientoDashboard() {
                 onLimpiar={handleLimpiar}
             />
 
-            {/* Layout responsivo para móviles y PC:
-            En pantallas grandes (lg), divide el espacio en 3 columnas.
-            Asigna 2 columnas a los KPIs y 1 al gráfico. En móviles, se apilan. */}
-
+            {/* Layout responsivo para móviles y PC */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                {/* 1. KPIs (Resumen de Puntualidad) */}
                 <div className="lg:col-span-2 flex flex-col justify-center">
-                    {isLoading || !data ? (
+                    {isLoading ? (
                         <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
                             <Skeleton className="h-[120px] w-full rounded-xl" />
                             <Skeleton className="h-[120px] w-full rounded-xl" />
                             <Skeleton className="h-[120px] w-full rounded-xl" />
+                        </div>
+                    ) : !data ? (
+                        <div className="h-full min-h-[120px] flex flex-col items-center justify-center text-muted-foreground space-y-3 border-2 border-dashed border-border rounded-xl p-6 text-center bg-muted/10">
+                            <Activity className="h-8 w-8 opacity-20" />
+                            <p className="text-sm italic">Filtre por fechas para calcular</p>
                         </div>
                     ) : (
                         <ResumenPuntualidad metricas={data.metricas} />
                     )}
                 </div>
 
+                {/* 2. Gráfico de Puntualidad */}
                 <div className="lg:col-span-1">
-                    {isLoading || !data ? (
+                    {isLoading ? (
                         <Skeleton className="h-[250px] w-full rounded-xl" />
+                    ) : !data ? (
+                        <div className="h-[250px] flex flex-col items-center justify-center text-muted-foreground space-y-3 border-2 border-dashed border-border rounded-xl p-6 text-center bg-muted/10">
+                            <Activity className="h-8 w-8 opacity-20" />
+                            <p className="text-sm italic">Filtre por fechas para calcular</p>
+                        </div>
                     ) : (
                         <GraficoPuntualidad
                             porcentajeATiempo={data.metricas.porcentajeATiempo}
@@ -182,10 +192,15 @@ export function CumplimientoDashboard() {
                 </div>
             </div>
 
-            {/* Integración del Criterio 2: Tabla de Análisis de Viajes Individuales */}
+            {/* 3. Tabla de Análisis de Viajes Individuales */}
             <div className="mt-8">
-                {isLoading || !data ? (
+                {isLoading ? (
                     <Skeleton className="h-[400px] w-full rounded-xl" />
+                ) : !data ? (
+                    <div className="h-[300px] flex flex-col items-center justify-center text-muted-foreground space-y-3 border-2 border-dashed border-border rounded-xl p-6 text-center bg-muted/10">
+                        <Activity className="h-10 w-10 opacity-20" />
+                        <p className="text-sm italic">Filtre por fechas para calcular</p>
+                    </div>
                 ) : (
                     <TablaDesvios viajes={data.viajes} />
                 )}

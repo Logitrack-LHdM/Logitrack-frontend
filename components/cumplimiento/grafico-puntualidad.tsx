@@ -35,8 +35,8 @@ export function GraficoPuntualidad({ porcentajeATiempo, porcentajeRetraso }: Gra
                 <CardTitle>Índice de Puntualidad</CardTitle>
                 <CardDescription>Proporción global del mes en curso</CardDescription>
             </CardHeader>
-            <CardContent className="flex-1 pb-4">
-                <div className="h-[250px] w-full relative">
+            <CardContent className="flex-1">
+                <div className="h-[200px] w-full relative">
                     <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
                             {/* Tooltip adaptado al tema claro/oscuro */}
