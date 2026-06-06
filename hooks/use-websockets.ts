@@ -1,4 +1,3 @@
-// hooks/use-websocket.ts
 import { useEffect, useRef, useState } from 'react';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
@@ -53,23 +52,26 @@ export const useWebSocket = ({ idUsuario, onMensajeGlobal, onAlertaPrivada }: Us
                 console.log('✅ Conectado a WebSockets LogiTrack');
                 setIsConnected(true);
 
-                // FASE 2.3: SUSCRIPCIÓN 1 - DASHBOARD GLOBAL (/topic/viajes)
-                client.subscribe('/topic/viajes', (mensaje) => {
-                    if (mensaje.body) {
-                        try {
-                            // El backend manda un JSON en este tópico
-                            const data = JSON.parse(mensaje.body) as MensajeGlobalViaje;
-                            if (onMensajeGlobalRef.current) {
-                                onMensajeGlobalRef.current(data);
+                // FASE 3: Suscripción condicionada para OPERADOR
+                if (onMensajeGlobalRef.current) {
+                    client.subscribe('/topic/viajes', (mensaje) => {
+                        if (mensaje.body) {
+                            try {
+                                // El backend manda un JSON en este tópico
+                                const data = JSON.parse(mensaje.body) as MensajeGlobalViaje;
+                                if (onMensajeGlobalRef.current) {
+                                    onMensajeGlobalRef.current(data);
+                                }
+                            } catch (error) {
+                                console.error("❌ Error al parsear el mensaje global:", error);
                             }
-                        } catch (error) {
-                            console.error("❌ Error al parsear el mensaje global:", error);
                         }
-                    }
-                });
+                    });
+                    console.log('📡 Suscrito a /topic/viajes (Dashboard Global)');
+                }
 
-                // FASE 2.3: SUSCRIPCIÓN 2 - CAMPANA PRIVADA (/queue/alertas-{id})
-                if (idUsuario) {
+                // FASE 3: Suscripción condicionada para SUPERVISOR
+                if (idUsuario && onAlertaPrivadaRef.current) {
                     client.subscribe(`/queue/alertas-${idUsuario}`, (mensaje) => {
                         if (mensaje.body) {
                             // El backend manda un String (texto plano) en este tópico
@@ -78,6 +80,7 @@ export const useWebSocket = ({ idUsuario, onMensajeGlobal, onAlertaPrivada }: Us
                             }
                         }
                     });
+                    console.log(`🚨 Suscrito a /queue/alertas-${idUsuario} (Campana Privada)`);
                 }
             },
             onStompError: (frame) => {
