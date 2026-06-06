@@ -4,19 +4,19 @@ import { toast } from 'sonner';
 import { api } from '@/lib/api';
 import { useAuth } from '@/contexts/auth-context';
 import { useWebSocket } from './use-websockets';
-import { AlertaWebDTO } from '@/types/websockets';
+import { AlertaWebDTO, MensajeGlobalViaje } from '@/types/websockets';
 
 export const useCampanaAlertas = () => {
     const { usuario } = useAuth();
 
-    // FASE 3.1: Estados internos
+    // Estados internos
     const [alertas, setAlertas] = useState<AlertaWebDTO[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
-    // FASE 3.1: Carga Inicial del Historial (REST)
+    // Carga Inicial - Restringida SOLO a Supervisores
     const cargarHistorial = useCallback(async () => {
-        // Si no hay usuario o es un chofer, no cargamos la campana
-        if (!usuario || usuario.rol === 'ROLE_CHOFER') {
+        // Si no es supervisor, no cargamos el historial de la BD
+        if (!usuario || usuario.rol !== 'ROLE_SUPERVISOR') {
             setIsLoading(false);
             return;
         }
@@ -36,18 +36,11 @@ export const useCampanaAlertas = () => {
         cargarHistorial();
     }, [cargarHistorial]);
 
-    // FASE 3.2: Lógica al recibir una alerta en tiempo real
-    const handleNuevaAlerta = useCallback((mensaje: string) => {
-        // 1. Disparar componente visual (Criterio 1: Toast instantáneo)
-        toast.error('Atención Requerida', {
-            description: mensaje,
-            duration: 8000, // Duración un poco más larga para que el supervisor pueda leerla
-            // style: { backgroundColor: 'var(--destructive)', color: 'white' } // Opcional: forzar colores
-        });
-
+    // Función Helper: Añade notificaciones al estado local (reutilizable)
+    const agregarAlertaLocal = useCallback((mensaje: string) => {
         // 2. Añadir la alerta al estado local para actualizar el contador de la campana
         const nuevaAlerta: AlertaWebDTO = {
-            id: Date.now(), // Usamos timestamp como ID temporal seguro para React key
+            id: Date.now() + Math.random(), // Usamos timestamp como ID temporal seguro para React key + Math.random evita IDs duplicados si llegan 2 alertas simultáneas
             mensaje: mensaje,
             fechaCreacion: new Date().toISOString(),
             leida: false,
@@ -57,13 +50,42 @@ export const useCampanaAlertas = () => {
         setAlertas((prev) => [nuevaAlerta, ...prev]);
     }, []);
 
-    // FASE 3.2: Integración con WebSockets
+    // FASE 1: Handler para alertas de Supervisor (Cola Privada)
+    const handleNuevaAlerta = useCallback((mensaje: string) => {
+        toast.error('Atención Requerida (Supervisor)', {
+            description: mensaje,
+            duration: 8000,
+            // style: { backgroundColor: 'var(--destructive)', color: 'white' } // Opcional: forzar colores
+        });
+        agregarAlertaLocal(mensaje);
+    }, [agregarAlertaLocal]);
+
+    // FASE 2: Handler para viajes de Operador (Dashboard Global)
+    const handleNuevoViaje = useCallback((data: MensajeGlobalViaje) => {
+        // Transformamos el JSON complejo en un mensaje amigable para la campana
+        const mensajeStr = `El envío ${data.idEnvio} cambió al estado ${data.estadoNuevo.replace('_', ' ')} (Chofer: ${data.choferNombre})`;
+
+        toast.info('Actualización de Viaje (Operador)', {
+            description: mensajeStr,
+            duration: 5000,
+        });
+        agregarAlertaLocal(mensajeStr);
+    }, [agregarAlertaLocal]);
+
+    // FASE 1: Segregación lógica de variables booleanas
+    const isSupervisor = usuario?.rol === 'ROLE_SUPERVISOR';
+    const isOperador = usuario?.rol === 'ROLE_OPERADOR';
+
+    // FASE 1 y 2: Pasamos los handlers condicionalmente según el rol
     const { isConnected } = useWebSocket({
         idUsuario: usuario?.id,
-        onAlertaPrivada: handleNuevaAlerta,
+        // Si NO es supervisor, pasamos undefined (se ignora)
+        onAlertaPrivada: isSupervisor ? handleNuevaAlerta : undefined,
+        // Si NO es operador, pasamos undefined (se ignora)
+        onMensajeGlobal: isOperador ? handleNuevoViaje : undefined,
     });
 
-    // FASE 3.3: Marcar como leída (Actualización Optimista)
+    // Marcar como leída (Actualización Optimista)
     const marcarComoLeida = useCallback(async (idAlerta: number) => {
         // 1. Verificamos si ya está leída para no hacer trabajo innecesario
         const alertaActual = alertas.find(a => a.id === idAlerta);
@@ -78,7 +100,10 @@ export const useCampanaAlertas = () => {
 
         // 3. Hacemos la petición al backend en segundo plano
         try {
-            await api.marcarAlertaWebComoLeida(idAlerta);
+            // Solo hacemos la petición si es un id numérico del servidor (no los generados en tiempo real temporalmente)
+            if (idAlerta < 1000000000000) {
+                await api.marcarAlertaWebComoLeida(idAlerta);
+            }
         } catch (error) {
             console.error('❌ Error al marcar la alerta como leída en el servidor:', error);
 
