@@ -73,6 +73,7 @@ export type EstadoAlerta =
 
 // === AUTH ===
 export interface Usuario {
+  id: number;
   username: string;
   rol: RolUsuario;
 }
@@ -83,6 +84,7 @@ export interface LoginRequest {
 }
 
 export interface LoginResponse {
+  id: number;
   token: string;
   username: string;
   rol: string;

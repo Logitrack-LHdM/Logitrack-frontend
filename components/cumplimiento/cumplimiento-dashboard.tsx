@@ -20,13 +20,66 @@ import {
 
 import { DateRangeFilter } from '@/components/ui/date-range-filter';
 
+// Sub-componente reutilizable para los botones de exportación
+interface ExportMenuProps {
+    modulo: 'metricas' | 'detalle';
+    isExporting: boolean;
+    isDisabled: boolean;
+    onExport: (modulo: 'metricas' | 'detalle', formato: 'csv' | 'excel') => void;
+    label?: string; // Permite personalizar el texto del botón
+}
+
+function ExportMenu({ modulo, isExporting, isDisabled, onExport, label = "Exportar" }: ExportMenuProps) {
+    return (
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button
+                    className="bg-[#1b4332] hover:bg-[#2d6a4f] text-white w-full sm:w-auto shadow-sm flex items-center justify-center gap-2 transition-colors disabled:opacity-80 disabled:cursor-not-allowed"
+                    disabled={isDisabled || isExporting}
+                >
+                    {isExporting ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                        <FileDown className="h-4 w-4" />
+                    )}
+
+                    <span className="font-medium">
+                        {isExporting ? 'Procesando...' : label}
+                    </span>
+
+                    {!isExporting && <ChevronDown className="h-4 w-4 opacity-70" />}
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-full sm:w-48 bg-card border-border">
+                <DropdownMenuItem
+                    onClick={() => onExport(modulo, 'csv')}
+                    className="flex items-center gap-2 cursor-pointer focus:bg-muted focus:text-foreground"
+                >
+                    <FileDown className="h-4 w-4 text-muted-foreground" />
+                    <span>Exportar a CSV</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                    onClick={() => onExport(modulo, 'excel')}
+                    className="flex items-center gap-2 cursor-pointer focus:bg-muted focus:text-foreground"
+                >
+                    <FileSpreadsheet className="h-4 w-4 text-[color:var(--status-delivered)]" />
+                    <span>Exportar a Excel</span>
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
+    );
+}
+
 export function CumplimientoDashboard() {
     // Consumimos el hook refactorizado
     const { data, isLoading, error, ejecutarBusqueda, limpiarDatos } = useCumplimiento();
 
     // Estado para recordar las fechas aplicadas activamente
     const [fechasAplicadas, setFechasAplicadas] = useState({ inicio: '', fin: '' });
-    const [isExporting, setIsExporting] = useState(false);
+
+    // Estados independientes para la carga de cada botón
+    const [isExportingMetricas, setIsExportingMetricas] = useState(false);
+    const [isExportingDetalle, setIsExportingDetalle] = useState(false);
 
     // Funciones puente para conectar la barra de filtros con el hook
     const handleBuscar = (filtros: { fechaInicio: string; fechaFin: string }) => {
@@ -39,14 +92,27 @@ export function CumplimientoDashboard() {
         limpiarDatos();
     };
 
-    // Exportación dinámica basada en las fechas aplicadas
-    const handleExport = async (formato: 'csv' | 'excel') => {
-        setIsExporting(true);
-        try {
-            const rutaBase = formato === 'excel'
-                ? '/reportes/cumplimiento/viajes/exportar/excel'
-                : '/reportes/cumplimiento/viajes/exportar';
+    // Lógica de exportación dividida por módulo ---
+    const handleExport = async (modulo: 'metricas' | 'detalle', formato: 'csv' | 'excel') => {
+        // Activamos el spinner de carga solo en el botón presionado
+        if (modulo === 'metricas') setIsExportingMetricas(true);
+        else setIsExportingDetalle(true);
 
+        try {
+            let rutaBase = '';
+
+            // Mapeo exacto de las rutas solicitadas
+            if (modulo === 'metricas') {
+                rutaBase = formato === 'excel'
+                    ? '/reportes/cumplimiento/metricas/exportar/excel'
+                    : '/reportes/cumplimiento/metricas/exportar';
+            } else if (modulo === 'detalle') {
+                rutaBase = formato === 'excel'
+                    ? '/reportes/detalle/exportar/excel'
+                    : '/reportes/detalle/exportar';
+            }
+
+            // Mantenemos la lógica de inyectar las fechas aplicadas en el filtro
             const endpoint = `${rutaBase}?fechaInicio=${fechasAplicadas.inicio}&fechaFin=${fechasAplicadas.fin}`;
 
             const blob = await api.descargarArchivo(endpoint);
@@ -55,7 +121,9 @@ export function CumplimientoDashboard() {
             link.href = url;
 
             const extension = formato === 'excel' ? 'xlsx' : 'csv';
-            link.setAttribute('download', `Logitrack_Cumplimiento_${new Date().toISOString().split('T')[0]}.${extension}`);
+            // Dinamizamos el nombre del archivo de descarga para mayor claridad
+            const nombreModulo = modulo === 'metricas' ? 'Metricas' : 'Detalle_Viajes';
+            link.setAttribute('download', `Logitrack_${nombreModulo}_${new Date().toISOString().split('T')[0]}.${extension}`);
 
             document.body.appendChild(link);
             link.click();
@@ -63,15 +131,17 @@ export function CumplimientoDashboard() {
             window.URL.revokeObjectURL(url);
 
             toast.success('¡Exportación exitosa!', {
-                description: `El archivo ${formato.toUpperCase()} se descargó correctamente.`,
+                description: `El archivo ${formato.toUpperCase()} de ${nombreModulo.replace('_', ' ')} se descargó correctamente.`,
             });
         } catch (err) {
-            console.error(`Error en exportación (${formato}):`, err);
+            console.error(`Error en exportación de ${modulo} (${formato}):`, err);
             toast.error('Error al exportar', {
                 description: err instanceof Error ? err.message : 'El servidor no pudo generar el archivo. Por favor, intente nuevamente.',
             });
         } finally {
-            setIsExporting(false);
+            // Apagamos el spinner correspondiente al finalizar
+            if (modulo === 'metricas') setIsExportingMetricas(false);
+            else setIsExportingDetalle(false);
         }
     };
 
@@ -90,60 +160,19 @@ export function CumplimientoDashboard() {
 
     return (
         <div className="space-y-6">
-            {/* Encabezado con el botón de exportación */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 mt-2 px-2 md:px-0">
-
+            {/* Encabezado limpio (sin el botón de exportación global) */}
+            <div className="flex items-center gap-3 mb-6 mt-2 px-2 md:px-0">
                 {/* Título e Ícono (Izquierda en PC / Arriba en Móviles) */}
-                <div className="flex items-center gap-3">
-                    <div className="p-4 rounded-2xl bg-gradient-to-br from-[#1b4332] to-[#2d6a4f] text-white shadow-md group-hover:shadow-lg transition-shadow">
-                        <Activity className="h-7 w-7" />
-                    </div>
-                    <div>
-                        <h4 className="font-bold text-gray-900 mb-1 text-xl md:text-2xl">Análisis de Cumplimiento</h4>
-                        {/* Subtítulo dinámico/genérico */}
-                        <p className="text-muted-foreground text-sm m-0">
-                            Resumen del desempeño de los viajes en el período seleccionado.
-                        </p>
-                    </div>
+                <div className="p-4 rounded-2xl bg-gradient-to-br from-[#1b4332] to-[#2d6a4f] text-white shadow-md">
+                    <Activity className="h-7 w-7" />
                 </div>
-
-                {/* Botón de Exportación con Menú Desplegable */}
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button
-                            className="bg-[#1b4332] hover:bg-[#2d6a4f] text-white w-full sm:w-auto shadow-sm flex items-center justify-center gap-2 transition-colors disabled:opacity-80 disabled:cursor-not-allowed"
-                            disabled={isExporting || isLoading || !data}
-                        >
-                            {isExporting ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                                <FileDown className="h-4 w-4" />
-                            )}
-
-                            <span>
-                                {isExporting ? 'Exportando...' : 'Exportar'}
-                            </span>
-
-                            {!isExporting && <ChevronDown className="h-4 w-4 opacity-70" />}
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-full sm:w-48 bg-card border-border">
-                        <DropdownMenuItem
-                            onClick={() => handleExport('csv')}
-                            className="flex items-center gap-2 cursor-pointer focus:bg-muted focus:text-foreground"
-                        >
-                            <FileDown className="h-4 w-4 text-muted-foreground" />
-                            <span>Exportar a CSV</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                            onClick={() => handleExport('excel')}
-                            className="flex items-center gap-2 cursor-pointer focus:bg-muted focus:text-foreground"
-                        >
-                            <FileSpreadsheet className="h-4 w-4 text-[#198754]" />
-                            <span>Exportar a Excel</span>
-                        </DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
+                <div>
+                    <h4 className="font-bold text-gray-900 mb-1 text-xl md:text-2xl">Análisis de Cumplimiento</h4>
+                    {/* Subtítulo dinámico/genérico */}
+                    <p className="text-muted-foreground text-sm m-0">
+                        Resumen del desempeño de los viajes en el período seleccionado.
+                    </p>
+                </div>
             </div>
 
             {/* --- BARRA DE FILTROS MODULARIZADA --- */}
@@ -152,48 +181,75 @@ export function CumplimientoDashboard() {
                 onBuscar={handleBuscar}
                 onLimpiar={handleLimpiar}
             />
-
-            {/* Layout responsivo para móviles y PC */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-                {/* 1. KPIs (Resumen de Puntualidad) */}
-                <div className="lg:col-span-2 flex flex-col justify-center">
-                    {isLoading ? (
-                        <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
-                            <Skeleton className="h-[120px] w-full rounded-xl" />
-                            <Skeleton className="h-[120px] w-full rounded-xl" />
-                            <Skeleton className="h-[120px] w-full rounded-xl" />
-                        </div>
-                    ) : !data ? (
-                        <div className="h-full min-h-[120px] flex flex-col items-center justify-center text-muted-foreground space-y-3 border-2 border-dashed border-border rounded-xl p-6 text-center bg-muted/10">
-                            <Activity className="h-8 w-8 opacity-20" />
-                            <p className="text-sm italic">Filtre por fechas para calcular</p>
-                        </div>
-                    ) : (
-                        <ResumenPuntualidad metricas={data.metricas} />
-                    )}
+            {/* Sección Métricas con su propio botón */}
+            <div className="mt-8">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 px-1">
+                    <h3 className="text-lg font-bold text-foreground">Resumen de Desempeño</h3>
+                    <ExportMenu
+                        modulo="metricas"
+                        isExporting={isExportingMetricas}
+                        isDisabled={isLoading || !data}
+                        onExport={handleExport}
+                        label="Exportar Métricas"
+                    />
                 </div>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-                {/* 2. Gráfico de Puntualidad */}
-                <div className="lg:col-span-1">
-                    {isLoading ? (
-                        <Skeleton className="h-[250px] w-full rounded-xl" />
-                    ) : !data ? (
-                        <div className="h-[250px] flex flex-col items-center justify-center text-muted-foreground space-y-3 border-2 border-dashed border-border rounded-xl p-6 text-center bg-muted/10">
-                            <Activity className="h-8 w-8 opacity-20" />
-                            <p className="text-sm italic">Filtre por fechas para calcular</p>
-                        </div>
-                    ) : (
-                        <GraficoPuntualidad
-                            porcentajeATiempo={data.metricas.porcentajeATiempo}
-                            porcentajeRetraso={data.metricas.porcentajeRetraso}
-                        />
-                    )}
+                    {/* 1. KPIs (Resumen de Puntualidad) */}
+                    <div className="lg:col-span-2 flex flex-col justify-center">
+                        {isLoading ? (
+                            <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
+                                <Skeleton className="h-[120px] w-full rounded-xl" />
+                                <Skeleton className="h-[120px] w-full rounded-xl" />
+                                <Skeleton className="h-[120px] w-full rounded-xl" />
+                            </div>
+                        ) : !data ? (
+                            <div className="h-full min-h-[120px] flex flex-col items-center justify-center text-muted-foreground space-y-3 border-2 border-dashed border-border rounded-xl p-6 text-center bg-muted/10">
+                                <Activity className="h-8 w-8 opacity-20" />
+                                <p className="text-sm italic">Filtre por fechas para calcular</p>
+                            </div>
+                        ) : (
+                            <ResumenPuntualidad metricas={data.metricas} />
+                        )}
+                    </div>
+                    {/* 2. Gráfico de Puntualidad */}
+                    <div className="lg:col-span-1">
+                        {isLoading ? (
+                            <Skeleton className="h-[250px] w-full rounded-xl" />
+                        ) : !data ? (
+                            <div className="h-[250px] flex flex-col items-center justify-center text-muted-foreground space-y-3 border-2 border-dashed border-border rounded-xl p-6 text-center bg-muted/10">
+                                <Activity className="h-8 w-8 opacity-20" />
+                                <p className="text-sm italic">Filtre por fechas para calcular</p>
+                            </div>
+                        ) : (
+                            <GraficoPuntualidad
+                                porcentajeATiempo={data.metricas.porcentajeATiempo}
+                                porcentajeRetraso={data.metricas.porcentajeRetraso}
+                            />
+                        )}
+                    </div>
                 </div>
             </div>
-
             {/* 3. Tabla de Análisis de Viajes Individuales */}
-            <div className="mt-8">
+            <div className="mt-10">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 px-1">
+                    <div>
+                        <h3 className="text-lg font-bold text-foreground">Análisis de Viajes Individuales</h3>
+                        {/* Subtítulo dinámico/genérico */}
+                        <p className="text-muted-foreground text-sm m-0">
+                            Detalle de entregas completadas y sus respectivos desvíos frente al ETA estimado.
+                        </p>
+                    </div>
+
+                    <ExportMenu
+                        modulo="detalle"
+                        isExporting={isExportingDetalle}
+                        isDisabled={isLoading || !data}
+                        onExport={handleExport}
+                        label="Exportar Detalle"
+                    />
+                </div>
+
                 {isLoading ? (
                     <Skeleton className="h-[400px] w-full rounded-xl" />
                 ) : !data ? (
