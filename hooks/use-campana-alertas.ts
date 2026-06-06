@@ -28,7 +28,7 @@ export const useCampanaAlertas = () => {
             // 🔥 SOLUCIÓN 1: Defensa contra el Backend. 
             // Limpiamos la respuesta de la API descartando cualquier objeto que traiga un ID repetido.
             const alertasUnicas = Array.from(
-                new Map(pendientes.map(item => [item.id, item])).values()
+                new Map(pendientes.map(item => [item.idAlertaWeb, item])).values()
             );
 
             setAlertas(alertasUnicas);
@@ -50,10 +50,11 @@ export const useCampanaAlertas = () => {
         const idTemporal = timestamp + Math.floor(Math.random() * 1000000);
 
         const nuevaAlerta: AlertaWebDTO = {
-            id: idTemporal,
+            idAlertaWeb: idTemporal,
             mensaje: mensaje,
-            fechaCreacion: new Date(timestamp).toISOString(),
-            leida: false,
+            fechaHora: new Date(timestamp).toISOString(), // Actualizado
+            leido: false,
+            tipo: 'INFO', // Valor por defecto para las que se crean en vivo
         };
 
         setAlertas((prev) => {
@@ -61,7 +62,7 @@ export const useCampanaAlertas = () => {
             // no solamente en la primera posición.
             const esDuplicado = prev.some(a =>
                 a.mensaje === mensaje &&
-                (timestamp - new Date(a.fechaCreacion).getTime()) < 1500
+                (timestamp - new Date(a.fechaHora).getTime()) < 1500 // Actualizado
             );
 
             if (esDuplicado) {
@@ -110,13 +111,13 @@ export const useCampanaAlertas = () => {
     // Marcar como leída (Actualización Optimista)
     const marcarComoLeida = useCallback(async (idAlerta: number) => {
         // 1. Verificamos si ya está leída para no hacer trabajo innecesario
-        const alertaActual = alertas.find(a => a.id === idAlerta);
-        if (!alertaActual || alertaActual.leida) return;
+        const alertaActual = alertas.find(a => a.idAlertaWeb === idAlerta);
+        if (!alertaActual || alertaActual.leido) return;
 
         // 2. UI Optimista: Actualizamos el estado local INMEDIATAMENTE
         setAlertas(prevAlertas =>
             prevAlertas.map(alerta =>
-                alerta.id === idAlerta ? { ...alerta, leida: true } : alerta
+                alerta.idAlertaWeb === idAlerta ? { ...alerta, leido: true } : alerta
             )
         );
 
@@ -132,14 +133,14 @@ export const useCampanaAlertas = () => {
             // Rollback: Si el servidor falla, devolvemos la alerta a "no leída"
             setAlertas(prevAlertas =>
                 prevAlertas.map(alerta =>
-                    alerta.id === idAlerta ? { ...alerta, leida: false } : alerta
+                    alerta.idAlertaWeb === idAlerta ? { ...alerta, leido: false } : alerta
                 )
             );
             toast.error('Hubo un problema de conexión. La alerta vuelve a estar pendiente.');
         }
     }, [alertas]);
 
-    const cantidadNoLeidas = alertas.filter(alerta => !alerta.leida).length;
+    const cantidadNoLeidas = alertas.filter(alerta => !alerta.leido).length;
 
     return {
         alertas,

@@ -14,6 +14,7 @@ import { useCampanaAlertas } from '@/hooks/use-campana-alertas';
 
 // Función auxiliar para mostrar el tiempo relativo de forma amigable
 function formatearTiempoRelativo(fechaIso: string) {
+    if (!fechaIso) return ''; // Prevenir error si viene vacío
     const fecha = new Date(fechaIso);
     const ahora = new Date();
     const diffSegundos = Math.floor((ahora.getTime() - fecha.getTime()) / 1000);
@@ -74,25 +75,25 @@ export function NotificationBell() {
                         <div className="flex flex-col">
                             {alertas.map((alerta) => (
                                 <button
-                                    key={alerta.id}
-                                    onClick={() => marcarComoLeida(alerta.id)}
+                                    key={alerta.idAlertaWeb}
+                                    onClick={() => marcarComoLeida(alerta.idAlertaWeb)} // Actualizado
                                     className={`
                     flex flex-col gap-1 p-4 border-b text-left transition-colors hover:bg-muted/50
-                    ${!alerta.leida ? 'bg-primary/5' : 'opacity-70'}
+                    ${!alerta.leido ? 'bg-primary/5' : 'opacity-70'}
                   `}
                                 >
                                     <div className="flex items-start justify-between gap-3 w-full">
-                                        <span className={`text-sm leading-snug ${!alerta.leida ? 'font-semibold text-foreground' : 'font-medium text-muted-foreground'}`}>
+                                        <span className={`text-sm leading-snug ${!alerta.leido ? 'font-semibold text-foreground' : 'font-medium text-muted-foreground'}`}>
                                             {alerta.mensaje}
                                         </span>
 
-                                        {/* FASE 4.2: Indicador visual de "No leída" (Punto rojo) */}
-                                        {!alerta.leida && (
+                                        {/* Indicador visual de "No leída" (Punto rojo) */}
+                                        {!alerta.leido && (
                                             <span className="flex h-2.5 w-2.5 mt-1 rounded-full bg-destructive flex-shrink-0" />
                                         )}
                                     </div>
                                     <span className="text-xs text-muted-foreground mt-1">
-                                        {formatearTiempoRelativo(alerta.fechaCreacion)}
+                                        {formatearTiempoRelativo(alerta.fechaHora)}
                                     </span>
                                 </button>
                             ))}

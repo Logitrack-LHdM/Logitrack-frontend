@@ -11,11 +11,13 @@ export interface MensajeGlobalViaje {
 // 2. Interfaz para el historial de la Campana (REST: /api/alertas-web/pendientes)
 // Estructura sugerida basada en los requerimientos de la UI para notificaciones
 export interface AlertaWebDTO {
-    id: number;
+    idAlertaWeb: number;
     mensaje: string;
-    fechaCreacion: string; // Puede venir como string ISO desde Spring Boot
-    leida: boolean;
+    tipo?: string;
+    leido: boolean;
+    fechaHora: string;
+
     // Podríamos agregar un idEnvio si a futuro queremos que al hacer clic 
     // en la notificación te lleve al detalle del envío.
-    idEnvio?: string;
+    // idEnvio?: string;
 }
