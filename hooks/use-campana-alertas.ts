@@ -24,7 +24,14 @@ export const useCampanaAlertas = () => {
         try {
             setIsLoading(true);
             const pendientes = await api.getAlertasWebPendientes();
-            setAlertas(pendientes);
+
+            // 🔥 SOLUCIÓN 1: Defensa contra el Backend. 
+            // Limpiamos la respuesta de la API descartando cualquier objeto que traiga un ID repetido.
+            const alertasUnicas = Array.from(
+                new Map(pendientes.map(item => [item.idAlertaWeb, item])).values()
+            );
+
+            setAlertas(alertasUnicas);
         } catch (error) {
             console.error('❌ Error al cargar historial de alertas:', error);
         } finally {
@@ -38,16 +45,32 @@ export const useCampanaAlertas = () => {
 
     // Función Helper: Añade notificaciones al estado local (reutilizable)
     const agregarAlertaLocal = useCallback((mensaje: string) => {
-        // 2. Añadir la alerta al estado local para actualizar el contador de la campana
+        const timestamp = Date.now();
+        // 🔥 SOLUCIÓN 2: Generación de ID verdaderamente irrepetible usando Random.
+        const idTemporal = timestamp + Math.floor(Math.random() * 1000000);
+
         const nuevaAlerta: AlertaWebDTO = {
-            id: Date.now() + Math.random(), // Usamos timestamp como ID temporal seguro para React key + Math.random evita IDs duplicados si llegan 2 alertas simultáneas
+            idAlertaWeb: idTemporal,
             mensaje: mensaje,
-            fechaCreacion: new Date().toISOString(),
-            leida: false,
+            fechaHora: new Date(timestamp).toISOString(), // Actualizado
+            leido: false,
+            tipo: 'INFO', // Valor por defecto para las que se crean en vivo
         };
 
-        // Colocamos la nueva alerta al principio de la lista
-        setAlertas((prev) => [nuevaAlerta, ...prev]);
+        setAlertas((prev) => {
+            // 🔥 SOLUCIÓN 3: Buscar duplicados en TODA la lista reciente (ventana de 1.5 seg),
+            // no solamente en la primera posición.
+            const esDuplicado = prev.some(a =>
+                a.mensaje === mensaje &&
+                (timestamp - new Date(a.fechaHora).getTime()) < 1500 // Actualizado
+            );
+
+            if (esDuplicado) {
+                return prev; // Ignoramos el mensaje duplicado fantasma
+            }
+
+            return [nuevaAlerta, ...prev];
+        });
     }, []);
 
     // FASE 1: Handler para alertas de Supervisor (Cola Privada)
@@ -88,13 +111,13 @@ export const useCampanaAlertas = () => {
     // Marcar como leída (Actualización Optimista)
     const marcarComoLeida = useCallback(async (idAlerta: number) => {
         // 1. Verificamos si ya está leída para no hacer trabajo innecesario
-        const alertaActual = alertas.find(a => a.id === idAlerta);
-        if (!alertaActual || alertaActual.leida) return;
+        const alertaActual = alertas.find(a => a.idAlertaWeb === idAlerta);
+        if (!alertaActual || alertaActual.leido) return;
 
         // 2. UI Optimista: Actualizamos el estado local INMEDIATAMENTE
         setAlertas(prevAlertas =>
             prevAlertas.map(alerta =>
-                alerta.id === idAlerta ? { ...alerta, leida: true } : alerta
+                alerta.idAlertaWeb === idAlerta ? { ...alerta, leido: true } : alerta
             )
         );
 
@@ -110,20 +133,20 @@ export const useCampanaAlertas = () => {
             // Rollback: Si el servidor falla, devolvemos la alerta a "no leída"
             setAlertas(prevAlertas =>
                 prevAlertas.map(alerta =>
-                    alerta.id === idAlerta ? { ...alerta, leida: false } : alerta
+                    alerta.idAlertaWeb === idAlerta ? { ...alerta, leido: false } : alerta
                 )
             );
             toast.error('Hubo un problema de conexión. La alerta vuelve a estar pendiente.');
         }
     }, [alertas]);
 
-    const cantidadNoLeidas = alertas.filter(alerta => !alerta.leida).length;
+    const cantidadNoLeidas = alertas.filter(alerta => !alerta.leido).length;
 
     return {
         alertas,
         cantidadNoLeidas,
         isLoading,
         isConnected,
-        marcarComoLeida // Exportamos la nueva función
+        marcarComoLeida
     };
 };
