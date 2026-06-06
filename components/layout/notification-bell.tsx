@@ -1,6 +1,6 @@
-// components/layout/notification-bell.tsx
 'use client';
 
+import { useState } from 'react';
 import { Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -11,6 +11,8 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { useCampanaAlertas } from '@/hooks/use-campana-alertas';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/auth-context';
 
 // Función auxiliar para mostrar el tiempo relativo de forma amigable
 function formatearTiempoRelativo(fechaIso: string) {
@@ -31,9 +33,27 @@ function formatearTiempoRelativo(fechaIso: string) {
 export function NotificationBell() {
     const { alertas, cantidadNoLeidas, marcarComoLeida } = useCampanaAlertas();
 
+    const router = useRouter();
+    const { usuario } = useAuth();
+
+    const [isOpen, setIsOpen] = useState<boolean>(false);
+
+    const isOperador = usuario?.rol === 'ROLE_OPERADOR';
+
+    const handleNotificacionClick = async (idAlertaWeb: number) => {
+        // 1. Siempre marcamos la alerta como leída primero
+        marcarComoLeida(idAlertaWeb);
+
+        // 2. Evaluamos el rol para redirigir (solo Supervisor viaja a la tabla)
+        if (usuario?.rol === 'ROLE_SUPERVISOR') {
+            setIsOpen(false); // <-- Cierra el Popover inmediatamente
+            router.push('/alertas');
+        }
+    };
+
     return (
         // FASE 4.2: Popover para el menú desplegable
-        <Popover>
+        <Popover open={isOpen} onOpenChange={setIsOpen}>
             <PopoverTrigger asChild>
                 {/* FASE 4.1: Botón de la Campana */}
                 <Button
@@ -46,8 +66,8 @@ export function NotificationBell() {
                     {/* Badge rojo dinámico */}
                     {cantidadNoLeidas > 0 && (
                         <Badge
-                            variant="destructive"
-                            className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center rounded-full p-0 text-[10px] border-2 border-[#1b4332]"
+                            variant={isOperador ? "default" : "destructive"}
+                            className={`absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center rounded-full p-0 text-[10px] border-2 border-[#1b4332] ${isOperador ? 'bg-blue-600 hover:bg-blue-700' : ''}`}
                         >
                             {cantidadNoLeidas > 99 ? '99+' : cantidadNoLeidas}
                         </Badge>
@@ -76,7 +96,7 @@ export function NotificationBell() {
                             {alertas.map((alerta) => (
                                 <button
                                     key={alerta.idAlertaWeb}
-                                    onClick={() => marcarComoLeida(alerta.idAlertaWeb)} // Actualizado
+                                    onClick={() => handleNotificacionClick(alerta.idAlertaWeb)}
                                     className={`
                     flex flex-col gap-1 p-4 border-b text-left transition-colors hover:bg-muted/50
                     ${!alerta.leido ? 'bg-primary/5' : 'opacity-70'}
@@ -87,9 +107,9 @@ export function NotificationBell() {
                                             {alerta.mensaje}
                                         </span>
 
-                                        {/* Indicador visual de "No leída" (Punto rojo) */}
+                                        {/* Indicador visual de "No leída" (Punto) */}
                                         {!alerta.leido && (
-                                            <span className="flex h-2.5 w-2.5 mt-1 rounded-full bg-destructive flex-shrink-0" />
+                                            <span className={`flex h-2.5 w-2.5 mt-1 rounded-full flex-shrink-0 ${isOperador ? 'bg-blue-600' : 'bg-destructive'}`} />
                                         )}
                                     </div>
                                     <span className="text-xs text-muted-foreground mt-1">
