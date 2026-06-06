@@ -20,13 +20,67 @@ import {
 
 import { DateRangeFilter } from '@/components/ui/date-range-filter';
 
+// Sub-componente reutilizable para los botones de exportación
+interface ExportMenuProps {
+    modulo: 'metricas' | 'detalle';
+    isExporting: boolean;
+    isDisabled: boolean;
+    onExport: (modulo: 'metricas' | 'detalle', formato: 'csv' | 'excel') => void;
+    label?: string; // Permite personalizar el texto del botón
+}
+
+function ExportMenu({ modulo, isExporting, isDisabled, onExport, label = "Exportar" }: ExportMenuProps) {
+    return (
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button
+                    variant="outline"
+                    className="border-[color:var(--agro-primary)] text-[color:var(--agro-primary)] hover:bg-[color:var(--agro-primary)]/10 w-full sm:w-auto shadow-sm flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={isDisabled || isExporting}
+                >
+                    {isExporting ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                        <FileDown className="h-4 w-4" />
+                    )}
+
+                    <span className="font-medium">
+                        {isExporting ? 'Procesando...' : label}
+                    </span>
+
+                    {!isExporting && <ChevronDown className="h-4 w-4 opacity-70" />}
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-full sm:w-48 bg-card border-border">
+                <DropdownMenuItem
+                    onClick={() => onExport(modulo, 'csv')}
+                    className="flex items-center gap-2 cursor-pointer focus:bg-muted focus:text-foreground"
+                >
+                    <FileDown className="h-4 w-4 text-muted-foreground" />
+                    <span>Exportar a CSV</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                    onClick={() => onExport(modulo, 'excel')}
+                    className="flex items-center gap-2 cursor-pointer focus:bg-muted focus:text-foreground"
+                >
+                    <FileSpreadsheet className="h-4 w-4 text-[color:var(--status-delivered)]" />
+                    <span>Exportar a Excel</span>
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
+    );
+}
+
 export function CumplimientoDashboard() {
     // Consumimos el hook refactorizado
     const { data, isLoading, error, ejecutarBusqueda, limpiarDatos } = useCumplimiento();
 
     // Estado para recordar las fechas aplicadas activamente
     const [fechasAplicadas, setFechasAplicadas] = useState({ inicio: '', fin: '' });
-    const [isExporting, setIsExporting] = useState(false);
+
+    // NUEVOS: Estados independientes para la carga de cada botón
+    const [isExportingMetricas, setIsExportingMetricas] = useState(false);
+    const [isExportingDetalle, setIsExportingDetalle] = useState(false);
 
     // Funciones puente para conectar la barra de filtros con el hook
     const handleBuscar = (filtros: { fechaInicio: string; fechaFin: string }) => {
@@ -39,14 +93,27 @@ export function CumplimientoDashboard() {
         limpiarDatos();
     };
 
-    // Exportación dinámica basada en las fechas aplicadas
-    const handleExport = async (formato: 'csv' | 'excel') => {
-        setIsExporting(true);
-        try {
-            const rutaBase = formato === 'excel'
-                ? '/reportes/cumplimiento/viajes/exportar/excel'
-                : '/reportes/cumplimiento/viajes/exportar';
+    // Exportación dinámica basada en el módulo y las fechas aplicadas
+    const handleExport = async (modulo: 'metricas' | 'detalle', formato: 'csv' | 'excel') => {
+        // Activamos el spinner de carga solo en el botón presionado
+        if (modulo === 'metricas') setIsExportingMetricas(true);
+        else setIsExportingDetalle(true);
 
+        try {
+            let rutaBase = '';
+
+            // Mapeo exacto de las rutas solicitadas
+            if (modulo === 'metricas') {
+                rutaBase = formato === 'excel'
+                    ? '/cumplimiento/metricas/exportar/excel'
+                    : '/cumplimiento/metricas/exportar';
+            } else if (modulo === 'detalle') {
+                rutaBase = formato === 'excel'
+                    ? '/detalle/exportar/excel'
+                    : '/detalle/exportar';
+            }
+
+            // Mantenemos la lógica de inyectar las fechas aplicadas en el filtro
             const endpoint = `${rutaBase}?fechaInicio=${fechasAplicadas.inicio}&fechaFin=${fechasAplicadas.fin}`;
 
             const blob = await api.descargarArchivo(endpoint);
@@ -55,7 +122,9 @@ export function CumplimientoDashboard() {
             link.href = url;
 
             const extension = formato === 'excel' ? 'xlsx' : 'csv';
-            link.setAttribute('download', `Logitrack_Cumplimiento_${new Date().toISOString().split('T')[0]}.${extension}`);
+            // Dinamizamos el nombre del archivo de descarga para mayor claridad
+            const nombreModulo = modulo === 'metricas' ? 'Metricas' : 'Detalle_Viajes';
+            link.setAttribute('download', `Logitrack_${nombreModulo}_${new Date().toISOString().split('T')[0]}.${extension}`);
 
             document.body.appendChild(link);
             link.click();
@@ -63,15 +132,17 @@ export function CumplimientoDashboard() {
             window.URL.revokeObjectURL(url);
 
             toast.success('¡Exportación exitosa!', {
-                description: `El archivo ${formato.toUpperCase()} se descargó correctamente.`,
+                description: `El archivo ${formato.toUpperCase()} de ${nombreModulo.replace('_', ' ')} se descargó correctamente.`,
             });
         } catch (err) {
-            console.error(`Error en exportación (${formato}):`, err);
+            console.error(`Error en exportación de ${modulo} (${formato}):`, err);
             toast.error('Error al exportar', {
                 description: err instanceof Error ? err.message : 'El servidor no pudo generar el archivo. Por favor, intente nuevamente.',
             });
         } finally {
-            setIsExporting(false);
+            // Apagamos el spinner correspondiente al finalizar
+            if (modulo === 'metricas') setIsExportingMetricas(false);
+            else setIsExportingDetalle(false);
         }
     };
 
@@ -108,7 +179,7 @@ export function CumplimientoDashboard() {
                 </div>
 
                 {/* Botón de Exportación con Menú Desplegable */}
-                <DropdownMenu>
+                {/* <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <Button
                             className="bg-[#1b4332] hover:bg-[#2d6a4f] text-white w-full sm:w-auto shadow-sm flex items-center justify-center gap-2 transition-colors disabled:opacity-80 disabled:cursor-not-allowed"
@@ -143,7 +214,7 @@ export function CumplimientoDashboard() {
                             <span>Exportar a Excel</span>
                         </DropdownMenuItem>
                     </DropdownMenuContent>
-                </DropdownMenu>
+                </DropdownMenu> */}
             </div>
 
             {/* --- BARRA DE FILTROS MODULARIZADA --- */}
