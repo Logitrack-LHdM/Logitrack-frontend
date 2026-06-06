@@ -50,108 +50,101 @@ export function TablaDesvios({ viajes }: TablaDesviosProps) {
     );
 
     return (
-        <Card className="shadow-sm">
-            <CardHeader>
-                <CardTitle>Análisis de Viajes Individuales</CardTitle>
-                <CardDescription>
-                    Detalle de entregas completadas y sus respectivos desvíos frente al ETA estimado.
-                </CardDescription>
-            </CardHeader>
-            <CardContent className="p-0 sm:p-6">
+        <>
 
-                {/* --- VISTA DESKTOP (Tabla tradicional) --- */}
-                <div className="hidden md:block overflow-x-auto">
-                    <Table className="min-w-[700px]">
-                        <TableHeader>
+            {/* --- VISTA DESKTOP (Tabla tradicional) --- */}
+            <div className="hidden md:block overflow-x-auto bg-card p-4 rounded-xl border border-border shadow-sm mb-6 relativ">
+                <Table className="min-w-[700px]">
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead className="pl-4 sm:pl-0">ID Envío</TableHead>
+                            <TableHead>Estado</TableHead>
+                            <TableHead>ETA (Estimado)</TableHead>
+                            <TableHead>Entrega Real</TableHead>
+                            <TableHead className="text-right pr-4 sm:pr-0">Desvío</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {viajesCompletados.length === 0 ? (
                             <TableRow>
-                                <TableHead className="pl-4 sm:pl-0">ID Envío</TableHead>
-                                <TableHead>Estado</TableHead>
-                                <TableHead>ETA (Estimado)</TableHead>
-                                <TableHead>Entrega Real</TableHead>
-                                <TableHead className="text-right pr-4 sm:pr-0">Desvío</TableHead>
+                                <TableCell colSpan={5} className="text-center h-24 text-muted-foreground">
+                                    No hay viajes completados para analizar en este período.
+                                </TableCell>
                             </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {viajesCompletados.length === 0 ? (
-                                <TableRow>
-                                    <TableCell colSpan={5} className="text-center h-24 text-muted-foreground">
-                                        No hay viajes completados para analizar en este período.
+                        ) : (
+                            viajesCompletados.map((viaje) => (
+                                <TableRow key={viaje.idEnvio}>
+                                    <TableCell className="font-medium pl-4 sm:pl-0">#{viaje.idEnvio}</TableCell>
+                                    <TableCell>
+                                        <EstadoBadge estado={viaje.estadoActual} />
+                                    </TableCell>
+                                    <TableCell>{formatearFecha(viaje.fechaEstimadaLlegada)}</TableCell>
+                                    <TableCell>{formatearFecha(viaje.fechaEntregaReal)}</TableCell>
+                                    <TableCell
+                                        className={`text-right font-medium pr-4 sm:pr-0 ${viaje.esRetrasado ? 'text-destructive' : 'text-[color:var(--status-delivered)]'
+                                            }`}
+                                    >
+                                        <div className="flex items-center justify-end gap-1.5 whitespace-nowrap">
+                                            {viaje.esRetrasado ? (
+                                                <AlertCircle className="h-4 w-4" />
+                                            ) : (
+                                                <CheckCircle2 className="h-4 w-4" />
+                                            )}
+                                            {formatearDesvio(viaje.desvioHoras, viaje.esRetrasado)}
+                                        </div>
                                     </TableCell>
                                 </TableRow>
-                            ) : (
-                                viajesCompletados.map((viaje) => (
-                                    <TableRow key={viaje.idEnvio}>
-                                        <TableCell className="font-medium pl-4 sm:pl-0">#{viaje.idEnvio}</TableCell>
-                                        <TableCell>
-                                            <EstadoBadge estado={viaje.estadoActual} />
-                                        </TableCell>
-                                        <TableCell>{formatearFecha(viaje.fechaEstimadaLlegada)}</TableCell>
-                                        <TableCell>{formatearFecha(viaje.fechaEntregaReal)}</TableCell>
-                                        <TableCell
-                                            className={`text-right font-medium pr-4 sm:pr-0 ${viaje.esRetrasado ? 'text-destructive' : 'text-[color:var(--status-delivered)]'
-                                                }`}
-                                        >
-                                            <div className="flex items-center justify-end gap-1.5 whitespace-nowrap">
-                                                {viaje.esRetrasado ? (
-                                                    <AlertCircle className="h-4 w-4" />
-                                                ) : (
-                                                    <CheckCircle2 className="h-4 w-4" />
-                                                )}
-                                                {formatearDesvio(viaje.desvioHoras, viaje.esRetrasado)}
-                                            </div>
-                                        </TableCell>
-                                    </TableRow>
-                                ))
-                            )}
-                        </TableBody>
-                    </Table>
-                </div>
+                            ))
+                        )}
+                    </TableBody>
+                </Table>
+            </div>
 
-                {/* --- VISTA MOBILE (Tarjetas) --- */}
-                <div className="md:hidden p-4 space-y-4 bg-muted/5">
-                    {viajesCompletados.length === 0 ? (
-                        <div className="text-center py-10 px-4 text-muted-foreground border-2 border-dashed border-border rounded-xl">
-                            No hay viajes completados para analizar en este período.
-                        </div>
-                    ) : (
-                        viajesCompletados.map((viaje) => (
-                            <div key={viaje.idEnvio} className="bg-card border rounded-xl shadow-sm p-4 flex flex-col gap-3">
-                                {/* Encabezado de la tarjeta: ID y Estado */}
-                                <div className="flex justify-between items-center border-b pb-2">
-                                    <span className="font-bold text-[color:var(--agro-primary)] block">#{viaje.idEnvio}</span>
-                                    {/* Pasamos showIcon={false} si el componente EstadoBadge lo soporta, como en tu envío-table */}
-                                    <EstadoBadge estado={viaje.estadoActual} />
-                                </div>
+            {/* --- VISTA MOBILE (Tarjetas) --- */}
+            <div className="md:hidden p-4 space-y-4 bg-muted/5">
+                {viajesCompletados.length === 0 ? (
+                    <div className="text-center py-10 px-4 text-muted-foreground border-2 border-dashed border-border rounded-xl">
+                        No hay viajes completados para analizar en este período.
+                    </div>
+                ) : (
+                    viajesCompletados.map((viaje) => (
+                        <div key={viaje.idEnvio} className="bg-card border rounded-xl shadow-sm p-4 flex flex-col gap-3">
+                            {/* Encabezado de la tarjeta: ID y Estado */}
+                            <div className="flex justify-between items-center border-b pb-2">
+                                <span className="font-bold text-[color:var(--agro-primary)] block">#{viaje.idEnvio}</span>
+                                {/* Pasamos showIcon={false} si el componente EstadoBadge lo soporta, como en tu envío-table */}
+                                <EstadoBadge estado={viaje.estadoActual} />
+                            </div>
 
-                                {/* Fechas */}
-                                <div className="flex justify-between items-center border-b pb-2">
-                                    <span className="text-xs font-semibold text-muted-foreground uppercase">ETA (Estimado)</span>
-                                    <span className="text-sm font-medium text-foreground text-right">{formatearFecha(viaje.fechaEstimadaLlegada)}</span>
-                                </div>
+                            {/* Fechas */}
+                            <div className="flex justify-between items-center border-b pb-2">
+                                <span className="text-xs font-semibold text-muted-foreground uppercase">ETA (Estimado)</span>
+                                <span className="text-sm font-medium text-foreground text-right">{formatearFecha(viaje.fechaEstimadaLlegada)}</span>
+                            </div>
 
-                                <div className="flex justify-between items-center border-b pb-2">
-                                    <span className="text-xs font-semibold text-muted-foreground uppercase">Entrega Real</span>
-                                    <span className="text-sm font-medium text-foreground text-right">{formatearFecha(viaje.fechaEntregaReal)}</span>
-                                </div>
+                            <div className="flex justify-between items-center border-b pb-2">
+                                <span className="text-xs font-semibold text-muted-foreground uppercase">Entrega Real</span>
+                                <span className="text-sm font-medium text-foreground text-right">{formatearFecha(viaje.fechaEntregaReal)}</span>
+                            </div>
 
-                                {/* Desvío (Destacado en la parte inferior) */}
-                                <div className="flex justify-between items-center pt-1">
-                                    <span className="text-xs font-semibold text-muted-foreground uppercase">Desvío</span>
-                                    <div className={`flex items-center justify-end gap-1.5 text-sm font-bold ${viaje.esRetrasado ? 'text-destructive' : 'text-[color:var(--status-delivered)]'}`}>
-                                        {viaje.esRetrasado ? (
-                                            <AlertCircle className="h-4 w-4" />
-                                        ) : (
-                                            <CheckCircle2 className="h-4 w-4" />
-                                        )}
-                                        {formatearDesvio(viaje.desvioHoras, viaje.esRetrasado)}
-                                    </div>
+                            {/* Desvío (Destacado en la parte inferior) */}
+                            <div className="flex justify-between items-center pt-1">
+                                <span className="text-xs font-semibold text-muted-foreground uppercase">Desvío</span>
+                                <div className={`flex items-center justify-end gap-1.5 text-sm font-bold ${viaje.esRetrasado ? 'text-destructive' : 'text-[color:var(--status-delivered)]'}`}>
+                                    {viaje.esRetrasado ? (
+                                        <AlertCircle className="h-4 w-4" />
+                                    ) : (
+                                        <CheckCircle2 className="h-4 w-4" />
+                                    )}
+                                    {formatearDesvio(viaje.desvioHoras, viaje.esRetrasado)}
                                 </div>
                             </div>
-                        ))
-                    )}
-                </div>
+                        </div>
+                    ))
+                )}
+            </div>
 
-            </CardContent>
-        </Card>
+
+        </>
     );
 }

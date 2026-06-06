@@ -34,8 +34,7 @@ function ExportMenu({ modulo, isExporting, isDisabled, onExport, label = "Export
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <Button
-                    variant="outline"
-                    className="border-[color:var(--agro-primary)] text-[color:var(--agro-primary)] hover:bg-[color:var(--agro-primary)]/10 w-full sm:w-auto shadow-sm flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="bg-[#1b4332] hover:bg-[#2d6a4f] text-white w-full sm:w-auto shadow-sm flex items-center justify-center gap-2 transition-colors disabled:opacity-80 disabled:cursor-not-allowed"
                     disabled={isDisabled || isExporting}
                 >
                     {isExporting ? (
@@ -105,12 +104,12 @@ export function CumplimientoDashboard() {
             // Mapeo exacto de las rutas solicitadas
             if (modulo === 'metricas') {
                 rutaBase = formato === 'excel'
-                    ? '/cumplimiento/metricas/exportar/excel'
-                    : '/cumplimiento/metricas/exportar';
+                    ? '/reportes/cumplimiento/metricas/exportar/excel'
+                    : '/reportes/cumplimiento/metricas/exportar';
             } else if (modulo === 'detalle') {
                 rutaBase = formato === 'excel'
-                    ? '/detalle/exportar/excel'
-                    : '/detalle/exportar';
+                    ? '/reportes/detalle/exportar/excel'
+                    : '/reportes/detalle/exportar';
             }
 
             // Mantenemos la lógica de inyectar las fechas aplicadas en el filtro
@@ -234,7 +233,14 @@ export function CumplimientoDashboard() {
             {/* 3. Tabla de Análisis de Viajes Individuales */}
             <div className="mt-10">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 px-1">
-                    <h3 className="text-lg font-bold text-foreground">Operaciones Individuales</h3>
+                    <div>
+                        <h3 className="text-lg font-bold text-foreground">Análisis de Viajes Individuales</h3>
+                        {/* Subtítulo dinámico/genérico */}
+                        <p className="text-muted-foreground text-sm m-0">
+                            Detalle de entregas completadas y sus respectivos desvíos frente al ETA estimado.
+                        </p>
+                    </div>
+
                     <ExportMenu
                         modulo="detalle"
                         isExporting={isExportingDetalle}
