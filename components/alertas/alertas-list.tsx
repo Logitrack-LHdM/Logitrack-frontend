@@ -6,7 +6,7 @@ import { AlertaCard } from './alerta-card';
 
 interface AlertasListProps {
     alertas: AlertaListadoDTO[];
-    onResolver: (id: number) => void;
+    onResolver: (id: number) => Promise<void>; // Actualizamos la firma acá
 }
 
 export function AlertasList({ alertas, onResolver }: AlertasListProps) {
