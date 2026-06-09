@@ -5,6 +5,7 @@ import { Toaster } from 'sonner'
 import { AuthProvider } from '@/contexts/auth-context'
 import 'leaflet/dist/leaflet.css';
 import './globals.css'
+import { NavigationLoader } from '@/components/layout/navigation-loader'
 
 const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
@@ -47,6 +48,7 @@ export default function RootLayout({
     <html lang="es" className="bg-background">
       <body className="font-sans antialiased min-h-screen">
         <AuthProvider>
+          <NavigationLoader /> {/* <-- Se inyecta aquí, disponible en toda la app */}
           {children}
           <Toaster position="bottom-right" richColors />
         </AuthProvider>

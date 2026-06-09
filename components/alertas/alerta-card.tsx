@@ -1,8 +1,10 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { Phone, Truck, User, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Spinner } from '@/components/ui/spinner';
 import { cn } from '@/lib/utils';
 import type { AlertaListadoDTO } from '@/types';
 import {
@@ -13,7 +15,8 @@ import {
 
 interface AlertaCardProps {
     alerta: AlertaListadoDTO;
-    onResolver?: (id: number) => void;
+    // Tipamos la función para que admita promesas (asíncrona)
+    onResolver?: (id: number) => Promise<void> | void;
 }
 
 // Función auxiliar para calcular el tiempo relativo
@@ -30,6 +33,9 @@ function calcularTiempoTranscurrido(fechaIso: string): string {
 }
 
 export function AlertaCard({ alerta, onResolver }: AlertaCardProps) {
+    // 1. Agregamos el estado de carga
+    const [isResolving, setIsResolving] = useState(false);
+
     // Determinamos los estilos de la tarjeta según el estado para resaltar criticidad
     const estilosCriticidad = {
         PENDIENTE: 'border-red-300 bg-red-50/40 shadow-red-100',
@@ -39,6 +45,18 @@ export function AlertaCard({ alerta, onResolver }: AlertaCardProps) {
 
     const cardEstilo = estilosCriticidad[alerta.estado];
     const isUrgente = alerta.estado !== 'RESUELTA';
+
+    // 2. Creamos la función manejadora con async/await
+    const handleResolveClick = async () => {
+        if (!onResolver) return;
+
+        setIsResolving(true);
+        try {
+            await onResolver(alerta.id);
+        } finally {
+            setIsResolving(false);
+        }
+    };
 
     return (
         <div className={cn("rounded-xl border shadow-sm p-4 md:p-5 transition-all flex flex-col gap-4", cardEstilo)}>
@@ -96,15 +114,25 @@ export function AlertaCard({ alerta, onResolver }: AlertaCardProps) {
                     )}
                 </div>
 
-                {/* Botón de Resolución (Solo visible si no está resuelta) */}
-                {isUrgente && (
+                {/* 3. Actualizamos el botón de Resolución */}
+                {isUrgente && onResolver && (
                     <Button
-                        onClick={() => onResolver?.(alerta.id)}
-                        className="w-full md:w-auto bg-[#198754] hover:bg-[#157347] text-white shadow-sm transition-all"
+                        onClick={handleResolveClick}
+                        disabled={isResolving}
+                        className="w-full md:w-auto bg-[#1b4332] hover:bg-[#2d6a4f] text-white shadow-sm transition-all"
                         size="sm"
                     >
-                        <CheckCircle className="h-4 w-4 mr-1.5" />
-                        Marcar como Resuelto
+                        {isResolving ? (
+                            <>
+                                <Spinner className="mr-2 h-4 w-4 border-white" />
+                                Resolviendo...
+                            </>
+                        ) : (
+                            <>
+                                <CheckCircle className="h-4 w-4 mr-1.5" />
+                                Marcar como Resuelto
+                            </>
+                        )}
                     </Button>
                 )}
             </div>
