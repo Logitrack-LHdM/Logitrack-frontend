@@ -93,7 +93,17 @@ export default function DetalleEnvioPage({
     if (!nuevoEstado || !nuevaPrioridad) return;
 
     if (!envio?.chofer && (nuevoEstado !== envio?.estadoActual)) {
-      toast.error('Error al cambiar el estado', { description: "No se puede iniciar el viaje sin un chofer asignado." });
+      toast.error('Error al cambiar el estado', {
+        description: "No se puede iniciar el viaje sin un chofer asignado.",
+        action: {
+          label: "Asignar chofer",
+          onClick: () => router.push('/asignaciones'),
+        },
+        actionButtonStyle: {
+          backgroundColor: 'var(--destructive)',
+          color: 'var(--background)',
+        },
+      });
       return;
     }
 
