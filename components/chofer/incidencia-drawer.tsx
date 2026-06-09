@@ -23,6 +23,7 @@ import {
   SheetClose,
 } from '@/components/ui/sheet';
 import type { IncidenciaDTO, TipoIncidencia } from '@/types';
+import { toast } from 'sonner';
 
 interface IncidenciaDrawerProps {
   onSubmit: (data: IncidenciaDTO) => Promise<void>;
@@ -63,7 +64,19 @@ export function IncidenciaDrawer({ onSubmit, isLoading, disabled }: IncidenciaDr
     } catch (error) {
       // Capturamos el error propagado desde page.tsx
       // El modal queda abierto y con los datos intactos para que el chofer reintente
-      console.error('El envío de la incidencia falló:', error);
+      // console.error('El envío de la incidencia falló:', error);
+      // toast.error('El envío de la incidencia falló');
+
+      // 1. Extraemos el mensaje real proveniente del backend (api.ts)
+      const mensajeBackend = error instanceof Error
+        ? error.message
+        : 'Ocurrió un error inesperado al contactar al servidor.';
+
+      // 2. Lo mostramos en la descripción del toast
+      toast.error('El envío de la incidencia falló', {
+        description: mensajeBackend,
+      });
+
     } finally {
       // Siempre quitamos el estado de carga, haya éxito o error
       setSubmitting(false);

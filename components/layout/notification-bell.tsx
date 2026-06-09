@@ -13,21 +13,32 @@ import { Badge } from '@/components/ui/badge';
 import { useCampanaAlertas } from '@/hooks/use-campana-alertas';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
+import { formatearFechaHora } from '@/lib/utils';
 
 // Función auxiliar para mostrar el tiempo relativo de forma amigable
 function formatearTiempoRelativo(fechaIso: string) {
     if (!fechaIso) return ''; // Prevenir error si viene vacío
-    const fecha = new Date(fechaIso);
+
+    // 1. Normalización de Zona Horaria (Solución al bug de refresco)
+    // Si la fecha de Spring Boot no trae la 'Z' de UTC, se la agregamos.
+    const fechaNormalizada = fechaIso.endsWith('Z') ? fechaIso : `${fechaIso}Z`;
+
+    const fecha = new Date(fechaNormalizada);
     const ahora = new Date();
-    const diffSegundos = Math.floor((ahora.getTime() - fecha.getTime()) / 1000);
+
+    // 2. Math.max(0, ...) evita que un pequeño desfase de relojes genere un número negativo
+    const diffSegundos = Math.max(0, Math.floor((ahora.getTime() - fecha.getTime()) / 1000));
 
     if (diffSegundos < 60) return 'Hace unos segundos';
+
     const diffMinutos = Math.floor(diffSegundos / 60);
     if (diffMinutos < 60) return `Hace ${diffMinutos} min`;
+
     const diffHoras = Math.floor(diffMinutos / 60);
     if (diffHoras < 24) return `Hace ${diffHoras} horas`;
 
-    return fecha.toLocaleDateString('es-AR');
+    // 3. Si pasaron más de 24 horas, delegamos el texto a tu función de utils
+    return formatearFechaHora(fechaNormalizada);
 }
 
 export function NotificationBell() {
