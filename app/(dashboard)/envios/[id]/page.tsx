@@ -124,7 +124,7 @@ export default function DetalleEnvioPage({
 
   if (isLoading) {
     return (
-      <div className="w-full max-w-5xl mx-auto p-4 md:p-6 lg:py-8 flex justify-center items-center min-h-[60vh]">
+      <div className="w-full max-w-6xl mx-auto p-4 md:p-6 lg:py-8 flex justify-center items-center min-h-[60vh]">
         <Spinner className="h-10 w-10 text-blue-600" />
       </div>
     );
@@ -132,7 +132,7 @@ export default function DetalleEnvioPage({
 
   if (error || !envio) {
     return (
-      <div className="w-full max-w-5xl mx-auto p-4 md:p-6 lg:py-8 text-center pt-20">
+      <div className="w-full max-w-6xl mx-auto p-4 md:p-6 lg:py-8 text-center pt-20">
         <p className="text-destructive font-bold text-lg mb-4">
           {error || 'Envío no encontrado'}
         </p>
@@ -159,7 +159,7 @@ export default function DetalleEnvioPage({
   };
 
   return (
-    <div className="w-full max-w-5xl mx-auto p-4 md:p-6 lg:py-8">
+    <div className="w-full max-w-6xl mx-auto p-4 md:p-6 lg:py-8">
       {/* Botón Volver */}
       <Link
         href="/busqueda"
