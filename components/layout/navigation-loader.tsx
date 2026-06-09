@@ -20,16 +20,23 @@ function LoaderContent() {
     useEffect(() => {
         const handleClick = (e: MouseEvent) => {
             const target = (e.target as HTMLElement).closest('a');
+
             if (
                 target &&
                 target.href &&
                 target.target !== '_blank' &&
                 target.href !== window.location.href &&
-                !target.href.includes('#')
+                !target.href.includes('#') &&
+                // NUEVAS REGLAS PARA PREVENIR EL BUG DE DESCARGA:
+                !target.hasAttribute('download') && // Ignorar si el enlace tiene el atributo download
+                !target.href.startsWith('blob:') && // Ignorar si es una URL de objeto en memoria
+                !target.href.startsWith('mailto:') && // Ignorar enlaces de correo
+                !target.href.startsWith('tel:') // Ignorar enlaces de teléfono
             ) {
                 setIsNavigating(true);
             }
         };
+
         document.addEventListener('click', handleClick, true);
         return () => document.removeEventListener('click', handleClick, true);
     }, []);
