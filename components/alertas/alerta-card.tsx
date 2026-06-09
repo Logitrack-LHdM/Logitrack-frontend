@@ -119,7 +119,7 @@ export function AlertaCard({ alerta, onResolver }: AlertaCardProps) {
                     <Button
                         onClick={handleResolveClick}
                         disabled={isResolving}
-                        className="w-full bg-[#1b4332] hover:bg-[#2d6a4f] text-white"
+                        className="w-full md:w-auto bg-[#1b4332] hover:bg-[#2d6a4f] text-white shadow-sm transition-all"
                         size="sm"
                     >
                         {isResolving ? (
