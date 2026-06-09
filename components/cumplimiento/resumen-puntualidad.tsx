@@ -10,6 +10,7 @@ interface ResumenPuntualidadProps {
 export function ResumenPuntualidad({ metricas }: ResumenPuntualidadProps) {
     return (
         <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
+
             {/* Tarjeta 1: Total Entregados */}
             <Card className="shadow-sm hover:shadow-md transition-shadow">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -72,6 +73,7 @@ export function ResumenPuntualidad({ metricas }: ResumenPuntualidadProps) {
                     </p>
                 </CardContent>
             </Card>
+
         </div>
     );
 }

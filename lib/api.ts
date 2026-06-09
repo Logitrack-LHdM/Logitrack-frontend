@@ -27,12 +27,12 @@ import type {
   ReporteSimpleDTO,
   ReporteEstadoDTO,
   ReporteGranoDTO,
-  ReporteEficienciaDTO,
-  RangoReporte
+  ReporteEficienciaDTO
 } from '@/types/reporte-operativo';
 
 import { adaptarRutaParaLeaflet } from '@/lib/utils';
 import { RespuestaCumplimiento } from '@/types/cumplimiento';
+import { AlertaWebDTO } from '@/types/websockets';
 
 // Base URL de la API - usar variable de entorno en produccion
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
@@ -83,38 +83,6 @@ class ApiClient {
       }
       throw new Error('Sesión expirada');
     }
-
-    // if (!response.ok) {
-    //   const contentType = response.headers.get('content-type');
-    //   if (contentType && contentType.includes('application/json')) {
-    //     const errorData = await response.json().catch(() => ({}));
-    //     throw new Error(errorData.message || errorData.error || `Error ${response.status}`);
-    //   } else {
-    //     const errorText = await response.text().catch(() => '');
-    //     throw new Error(errorText || `Error ${response.status}`);
-    //   }
-    // }
-
-    // if (!response.ok) {
-    //   // 1. Leemos el cuerpo de la respuesta como texto crudo primero
-    //   const errorText = await response.text();
-    //   let errorMessage = `Error ${response.status}`;
-
-    //   try {
-    //     // 2. Intentamos parsearlo como JSON (si el backend mandó JSON)
-    //     if (errorText) {
-    //       const errorData = JSON.parse(errorText);
-    //       // Buscamos la propiedad message o error
-    //       errorMessage = errorData.message || errorData.error || errorMessage;
-    //     }
-    //   } catch (e) {
-    //     // 3. Si falla el parseo, significa que el backend mandó texto plano
-    //     // Usamos el texto plano directamente como mensaje
-    //     errorMessage = errorText || errorMessage;
-    //   }
-
-    //   throw new Error(errorMessage);
-    // }
 
     // Forma superadora de capturar errores que comnbina las dos anteriores
     if (!response.ok) {
@@ -267,17 +235,6 @@ class ApiClient {
   }
 
   async reportarIncidencia(id: string | number, incidencia: IncidenciaDTO): Promise<void> {
-    // // MOCK: Simulación de petición al backend para la historia de usuario
-    // console.log(`[MOCK API] Enviando reporte de incidencia para el viaje ${id}:`, incidencia);
-
-    // return new Promise((resolve) => {
-    //   setTimeout(() => {
-    //     console.log('[MOCK API] Reporte procesado correctamente por el servidor simulado.');
-    //     resolve();
-    //   }, 1500); // Simulamos 1.5 segundos de latencia de red
-    // });
-
-
     // Código original para restaurar cuando el endpoint en Spring Boot esté listo:
     return this.request<void>(`/envios/${id}/incidencias`, {
       method: 'POST',
@@ -432,7 +389,7 @@ class ApiClient {
 
 
   // === EXPORTACIONES (Archivos) ===
-  async descargarArchivoCsv(endpoint: string): Promise<Blob> {
+  async descargarArchivo(endpoint: string): Promise<Blob> {
     const token = this.getToken();
     const headers: HeadersInit = {};
 
@@ -465,35 +422,6 @@ class ApiClient {
     return this.request<Empresa[]>('/clientes');
   }
 
-  // === ALERTAS (MOCKS TEMPORALES PARA FRONTEND) ===
-  //async getAlertas(): Promise<AlertaListadoDTO[]> {
-  //  console.log('[MOCK API] Obteniendo listado de alertas...');
-
-  //   // Importación dinámica para no afectar el bundle inicial si no se usa
-  //   const { mockAlertas } = await import('@/mocks/alertasMock');
-
-  //   return new Promise((resolve) => {
-  //     setTimeout(() => {
-  //       // En una API real, esto devolvería los datos ordenados desde BD.
-  //       // Aquí simulamos que llegan tal cual los definimos.
-  //       resolve([...mockAlertas]);
-  //     }, 800); // Simulamos 800ms de latencia
-  //   });
-  // }
-
-  // async resolverAlerta(idAlerta: number, notas?: string): Promise<void> {
-  //   console.log(`[MOCK API] Resolviendo alerta ${idAlerta}... Notas:`, notas);
-
-  //   return new Promise((resolve) => {
-  //     setTimeout(() => {
-  //       // Al ser un mock estático en el cliente, la actualización de estado real 
-  //       // la manejaremos en el propio componente React para reflejar el cambio visual.
-  //       console.log('[MOCK API] Alerta resuelta con éxito.');
-  //       resolve();
-  //     }, 1000);
-  //   });
-  // }
-
   // === ALERTAS (US 33 - SUPERVISOR) ===
   async getAlertas(): Promise<AlertaListadoDTO[]> {
     // Hace un GET al endpoint protegido del supervisor
@@ -508,8 +436,34 @@ class ApiClient {
       body: JSON.stringify({ notasSupervisor }),
     });
   }
+  // === CAMPANA DE NOTIFICACIONES (WEBSOCKETS REST COMPLEMENTARIOS) ===
+
+  // GET /api/alertas-web/pendientes
+  async getAlertasWebPendientes(): Promise<AlertaWebDTO[]> {
+    return this.request<AlertaWebDTO[]>('/alertas-web/pendientes');
+  }
+
+  // PATCH /api/alertas-web/{id}/leer
+  async marcarAlertaWebComoLeida(idAlerta: number): Promise<void> {
+    // Como el endpoint retorna 204 No Content, no esperamos un JSON de respuesta
+    const token = this.getToken();
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
+    };
+
+    if (token) {
+      (headers as Record<string, string>)['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(`${API_BASE_URL}/alertas-web/${idAlerta}/leer`, {
+      method: 'PATCH',
+      headers,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error al marcar alerta como leída: ${response.status}`);
+    }
+  }
 }
-
-
 
 export const api = new ApiClient();

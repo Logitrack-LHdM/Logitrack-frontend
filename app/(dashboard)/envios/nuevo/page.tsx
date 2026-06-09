@@ -6,7 +6,7 @@ import { EnvioForm } from '@/components/envios/envio-form';
 
 export default function CrearEnvioPage() {
   return (
-    <div className="w-full max-w-5xl mx-auto p-4 md:p-6 lg:py-8">
+    <div className="w-full max-w-6xl mx-auto p-4 md:p-6 lg:py-8">
       {/* Botón de retroceso idéntico al de tu diseño original */}
       <Link
         href="/menu"

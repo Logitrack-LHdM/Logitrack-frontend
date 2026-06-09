@@ -94,3 +94,22 @@ export const formatearFechaIsoLocal = (date: Date | null | undefined): string | 
 
     return `${year}-${month}-${day}`;
 };
+
+// utils/formatters.ts
+
+/**
+ * Calcula un rango de fechas restando una cantidad de días a la fecha actual.
+ * @param diasAtras Cantidad de días a restar.
+ * @returns Objeto con las fechas de inicio y fin formateadas en ISO local (YYYY-MM-DD).
+ */
+export const calcularFechasRango = (diasAtras: number) => {
+    const fechaActual = new Date();
+    const fechaPasada = new Date();
+    fechaPasada.setDate(fechaActual.getDate() - diasAtras);
+
+    // Utilizamos la función de formateo que ya existe en este mismo archivo
+    return {
+        inicio: formatearFechaIsoLocal(fechaPasada) || '',
+        fin: formatearFechaIsoLocal(fechaActual) || ''
+    };
+};

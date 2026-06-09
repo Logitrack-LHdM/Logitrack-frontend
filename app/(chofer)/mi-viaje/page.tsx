@@ -68,7 +68,7 @@ export default function MiViajePage() {
 
   if (error) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="w-full max-w-6xl mx-auto p-4 md:p-6 lg:py-8">
         <div className="text-center py-12">
           <p className="text-destructive mb-4">{error}</p>
           <Button onClick={recargar} variant="outline">
@@ -83,7 +83,7 @@ export default function MiViajePage() {
   // Sin viaje asignado
   if (!viaje) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="w-full max-w-6xl mx-auto p-4 md:p-6 lg:py-8">
         <div className="max-w-md mx-auto text-center py-12">
           <div className="p-6 bg-muted rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center">
             <Package className="h-12 w-12 text-muted-foreground" />

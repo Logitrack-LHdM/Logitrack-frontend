@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
-import { Truck, Scale, ArrowLeftCircle, ChartColumnBig, FileDown, Loader2, Clock, CheckCircle, PackageOpen, AlertTriangle, Percent } from 'lucide-react';
+import { Truck, Scale, ArrowLeftCircle, ChartColumnBig, FileDown, Loader2, Clock, CheckCircle, PackageOpen, AlertTriangle, Percent, FileSpreadsheet, ChevronDown } from 'lucide-react';
 import {
     BarChart,
     Bar,
@@ -30,6 +30,13 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
@@ -44,126 +51,70 @@ import { RangoReporte } from '@/types/reporte-operativo';
 // Importamos las funciones utilitarias
 import { adaptarDatosParaGrafico, formatearTextoEnum, formatearFechaIsoLocal } from '@/utils/formatters';
 
+import { DateRangeFilter } from '@/components/ui/date-range-filter';
+
 import { api } from '@/lib/api';
 
 export default function ReporteOperativoPage() {
-    // 1. Estados iniciales: Ahora por defecto arranca en "historico"
-    const [fechaInicio, setFechaInicio] = useState<string>('');
-    const [fechaFin, setFechaFin] = useState<string>('');
-    const [rango, setRango] = useState<RangoReporte | ''>('');
-    // 2. Conectamos nuestro nuevo hook manual
+
+    // 1. Conectamos nuestro hook operativo
     const { data, isLoading, error, ejecutarBusqueda, limpiarDatos } = useReporteOperativo();
 
-    // 3. Modificamos el useMemo para que soporte que data sea null inicialmente
+    // 2. Estado para recordar las fechas aplicadas activamente (evita el bug de exportar fechas no buscadas)
+    const [fechasAplicadas, setFechasAplicadas] = useState({ inicio: '', fin: '' });
+
+    // 3. Handlers simplificados que se conectan al componente modular
+    const handleBuscar = (filtros: { fechaInicio: string; fechaFin: string }) => {
+        setFechasAplicadas({ inicio: filtros.fechaInicio, fin: filtros.fechaFin });
+        ejecutarBusqueda({ fechaInicio: filtros.fechaInicio, fechaFin: filtros.fechaFin });
+    };
+
+    const handleLimpiar = () => {
+        setFechasAplicadas({ inicio: '', fin: '' });
+        limpiarDatos();
+    };
+
+    // Modificamos el useMemo para que soporte que data sea null inicialmente
     const datosGrafico = useMemo(() => {
         return adaptarDatosParaGrafico(data?.estados || []);
     }, [data?.estados]);
 
-    // --- NUEVAS FUNCIONES DE BÚSQUEDA (Fase 3) ---
-    const handleBuscar = () => {
-        // Preparamos las fechas. Si es histórico, simulamos las fechas extremas.
-        const fechaHistorico = '2000-01-01';
-        const fechaHoy = formatearFechaIsoLocal(new Date()) || '';
-
-        const filtros = {
-            fechaInicio: rango === 'historico' ? fechaHistorico : fechaInicio,
-            fechaFin: rango === 'historico' ? fechaHoy : fechaFin
-        };
-
-        ejecutarBusqueda(filtros);
-    };
-
-    const handleLimpiar = () => {
-        setRango(''); // Vuelve al estado inicial "Seleccione un rango"
-        setFechaInicio('');
-        setFechaFin('');
-        limpiarDatos();
-    };
-
-    // Validación en tiempo real para la advertencia
-    const faltaUnaFecha = Boolean((fechaInicio && !fechaFin) || (!fechaInicio && fechaFin));
-
-    // NUEVO: El botón buscar se deshabilita si NO es histórico y faltan fechas (una o ambas)
-    const faltanFechas = !fechaInicio || !fechaFin;
-    const isBotonBuscarDeshabilitado = isLoading || (rango !== 'historico' && faltanFechas);
-
-    // --- LÓGICA DE SINCRONIZACIÓN DE FILTROS (Fase 2) ---
-
-    // Función para calcular las fechas restando días a la fecha de hoy
-    const calcularFechasRango = (diasAtras: number) => {
-        const fechaActual = new Date();
-        const fechaPasada = new Date();
-        fechaPasada.setDate(fechaActual.getDate() - diasAtras);
-
-        return {
-            inicio: formatearFechaIsoLocal(fechaPasada) || '',
-            fin: formatearFechaIsoLocal(fechaActual) || ''
-        };
-    };
-
-    // Manejador del cambio en el Selector de Rango
-    const handleRangoChange = (nuevoRango: RangoReporte) => {
-        setRango(nuevoRango);
-
-        if (nuevoRango === 'historico') {
-            setFechaInicio('');
-            setFechaFin('');
-        } else if (nuevoRango === 'ultimos7dias') {
-            const fechas = calcularFechasRango(7);
-            setFechaInicio(fechas.inicio);
-            setFechaFin(fechas.fin);
-        } else if (nuevoRango === 'ultimos30dias') {
-            const fechas = calcularFechasRango(30);
-            setFechaInicio(fechas.inicio);
-            setFechaFin(fechas.fin);
-        } else if (nuevoRango === 'ultimos90dias') {
-            const fechas = calcularFechasRango(90);
-            setFechaInicio(fechas.inicio);
-            setFechaFin(fechas.fin);
-        }
-    };
-
-    // Manejador del cambio manual en los Inputs de Fecha
-    const handleFechaChange = (tipo: 'inicio' | 'fin', valor: string) => {
-        if (tipo === 'inicio') setFechaInicio(valor);
-        if (tipo === 'fin') setFechaFin(valor);
-
-        // Si el usuario toca las fechas manualmente, el selector cambia a "Otro"
-        setRango('otro');
-    };
-
     // Estado para la exportación
     const [isExporting, setIsExporting] = useState(false);
 
-    const handleExport = async () => {
+    // Controlador del botón de exportación
+    const handleExport = async (formato: 'csv' | 'excel') => {
         setIsExporting(true);
         try {
+            // 1. Construimos el endpoint según el formato seleccionado
+            // Modificación: usar fechasAplicadas en lugar de los estados individuales borrados
+            const rutaBase = formato === 'excel' ? '/reportes/operativo/exportar/excel' : '/reportes/operativo/exportar';
+            const endpoint = `${rutaBase}?fechaInicio=${fechasAplicadas.inicio}&fechaFin=${fechasAplicadas.fin}`;
 
-            // CONSTRUIMOS EL ENDPOINT CON LOS QUERY PARAMETERS
-            const endpoint = `/reportes/operativo/exportar?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`;
+            // 2. Consumimos el endpoint (el método recibe la URL completa y procesa el Blob)
+            const blob = await api.descargarArchivo(endpoint);
 
-            // 1. Llamas al endpoint real de Spring Boot (la URL dependerá de lo que defina el backend)
-            const blob = await api.descargarArchivoCsv(endpoint);
-
-            // 2. Creas una URL temporal para el archivo recibido
+            // 3. Creamos la URL temporal para el archivo recibido
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
 
-            // 3. Fuerzas la descarga
-            link.setAttribute('download', `Logitrack_Reporte_${new Date().toISOString().split('T')[0]}.csv`);
+            // 4. Definimos la extensión correcta de salida (.xlsx para Excel, .csv para CSV)
+            const extension = formato === 'excel' ? 'xlsx' : 'csv';
+            link.setAttribute('download', `Logitrack_Reporte_${new Date().toISOString().split('T')[0]}.${extension}`);
+
             document.body.appendChild(link);
             link.click();
 
-            // 4. Limpias el DOM
+            // 5. Limpiamos el DOM
             document.body.removeChild(link);
             window.URL.revokeObjectURL(url);
 
             toast.success('¡Exportación exitosa!', {
-                description: 'El archivo se descargó correctamente desde el servidor.',
+                description: `El archivo ${formato.toUpperCase()} se descargó correctamente desde el servidor.`,
             });
         } catch (err) {
-            console.error("Error en exportación:", err);
+            console.error(`Error en exportación (${formato}):`, err);
             toast.error('Error al exportar', {
                 description: err instanceof Error ? err.message : 'El servidor no pudo generar el archivo. Por favor, intente nuevamente.',
             });
@@ -190,7 +141,7 @@ export default function ReporteOperativoPage() {
         }).format(valor);
     };
     return (
-        <div className="container mx-auto px-4 py-8">
+        <div className="w-full max-w-6xl mx-auto p-4 md:p-6 lg:py-8">
             <div className="max-w-6xl mx-auto space-y-8">
 
                 {/* Encabezado Principal Modificado para incluir el botón */}
@@ -216,135 +167,61 @@ export default function ReporteOperativoPage() {
                         </div>
                     </div>
 
-                    {/* Botón de Exportación (Derecha en PC / Abajo y full-width en Móviles) */}
-                    <Button
-                        className="bg-[#1b4332] hover:bg-[#2d6a4f] text-white w-full sm:w-auto shadow-sm flex items-center justify-center gap-2 transition-colors disabled:opacity-80 disabled:cursor-not-allowed"
-                        disabled={isExporting || isLoading || !data}
-                        onClick={handleExport}
-                    >
-                        {isExporting ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                            <FileDown className="h-4 w-4" />
-                        )}
+                    {/* Botón de Exportación con Menú Desplegable  (Derecha en PC / Abajo y full-width en Móviles)  */}
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button
+                                className="bg-[#1b4332] hover:bg-[#2d6a4f] text-white w-full sm:w-auto shadow-sm flex items-center justify-center gap-2 transition-colors disabled:opacity-80 disabled:cursor-not-allowed"
+                                disabled={isExporting || isLoading || !data}
+                            >
+                                {isExporting ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                    <FileDown className="h-4 w-4" />
+                                )}
 
-                        {/* Texto para PC */}
-                        <span className="hidden sm:inline">
-                            {isExporting ? 'Exportando...' : 'Exportar a CSV'}
-                        </span>
+                                <span>
+                                    {isExporting ? 'Exportando...' : 'Exportar'}
+                                </span>
 
-                        {/* Texto para Móviles */}
-                        <span className="sm:hidden">
-                            {isExporting ? 'Exportando...' : 'Exportar'}
-                        </span>
-                    </Button>
+                                {!isExporting && <ChevronDown className="h-4 w-4 opacity-70" />}
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-full sm:w-48 bg-card border-border">
+                            <DropdownMenuItem
+                                onClick={() => handleExport('csv')}
+                                className="flex items-center gap-2 cursor-pointer focus:bg-muted focus:text-foreground"
+                            >
+                                <FileDown className="h-4 w-4 text-muted-foreground" />
+                                <span>Exportar a CSV</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                                onClick={() => handleExport('excel')}
+                                className="flex items-center gap-2 cursor-pointer focus:bg-muted focus:text-foreground"
+                            >
+                                <FileSpreadsheet className="h-4 w-4 text-[#198754]" />
+                                <span>Exportar a Excel</span>
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
 
                 </div>
                 {/* ... Fin del Encabezado Principal ... */}
 
                 {/* --- CARTEL DE ADVERTENCIA NO INTRUSIVO --- */}
                 {error && (
-                    <div className="bg-destructive/10 text-destructive border border-destructive/20 p-3 rounded-lg flex justify-between items-center text-sm shadow-sm">
+                    <div className="bg-destructive/10 text-destructive border border-destructive/20 p-3 rounded-lg flex items-center text-sm shadow-sm mb-6">
+                        <AlertTriangle className="h-5 w-5 mr-3 shrink-0" />
                         <p className="font-medium">{error}</p>
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => { setFechaInicio(''); setFechaFin(''); }}
-                            className="hover:bg-destructive/20 text-destructive"
-                        >
-                            Limpiar fechas
-                        </Button>
                     </div>
                 )}
 
-                {/* --- NUEVA BARRA DE FILTROS --- */}
-                <div className="bg-card p-4 md:p-5 rounded-xl border border-border shadow-sm mb-6 relative">
-
-                    {/* Alerta si falta una fecha (Flotante arriba) */}
-                    {faltaUnaFecha && (
-                        <div className="absolute -top-6 right-0 text-xs text-destructive font-medium bg-destructive/10 px-2 py-1 rounded-md animate-in fade-in zoom-in">
-                            Debe seleccionar ambas fechas
-                        </div>
-                    )}
-
-                    {/* Usamos un Grid de 4 columnas, alineando el contenido hacia abajo (items-end) para que los botones cuadren con los inputs */}
-                    <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-4 items-end">
-
-                        {/* 1. Rango de Días */}
-                        <div className="flex flex-col gap-1.5 w-full">
-                            <label className="text-sm font-medium text-muted-foreground px-1">
-                                Rango de Días
-                            </label>
-                            <Select
-                                value={rango}
-                                onValueChange={(value) => handleRangoChange(value as RangoReporte)}
-                            >
-                                <SelectTrigger className="w-full bg-background">
-                                    <SelectValue placeholder="Seleccione un rango" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="historico">Histórico Completo</SelectItem>
-                                    <SelectItem value="ultimos7dias">Últimos 7 días</SelectItem>
-                                    <SelectItem value="ultimos30dias">Últimos 30 días</SelectItem>
-                                    <SelectItem value="ultimos90dias">Últimos 90 días</SelectItem>
-                                    <SelectItem value="otro">Otro</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        {/* 2. Fecha Inicio */}
-                        <div className="flex flex-col gap-1.5 w-full">
-                            <label className="text-sm font-medium text-muted-foreground px-1">
-                                Fecha Inicio
-                            </label>
-                            <Input
-                                type="date"
-                                value={fechaInicio}
-                                onChange={(e) => handleFechaChange('inicio', e.target.value)}
-                                className="w-full bg-background disabled:opacity-50 focus-visible:ring-[#198754]"
-                                max={fechaFin || undefined}
-                                disabled={rango === 'historico'}
-                            />
-                        </div>
-
-                        {/* 3. Fecha Fin */}
-                        <div className="flex flex-col gap-1.5 w-full">
-                            <label className="text-sm font-medium text-muted-foreground px-1">
-                                Fecha Fin
-                            </label>
-                            <Input
-                                type="date"
-                                value={fechaFin}
-                                onChange={(e) => handleFechaChange('fin', e.target.value)}
-                                className="w-full bg-background disabled:opacity-50 focus-visible:ring-[#198754]"
-                                min={fechaInicio || undefined}
-                                disabled={rango === 'historico'}
-                            />
-                        </div>
-
-                        {/* 4. Botones de Acción */}
-                        <div className="grid grid-cols-2 gap-2 w-full">
-                            <Button
-                                variant="outline"
-                                onClick={handleLimpiar}
-                                className="w-full"
-                                disabled={isLoading}
-                            >
-                                Limpiar
-                            </Button>
-
-                            <Button
-                                onClick={handleBuscar}
-                                disabled={isBotonBuscarDeshabilitado}
-                                className="w-full bg-[#1b4332] hover:bg-[#2d6a4f] text-white"
-                            >
-                                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                Buscar
-                            </Button>
-                        </div>
-
-                    </div>
-                </div>
+                {/* --- BARRA DE FILTROS MODULARIZADA --- */}
+                <DateRangeFilter
+                    isLoading={isLoading}
+                    onBuscar={handleBuscar}
+                    onLimpiar={handleLimpiar}
+                />
 
                 {/* Grilla de Métricas Globales */}
                 {/* Contenedor principal de la grilla (Layout Responsivo) */}
