@@ -9,30 +9,53 @@ function LoaderContent() {
     const pathname = usePathname();
     const searchParams = useSearchParams();
 
+    // 1. Apagar la animación cuando la ruta cambia exitosamente
     useEffect(() => {
         if (timerRef.current) clearTimeout(timerRef.current);
-        timerRef.current = setTimeout(() => setIsNavigating(false), 300);
+        timerRef.current = setTimeout(() => setIsNavigating(false), 200);
         return () => {
             if (timerRef.current) clearTimeout(timerRef.current);
         };
     }, [pathname, searchParams]);
 
+    // 2. FAILSAFE (Apagado de seguridad)
+    // Soluciona el error del chofer: Si Next.js cancela la navegación o 
+    // nos redirige a la misma página, destrabamos la pantalla automáticamente.
+    useEffect(() => {
+        let failsafeTimer: ReturnType<typeof setTimeout>;
+
+        if (isNavigating) {
+            // Si después de 4 segundos la ruta no ha cambiado, asumimos que 
+            // la navegación fue abortada (ej. por AuthContext) y apagamos el loader.
+            failsafeTimer = setTimeout(() => {
+                setIsNavigating(false);
+            }, 4000);
+        }
+
+        return () => {
+            if (failsafeTimer) clearTimeout(failsafeTimer);
+        };
+    }, [isNavigating]);
+
+    // 3. Interceptor Estricto de Clics
     useEffect(() => {
         const handleClick = (e: MouseEvent) => {
             const target = (e.target as HTMLElement).closest('a');
 
-            if (
-                target &&
-                target.href &&
-                target.target !== '_blank' &&
-                target.href !== window.location.href &&
-                !target.href.includes('#') &&
-                // NUEVAS REGLAS PARA PREVENIR EL BUG DE DESCARGA:
-                !target.hasAttribute('download') && // Ignorar si el enlace tiene el atributo download
-                !target.href.startsWith('blob:') && // Ignorar si es una URL de objeto en memoria
-                !target.href.startsWith('mailto:') && // Ignorar enlaces de correo
-                !target.href.startsWith('tel:') // Ignorar enlaces de teléfono
-            ) {
+            // Ignorar si no es un enlace válido
+            if (!target || !target.href) return;
+
+            // Reglas de seguridad para no congelar la UI
+            const isInternal = target.href.startsWith(window.location.origin);
+            const isNewTab = target.target === '_blank' || e.ctrlKey || e.metaKey || e.shiftKey;
+            const isSamePage = target.href.split('#')[0] === window.location.href.split('#')[0];
+            const isDownloadOrProtocol = target.hasAttribute('download') ||
+                target.href.startsWith('blob:') ||
+                target.href.startsWith('mailto:') ||
+                target.href.startsWith('tel:');
+
+            // Solo interceptamos enlaces internos, a otras páginas y que no sean archivos
+            if (isInternal && !isNewTab && !isSamePage && !isDownloadOrProtocol) {
                 setIsNavigating(true);
             }
         };
@@ -45,7 +68,7 @@ function LoaderContent() {
 
     return (
         <>
-            {/* Capa de bloqueo invisible — captura clicks sin oscurecer la UI */}
+            {/* Capa de bloqueo invisible */}
             <div
                 aria-hidden="true"
                 style={{

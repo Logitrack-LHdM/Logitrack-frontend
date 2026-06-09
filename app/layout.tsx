@@ -7,13 +7,25 @@ import 'leaflet/dist/leaflet.css';
 import './globals.css'
 import { NavigationLoader } from '@/components/layout/navigation-loader'
 
-const _geist = Geist({ subsets: ["latin"] });
-const _geistMono = Geist_Mono({ subsets: ["latin"] });
+// 1. Configuramos las fuentes con variables CSS para Tailwind
+const geist = Geist({
+  subsets: ["latin"], variable: '--font-geist'
+});
 
+const geistMono = Geist_Mono({
+  subsets: ["latin"],
+  variable: '--font-geist-mono'
+});
+
+// 2. Metadata robusta para SEO y Open Graph
 export const metadata: Metadata = {
-  title: 'LogiTrack Agro',
-  description: 'Sistema de gestion logistica para el sector agropecuario',
-  generator: 'v0.app',
+  title: {
+    template: '%s | LogiTrack Agro',
+    default: 'LogiTrack Agro',
+  },
+  description: 'Sistema integral de gestión, envíos y trazabilidad logística para el sector agropecuario.',
+  applicationName: 'LogiTrack Agro',
+  generator: 'Next.js',
   icons: {
     icon: [
       {
@@ -31,12 +43,26 @@ export const metadata: Metadata = {
     ],
     apple: '/apple-icon.png',
   },
+  openGraph: {
+    title: 'LogiTrack Agro',
+    description: 'Sistema integral de gestión logística.',
+    url: 'https://logitrackagro.vercel.app',
+    siteName: 'LogiTrack Agro',
+    locale: 'es_AR',
+    type: 'website',
+  },
 }
 
+// 3. Viewport separado (Requisito de Next.js 14+)
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  themeColor: '#1b4332',
+  maximumScale: 1,
+  // Integramos tu color institucional (#1b4332)
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
+    { media: '(prefers-color-scheme: dark)', color: '#1b4332' },
+  ],
 }
 
 export default function RootLayout({
@@ -45,7 +71,8 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="es" className="bg-background">
+    // 4. Inyectamos las variables de las fuentes en el <html>
+    <html lang="es" className={`${geist.variable} ${geistMono.variable} bg-background`}>
       <body className="font-sans antialiased min-h-screen">
         <AuthProvider>
           <NavigationLoader /> {/* <-- Se inyecta aquí, disponible en toda la app */}

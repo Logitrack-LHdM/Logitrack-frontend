@@ -76,7 +76,8 @@ export default function LoginPage() {
                 <Wheat className="h-10 w-10 text-white" />
               </div> */}
               <div className="relative w-[150px] h-[150px]">
-                <Image src="/images/logo-logitrack-150.png" alt="Logo" fill style={{ objectFit: 'contain' }} />
+                {/* Se agregó el atributo priority para resolver el LCP */}
+                <Image src="/images/logo-logitrack-150.png" alt="Logo Logitrack" fill style={{ objectFit: 'contain' }} priority />
               </div>
             </div>
 
