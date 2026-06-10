@@ -3,8 +3,31 @@ import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import { MensajeGlobalViaje } from '@/types/websockets';
 
-// Leemos la URL desde las variables de entorno o usamos la de la guía por defecto
-const SOCKET_URL = process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:8080/ws-logistica';
+// En hooks/use-websocket.ts
+
+// Generador dinámico de URL para blindar los entornos
+const getSocketUrl = () => {
+    const envUrl = process.env.NEXT_PUBLIC_WS_URL;
+
+    // Si estamos en Vercel (producción) y la URL por error dice http://, la forzamos a https://
+    if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
+        if (envUrl && envUrl.startsWith('http://')) {
+            return envUrl.replace('http://', 'https://');
+        }
+        // Si por alguna razón la variable está vacía en Vercel, pon tu URL de render aquí:
+        if (!envUrl) {
+            return 'https://logitrack-omv3.onrender.com/ws-logistica'; // REEMPLAZA ESTO
+        }
+    }
+
+    return envUrl || 'http://localhost:8080/ws-logistica';
+};
+
+const SOCKET_URL = getSocketUrl();
+console.log("🔗 URL del WebSocket que se va a usar:", SOCKET_URL); // Esto te dirá la verdad en DevTools
+
+// // Leemos la URL desde las variables de entorno o usamos la de la guía por defecto
+// const SOCKET_URL = process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:8080/ws-logistica';
 
 interface UseWebSocketProps {
     idUsuario?: number;
