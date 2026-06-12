@@ -150,9 +150,51 @@ export function AsignacionesTable() {
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <>
+      <div className="py-6 md:py-6">
+        <div className="flex items-center gap-3">
+          <div className="p-4 rounded-2xl bg-gradient-to-br from-[#1b4332] to-[#2d6a4f] text-white shadow-md group-hover:shadow-lg transition-shadow">
+            <Truck className="h-6 w-6" />
+          </div>
+          <div>
+            <h4 className="text-xl md:text-2xl font-bold text-gray-900 flex items-center gap-2 mb-1">
+              Asignación de Transporte
+            </h4>
+            <p className="text-muted-foreground text-sm">
+              Envíos pendientes de asignación de chofer y camión.
+              {envios.length > 0 && (
+                <span className="ml-2 font-semibold text-[#198754]">
+                  {envios.length} {envios.length === 1 ? 'envío pendiente' : 'envíos pendientes'}
+                </span>
+              )}
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* Encabezado de sección */}
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden mb-6">
-        <div className="bg-[#198754]/10 px-6 py-5 md:px-10 md:py-6 border-b border-[#198754]/25">
+        {/* <div className="bg-[#198754]/10 p-6 md:p-8 border-b border-[#198754]/25">
+          <div className="flex items-center gap-3">
+            <div className="p-4 rounded-2xl bg-gradient-to-br from-[#1b4332] to-[#2d6a4f] text-white shadow-md group-hover:shadow-lg transition-shadow">
+              <Truck className="h-6 w-6" />
+            </div>
+            <div>
+              <h4 className="text-xl md:text-2xl font-bold text-gray-900 flex items-center gap-2 mb-1">
+                Asignación de Transporte
+              </h4>
+              <p className="text-muted-foreground text-sm">
+                Envíos pendientes de asignación de chofer y camión.
+                {envios.length > 0 && (
+                  <span className="ml-2 font-semibold text-[#198754]">
+                    {envios.length} {envios.length === 1 ? 'envío pendiente' : 'envíos pendientes'}
+                  </span>
+                )}
+              </p>
+            </div>
+          </div>
+        </div> */}
+
+        {/* <div className="bg-[#198754]/10 px-6 py-5 md:px-10 md:py-6 border-b border-[#198754]/25">
           <h4 className="text-xl md:text-2xl font-bold text-gray-900 flex items-center gap-2 mb-1">
             <Truck className="h-6 w-6 text-[#198754]" /> Asignación de Transporte
           </h4>
@@ -164,7 +206,7 @@ export function AsignacionesTable() {
               </span>
             )}
           </p>
-        </div>
+        </div> */}
 
         {/* Estado vacío */}
         {envios.length === 0 ? (

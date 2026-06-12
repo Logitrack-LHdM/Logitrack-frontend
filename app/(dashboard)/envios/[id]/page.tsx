@@ -173,11 +173,16 @@ export default function DetalleEnvioPage({
         {/* Header Azul - Ficha Operativa */}
         <div className="bg-blue-600/10 px-6 py-5 md:px-8 md:py-6 border-b border-blue-600/20">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            <div>
-              <h4 className="font-bold mb-1 text-xl md:text-2xl flex items-center gap-2 text-gray-900">
-                <FileText className="text-blue-600 h-6 w-6" /> Ficha Operativa
-              </h4>
-              <p className="text-muted-foreground text-sm m-0">Detalles del transporte de carga.</p>
+            <div className="flex md:flex-row items-start md:items-center w-full md:w-auto gap-4">
+              <div className="p-4 rounded-2xl bg-blue-600 text-white shadow-md group-hover:shadow-lg transition-shadow">
+                <FileText className="h-7 w-7" />
+              </div>
+              <div>
+                <h4 className="font-bold mb-1 text-xl md:text-2xl flex items-center gap-2 text-gray-900">
+                  {/* <FileText className="text-blue-600 h-6 w-6" />  */} Ficha Operativa
+                </h4>
+                <p className="text-muted-foreground text-sm m-0">Detalles del transporte de carga.</p>
+              </div>
             </div>
             <div className="bg-white px-6 py-3 rounded-xl border shadow-sm text-center w-full md:w-auto">
               <span className="block text-[10px] text-muted-foreground font-bold uppercase tracking-wider mb-1">

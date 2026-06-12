@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowLeftCircle } from 'lucide-react';
+import { ArrowLeftCircle, Search } from 'lucide-react';
 import { SearchFilters } from '@/components/busqueda/search-filters';
 import { EnvioTable } from '@/components/envios/envio-table';
 import { Pagination } from '@/components/busqueda/pagination';
@@ -26,6 +26,18 @@ export default function BusquedaPage() {
       >
         <ArrowLeftCircle className="h-5 w-5" /> Volver al Panel
       </Link>
+
+       <div className="flex md:flex-row items-start md:items-center w-full md:w-auto gap-3 mb-6">
+        <div className="p-4 rounded-2xl bg-gradient-to-br from-[#1b4332] to-[#2d6a4f] text-white shadow-md group-hover:shadow-lg transition-shadow">
+          <Search className="h-7 w-7" />
+        </div>
+        <div>
+          <h4 className="font-bold mb-1 text-xl md:text-2xl flex items-center gap-2 text-gray-900">
+            {/* <FileText className="text-blue-600 h-6 w-6" />  */} Ficha Operativa
+          </h4>
+          <p className="text-muted-foreground text-sm m-0">Detalles del transporte de carga.</p>
+        </div>
+      </div>
 
       <SearchFilters
         query={filters.query}

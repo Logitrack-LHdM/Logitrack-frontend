@@ -16,6 +16,7 @@ interface SearchFiltersProps {
   onFechaChange: (value: string) => void;
   onSearch: () => void; onClear: () => void; isLoading?: boolean;
 }
+
 export function SearchFilters({
   query, estado, fecha, onQueryChange, onEstadoChange,
   onFechaChange, onSearch, onClear, isLoading,
@@ -28,18 +29,30 @@ export function SearchFilters({
   const hasFilters = Boolean(query || estado || fecha);
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border-0 p-6 md:p-8">
-      <div className="flex items-center gap-3 mb-2">
-        <div className="p-2 rounded-lg bg-gradient-to-br from-[#1b4332] to-[#2d6a4f] text-white shadow-md group-hover:shadow-lg transition-shadow">
+    <div className="bg-white rounded-2xl shadow-sm border-0 p-6 md:p-6">
+      {/* <div className="flex items-center gap-3 mb-2">
+        <div className="p-4 rounded-2xl bg-gradient-to-br from-[#1b4332] to-[#2d6a4f] text-white shadow-md group-hover:shadow-lg transition-shadow">
           <Search className="h-6 w-6" />
         </div>
         <h4 className="text-xl font-bold text-gray-900 m-0">Buscar Envío</h4>
       </div>
       <p className="text-muted-foreground text-sm mb-6 md:ml-14">
         Buscá por ID Interno, Código CTG, Empresa de Origen/Destino o Tipo de Grano.
-      </p>
+      </p> */}
 
-      <form onSubmit={handleSubmit} className="md:ml-14">
+      {/* <div className="flex md:flex-row items-start md:items-center w-full md:w-auto gap-3 mb-6">
+        <div className="p-4 rounded-2xl bg-gradient-to-br from-[#1b4332] to-[#2d6a4f] text-white shadow-md group-hover:shadow-lg transition-shadow">
+          <Search className="h-7 w-7" />
+        </div>
+        <div>
+          <h4 className="font-bold mb-1 text-xl md:text-2xl flex items-center gap-2 text-gray-900">
+            <FileText className="text-blue-600 h-6 w-6" />Ficha Operativa
+          </h4>
+          <p className="text-muted-foreground text-sm m-0">Detalles del transporte de carga.</p>
+        </div>
+      </div> */}
+
+      <form onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
           {/* Fila 1: Búsqueda */}
           <div className="md:col-span-12 space-y-1">
