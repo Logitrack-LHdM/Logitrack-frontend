@@ -26,6 +26,15 @@ export const metadata: Metadata = {
   description: 'Sistema integral de gestión, envíos y trazabilidad logística para el sector agropecuario.',
   applicationName: 'LogiTrack Agro',
   generator: 'Next.js',
+  manifest: '/manifest.json', // Vinculación del manifest
+  appleWebApp: { // Configuración nativa para dispositivos iOS
+    capable: true,
+    title: 'Logitrack',
+    statusBarStyle: 'default',
+  },
+  formatDetection: { // Evita que iOS convierta números y fechas aleatorias en links
+    telephone: false,
+  },
   icons: {
     icon: [
       {
@@ -54,6 +63,7 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
+  userScalable: false, // Crucial para PWA. Evita que la pantalla haga zoom cuando el chofer toca un input, dándole sensación de app nativa.
   // Integramos tu color institucional (#1b4332)
   themeColor: [
     { media: '(prefers-color-scheme: light)', color: '#ffffff' },
