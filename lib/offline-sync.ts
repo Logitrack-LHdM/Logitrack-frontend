@@ -59,3 +59,46 @@ export async function removerAccionDeCola(id: string): Promise<void> {
         console.error(`[Offline Sync] Error al remover la acción ${id}:`, error);
     }
 }
+
+/**
+ * Función maestra que procesa toda la cola de acciones pendientes.
+ * Iterará sobre cada acción, intentará enviarla al backend y, si tiene éxito,
+ * la eliminará de la base de datos local.
+ */
+export async function procesarColaOffline(): Promise<void> {
+    // 1. Obtenemos todas las acciones pendientes
+    const pendientes = await obtenerColaPendiente();
+
+    if (pendientes.length === 0) {
+        return; // No hay nada que sincronizar
+    }
+
+    console.log(`[Offline Sync] Iniciando sincronización de ${pendientes.length} acciones pendientes...`);
+
+    // 2. Iteramos sobre cada acción guardada
+    for (const accion of pendientes) {
+        try {
+            // Aquí evaluaremos el tipo de acción y llamaremos al endpoint correspondiente
+            // (Esta lógica de enrutamiento a la API la implementaremos en el Paso 4)
+            if (accion.tipo === 'CAMBIAR_ESTADO') {
+                // TODO: Llamar a api.cambiarEstadoChofer con accion.payload
+                console.log(`[Offline Sync] Procesando CAMBIAR_ESTADO para ID: ${accion.id}`);
+            } else if (accion.tipo === 'REPORTAR_INCIDENCIA') {
+                // TODO: Llamar a api.reportarIncidencia con accion.payload
+                console.log(`[Offline Sync] Procesando REPORTAR_INCIDENCIA para ID: ${accion.id}`);
+            }
+
+            // 3. IMPORTANTE: Solo si la petición al backend fue exitosa (no lanzó error en el try),
+            // procedemos a eliminar esta acción de la cola local para no repetirla.
+            // await removerAccionDeCola(accion.id);
+
+        } catch (error) {
+            // Si una petición falla (ej. el internet se volvió a caer en medio de la sincronización),
+            // atrapamos el error aquí para que el ciclo 'for' no se rompa y siga intentando
+            // con las demás acciones (o las deje pendientes para el próximo intento).
+            console.error(`[Offline Sync] Error al procesar la acción ${accion.id}:`, error);
+        }
+    }
+
+    console.log('[Offline Sync] Proceso de sincronización finalizado.');
+}
