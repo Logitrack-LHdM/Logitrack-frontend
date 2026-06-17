@@ -1,6 +1,6 @@
 {
     "name": "Logitrack Agro",
-    "short_name": "Logitrack",
+    "short_name": "Logitrack Agro",
     "description": "Sistema de gestión y seguimiento logístico para el sector agropecuario.",
     "start_url": "/mi-viaje",
     "display": "standalone",
