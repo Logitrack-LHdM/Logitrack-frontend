@@ -6,6 +6,7 @@ import { AuthProvider } from '@/contexts/auth-context'
 import 'leaflet/dist/leaflet.css';
 import './globals.css'
 import { NavigationLoader } from '@/components/layout/navigation-loader'
+import { ServiceWorkerRegister } from '@/components/layout/service-worker-register'
 
 // 1. Configuramos las fuentes con variables CSS para Tailwind
 const geist = Geist({
@@ -81,7 +82,8 @@ export default function RootLayout({
     <html lang="es" className={`${geist.variable} ${geistMono.variable} bg-background`}>
       <body className="font-sans antialiased min-h-screen">
         <AuthProvider>
-          <NavigationLoader /> {/* <-- Se inyecta aquí, disponible en toda la app */}
+          <ServiceWorkerRegister /> {/* Registra la PWA globalmente */}
+          <NavigationLoader />
           {children}
           <Toaster position="bottom-right" richColors />
         </AuthProvider>
