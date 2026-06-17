@@ -117,7 +117,7 @@ export default function MiViajePage() {
   const isCompleted = !flujo.siguiente;
 
   // Validamos que el viaje esté efectivamente en curso, excluyendo PENDIENTE y ENTREGADO/CANCELADO
-  const esViajeEnCurso = ['EN_TRANSITO', 'EN_PUNTO_DE_RECOLECCION', 'EN_REPARTO'].includes(viaje.estadoActual);
+  const esViajeEnCurso = ['EN_TRANSITO', 'EN_REPARTO'].includes(viaje.estadoActual);
 
   return (
     <div className="container mx-auto px-4 py-6">
