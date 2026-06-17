@@ -42,7 +42,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/a
 class ApiClient {
   private getToken(): string | null {
     if (typeof window === 'undefined') return null;
-    return sessionStorage.getItem('jwt');
+    return localStorage.getItem('jwt');
   }
 
   private async request<T>(
@@ -74,8 +74,8 @@ class ApiClient {
 
       // 2. Si el 401 viene de CUALQUIER otra ruta, el token expiró. Limpiamos y redirigimos.
       if (typeof window !== 'undefined') {
-        sessionStorage.removeItem('jwt');
-        sessionStorage.removeItem('usuario');
+        localStorage.removeItem('jwt');
+        localStorage.removeItem('usuario');
 
         // Evitamos recargar si, por algún motivo extraño, ya estamos en /login
         if (window.location.pathname !== '/login') {
