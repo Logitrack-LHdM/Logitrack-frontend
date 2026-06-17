@@ -1,7 +1,7 @@
 'use client';
 
 import { toast } from 'sonner';
-import { Loader2, Package, RefreshCw } from 'lucide-react';
+import { Loader2, Package, RefreshCw, GlobeX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import {
@@ -80,7 +80,16 @@ export default function MiViajePage() {
     return (
       <div className="w-full max-w-6xl mx-auto p-4 md:p-6 lg:py-8">
         <div className="text-center py-12">
-          <p className="text-destructive mb-4">{error}</p>
+          {/* <p className="text-destructive mb-4">{obtenerMensajeError(error)}</p> */}
+          <div className="p-6 bg-muted rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center">
+            <GlobeX className="h-12 w-12 text-muted-foreground" />
+          </div>
+          <h2 className="text-2xl font-semibold text-foreground mb-2">
+            Sin conexión
+          </h2>
+          <p className="text-muted-foreground mb-6">
+            No se pudo conectar con el servidor. Verifique su conexión o intente más tarde.
+          </p>
           <Button onClick={recargar} variant="outline">
             <RefreshCw className="mr-2 h-4 w-4" />
             Reintentar
@@ -117,7 +126,7 @@ export default function MiViajePage() {
   const isCompleted = !flujo.siguiente;
 
   // Validamos que el viaje esté efectivamente en curso, excluyendo PENDIENTE y ENTREGADO/CANCELADO
-  const esViajeEnCurso = ['EN_TRANSITO', 'EN_PUNTO_DE_RECOLECCION', 'EN_REPARTO'].includes(viaje.estadoActual);
+  const esViajeEnCurso = ['EN_TRANSITO', 'EN_REPARTO'].includes(viaje.estadoActual);
 
   return (
     <div className="container mx-auto px-4 py-6">

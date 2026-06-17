@@ -80,7 +80,8 @@ export default function RootLayout({
   return (
     // 4. Inyectamos las variables de las fuentes en el <html>
     <html lang="es" className={`${geist.variable} ${geistMono.variable} bg-background`}>
-      <body className="font-sans antialiased min-h-screen">
+      {/* Añadimos 'overscroll-y-none' para bloquear el pull-to-refresh nativo */}
+      <body className="font-sans antialiased min-h-screen overscroll-y-none">
         <AuthProvider>
           <ServiceWorkerRegister /> {/* Registra la PWA globalmente */}
           <NavigationLoader />

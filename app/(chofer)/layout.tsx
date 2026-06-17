@@ -49,11 +49,12 @@ export default function ChoferLayout({
 
     <div className="flex flex-col min-h-screen relative">
       {/* 1. Inyectamos el detector de red en la parte más alta */}
-      <NetworkStatus />
+
 
       {/* 2. El resto de tu estructura actual (Header, etc.) */}
       <Header />
       <main className="flex-1 bg-muted/20">
+        <NetworkStatus />
         {children}
       </main>
       <Footer />
