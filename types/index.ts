@@ -18,7 +18,7 @@ export type TipoGrano =
   | 'CEBADA'
   | 'AVENA';
 
-  export type TipoEmpresa =
+export type TipoEmpresa =
   | 'ACOPIO'
   | 'PUERTO'
   | 'PRODUCTOR'
@@ -27,7 +27,7 @@ export type TipoGrano =
   | 'COOPERATIVA'
   | 'PRODUCTORA'
   | 'OTRA';
-  
+
 export type RolUsuario =
   | 'ROLE_OPERADOR'
   | 'ROLE_SUPERVISOR'
@@ -170,7 +170,7 @@ export interface EnvioUpdateDTO {
 
 export interface IncidenciaDTO {
   tipoIncidencia: TipoIncidencia;
-  descripcion?: string; // Ahora es opcional según el Criterio 2
+  descripcion?: string;
 }
 
 export interface UsuarioResponseDTO {
@@ -281,4 +281,25 @@ export interface AlertaListadoDTO {
 export interface ResolverAlertaDTO {
   estado: 'RESUELTA';
   notasSupervisor?: string; // Opcional por si el supervisor quiere dejar registro de cómo se resolvió
+}
+
+// === PWA & OFFLINE SYNC ===
+
+export type TipoAccionOffline = 'CAMBIAR_ESTADO' | 'REPORTAR_INCIDENCIA';
+
+export interface PayloadCambioEstado {
+  idEnvio: string | number;
+  nuevoEstado: string; // O el tipo EstadoEnvio
+}
+
+export interface PayloadIncidencia {
+  idEnvio: string | number;
+  incidencia: IncidenciaDTO;
+}
+
+export interface AccionOffline {
+  id: string; // Identificador único (ej. crypto.randomUUID) para evitar duplicados
+  tipo: TipoAccionOffline;
+  payload: PayloadCambioEstado | PayloadIncidencia;
+  timestamp: number; // Fecha y hora exacta en la que el chofer presionó el botón en la ruta
 }

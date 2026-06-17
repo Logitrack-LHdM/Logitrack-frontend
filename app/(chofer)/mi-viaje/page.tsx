@@ -35,26 +35,36 @@ export default function MiViajePage() {
 
   const handleAvanzarEstado = async () => {
     try {
-      await avanzarEstado();
-      const flujo = viaje ? FLUJO_LOGISTICO[viaje.estadoActual] : null;
-      toast.success(flujo?.siguiente ? 'Estado actualizado' : 'Viaje completado');
+      const response = await avanzarEstado();
+
+      // Verificamos si la acción fue interceptada localmente
+      if (response && (response as any)._offlineQueued) {
+        toast.warning('Guardado sin conexión. Se sincronizará automáticamente');
+      } else {
+        const flujo = viaje ? FLUJO_LOGISTICO[viaje.estadoActual] : null;
+        toast.success(flujo?.siguiente ? 'Estado actualizado' : 'Viaje completado');
+      }
     } catch (err) {
       toast.error('Error al actualizar el estado');
     }
   };
 
-  // Cambiamos el parámetro 'descripcion: string' por 'datos: IncidenciaDTO'
   const handleReportarIncidencia = async (datos: IncidenciaDTO) => {
     try {
-      await reportarIncidencia(datos); // Pasamos el objeto completo al hook
-      toast.success('Incidencia reportada correctamente');
+      const response = await reportarIncidencia(datos);
 
-      // Recargamos los datos del viaje para sincronizar con el backend
-      await recargar();
-
+      // Verificamos si la acción fue interceptada localmente
+      if (response && (response as any)._offlineQueued) {
+        toast.warning('Guardado sin conexión. Se sincronizará automáticamente');
+      } else {
+        toast.success('Incidencia reportada correctamente');
+        // Solo recargamos si la petición fue real (online), ya que offline no hay datos nuevos que traer del servidor
+        await recargar();
+      }
     } catch (err) {
-      toast.error('Error al reportar la incidencia');
-      throw err; // Propagamos el error para que el Drawer no se cierre (lo veremos en el Paso 4.2)
+      const mensajeBackend = err instanceof Error ? err.message : 'Error inesperado';
+      toast.error('El envío de la incidencia falló', { description: mensajeBackend });
+      throw err;
     }
   };
 

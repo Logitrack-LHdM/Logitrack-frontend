@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/auth-context';
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 import { Spinner } from '@/components/ui/spinner';
+import { NetworkStatus } from '@/components/layout/network-status';
 
 export default function ChoferLayout({
   children,
@@ -40,9 +41,21 @@ export default function ChoferLayout({
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    // <div className="min-h-screen flex flex-col bg-background">
+    //   <Header />
+    //   <main className="flex-1">{children}</main>
+    //   <Footer />
+    // </div>
+
+    <div className="flex flex-col min-h-screen relative">
+      {/* 1. Inyectamos el detector de red en la parte más alta */}
+      <NetworkStatus />
+
+      {/* 2. El resto de tu estructura actual (Header, etc.) */}
       <Header />
-      <main className="flex-1">{children}</main>
+      <main className="flex-1 bg-muted/20">
+        {children}
+      </main>
       <Footer />
     </div>
   );
