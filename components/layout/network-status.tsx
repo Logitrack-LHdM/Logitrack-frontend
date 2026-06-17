@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { WifiOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNetwork } from '@/hooks/use-network';
+import { procesarColaOffline } from '@/lib/offline-sync';
 
 export function NetworkStatus() {
     const { isOnline } = useNetwork();
@@ -20,6 +21,11 @@ export function NetworkStatus() {
                 duration: 4000,
             });
             setWasOffline(false); // Reseteamos la memoria
+
+            // Disparamos la sincronización en segundo plano al recuperar la red
+            procesarColaOffline().catch(err =>
+                console.error('Error crítico en el proceso de sincronización en segundo plano:', err)
+            );
         }
     }, [isOnline, wasOffline]);
 

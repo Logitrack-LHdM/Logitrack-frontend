@@ -62,8 +62,6 @@ export async function removerAccionDeCola(id: string): Promise<void> {
 
 /**
  * Función maestra que procesa toda la cola de acciones pendientes.
- * Iterará sobre cada acción, intentará enviarla al backend y, si tiene éxito,
- * la eliminará de la base de datos local.
  */
 export async function procesarColaOffline(): Promise<void> {
     // 1. Obtenemos todas las acciones pendientes
@@ -75,28 +73,38 @@ export async function procesarColaOffline(): Promise<void> {
 
     console.log(`[Offline Sync] Iniciando sincronización de ${pendientes.length} acciones pendientes...`);
 
+    // Importación dinámica para evitar la dependencia circular con lib/api.ts
+    const { api } = await import('./api');
+
     // 2. Iteramos sobre cada acción guardada
     for (const accion of pendientes) {
         try {
             // Aquí evaluaremos el tipo de acción y llamaremos al endpoint correspondiente
             // (Esta lógica de enrutamiento a la API la implementaremos en el Paso 4)
             if (accion.tipo === 'CAMBIAR_ESTADO') {
-                // TODO: Llamar a api.cambiarEstadoChofer con accion.payload
-                console.log(`[Offline Sync] Procesando CAMBIAR_ESTADO para ID: ${accion.id}`);
+                const payload = accion.payload as PayloadCambioEstado;
+                // Pasamos `true` al final para forzar la red y evitar que se vuelva a interceptar
+                await api.cambiarEstadoChofer(payload.idEnvio, payload.nuevoEstado, true);
+                console.log(`[Offline Sync] Éxito: CAMBIAR_ESTADO para ID: ${accion.id}`);
+
             } else if (accion.tipo === 'REPORTAR_INCIDENCIA') {
-                // TODO: Llamar a api.reportarIncidencia con accion.payload
-                console.log(`[Offline Sync] Procesando REPORTAR_INCIDENCIA para ID: ${accion.id}`);
+                const payload = accion.payload as PayloadIncidencia;
+                await api.reportarIncidencia(payload.idEnvio, payload.incidencia, true);
+                console.log(`[Offline Sync] Éxito: REPORTAR_INCIDENCIA para ID: ${accion.id}`);
             }
 
+            // 3. Como la petición fue exitosa (no lanzó error), eliminamos la acción local
             // 3. IMPORTANTE: Solo si la petición al backend fue exitosa (no lanzó error en el try),
             // procedemos a eliminar esta acción de la cola local para no repetirla.
-            // await removerAccionDeCola(accion.id);
+            await removerAccionDeCola(accion.id);
 
         } catch (error) {
             // Si una petición falla (ej. el internet se volvió a caer en medio de la sincronización),
             // atrapamos el error aquí para que el ciclo 'for' no se rompa y siga intentando
             // con las demás acciones (o las deje pendientes para el próximo intento).
             console.error(`[Offline Sync] Error al procesar la acción ${accion.id}:`, error);
+            // Al fallar, el loop continúa pero NO se elimina de la base local, 
+            // asegurando que se reintente en el futuro.
         }
     }
 
