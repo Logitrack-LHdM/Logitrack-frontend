@@ -9,7 +9,9 @@ import {
   FileText,
   MapPin,
   MapPinOff,
-  ClipboardList
+  ClipboardList,
+  Loader2,
+  FileDown
 } from 'lucide-react';
 import { EstadoTimeline } from '@/components/envios/estado-timeline';
 import { HistorialTable } from '@/components/envios/historial-table';
@@ -31,6 +33,7 @@ import { normalizarEnum } from '@/lib/utils';
 import { MapaEnvio } from '@/components/envios/mapa-envio';
 // import { useProgresoEnvio } from '@/hooks/use-progress';
 import { useRastreoTiempoReal } from '@/hooks/use-rastreo-tiempo-real';
+import { api } from '@/lib/api';
 
 export default function DetalleEnvioPage({
   params,
@@ -51,6 +54,9 @@ export default function DetalleEnvioPage({
 
   const [nuevoEstado, setNuevoEstado] = useState<EstadoEnvio | ''>('');
   const [nuevaPrioridad, setNuevaPrioridad] = useState<Prioridad | ''>('');
+
+  // Estado para la exportación
+  const [isExporting, setIsExporting] = useState(false);
 
   // Sincronizar el estado local cuando se carga el envío
   useEffect(() => {
@@ -156,6 +162,41 @@ export default function DetalleEnvioPage({
       hour: '2-digit',
       minute: '2-digit'
     }).format(fecha).replace(',', ' -');
+  };
+
+  // Controlador del botón de exportación
+  const handleExport = async () => {
+    setIsExporting(true);
+    try {
+      const endpoint = `/envios/${id}/pdf-carta-porte`;
+
+      // 1. Llamas al endpoint real de Spring Boot (la URL dependerá de lo que defina el backend)
+      const blob = await api.descargarArchivo(endpoint);
+
+      // 2. Creas una URL temporal para el archivo recibido
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+
+      // 3. Fuerzas la descarga
+      link.setAttribute('download', `Carta_Porte_${envio.cpe}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+
+      // 4. Limpias el DOM
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      toast.success('¡Exportación exitosa!', {
+        description: `El archivo se descargó correctamente desde el servidor.`,
+      });
+    } catch (err) {
+      toast.error('Error al exportar', {
+        description: err instanceof Error ? err.message : 'El servidor no pudo generar el archivo. Por favor, intente nuevamente.',
+      });
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   return (
@@ -308,9 +349,36 @@ export default function DetalleEnvioPage({
 
 
           {/* Documentación y Transporte */}
-          <h6 className="font-bold text-[#198754] mb-4 border-b border-[#198754]/20 pb-2">
-            Documentación y Transporte
-          </h6>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-4 md:px-0">
+            <div className="w-full">
+              <h6 className="font-bold text-[#198754] mb-4 border-b border-[#198754]/20 pb-2">
+                Documentación y Transporte
+              </h6>
+            </div>
+            <div>
+              <Button
+                className="bg-[#1b4332] hover:bg-[#2d6a4f] text-white w-full sm:w-auto shadow-sm flex items-center justify-center gap-2 transition-colors disabled:opacity-80 disabled:cursor-not-allowed"
+                disabled={isExporting}
+                onClick={handleExport}
+              >
+                {isExporting ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <FileDown className="h-4 w-4" />
+                )}
+
+                {/* Texto para PC */}
+                <span className="hidden sm:inline">
+                  {isExporting ? 'Exportando...' : 'Descargar CPE'}
+                </span>
+
+                {/* Texto para Móviles */}
+                <span className="sm:hidden">
+                  {isExporting ? 'Exportando...' : 'Descargar CPE'}
+                </span>
+              </Button>
+            </div>
+          </div>
           <div className="grid md:grid-cols-2 gap-6 mb-10">
             <div>
               <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">
