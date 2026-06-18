@@ -67,14 +67,14 @@ export function CartaPorteModal({ idEnvio, open, onOpenChange }: CartaPorteModal
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md w-11/12 rounded-xl max-h-[85vh] flex flex-col p-0 overflow-hidden outline-none">
+      <DialogContent className="max-w-md w-11/12 rounded-xl max-h-[85vh] flex flex-col p-0 gap-0 overflow-hidden outline-none">
         <DialogHeader className="p-4 border-b bg-muted/50">
           <DialogTitle className="text-center text-lg font-bold uppercase tracking-wide">
             Carta de Porte
           </DialogTitle>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto bg-muted/10 p-4 flex flex-col items-center justify-center min-h-[300px]">
+        <div className="flex-1 overflow-y-auto bg-muted/10 p-2 flex flex-col items-center min-h-[300px]">
 
           {/* Estado: Cargando */}
           {isLoading && (
@@ -99,9 +99,9 @@ export function CartaPorteModal({ idEnvio, open, onOpenChange }: CartaPorteModal
               {/* CONTENEDOR DE ALTO CONTRASTE (AISLADO DEL MODO OSCURO) */}
               <div className="bg-white text-black w-full flex flex-col items-center p-8 rounded-xl shadow-sm border-2 border-gray-200">
 
-                <h3 className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-6 text-center">
+                {/* <h3 className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-6 text-center">
                   Documento Electrónico de Transporte
-                </h3>
+                </h3> */}
 
                 {/* Código QR */}
                 <div className="bg-white p-2 rounded-xl border-4 border-black">
@@ -115,10 +115,9 @@ export function CartaPorteModal({ idEnvio, open, onOpenChange }: CartaPorteModal
                   />
                 </div>
 
-                <p className="mt-6 text-sm font-medium text-gray-600 text-center">
+                {/* <p className="mt-6 text-sm font-medium text-gray-600 text-center">
                   Muestre esta pantalla al oficial de control
-                </p>
-
+                </p> */}
 
                 {/* Datos Legibles (Respaldo) */}
                 <div className="w-full mt-6 pt-6 border-t-2 border-gray-100 flex flex-col gap-4 text-left">
