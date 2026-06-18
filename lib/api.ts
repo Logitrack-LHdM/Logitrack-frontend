@@ -20,6 +20,7 @@ import type {
   RutaCamionResponse,
   AlertaListadoDTO,
   ClienteRequestDTO,
+  CartaPorteDTO,
 } from '@/types';
 
 // Agrega esta importación junto a las demás
@@ -192,6 +193,13 @@ class ApiClient {
 
   async getHistorialCompleto(): Promise<RegistroHistorial[]> {
     return this.request<RegistroHistorial[]>('/envios/historial-completo');
+  }
+
+  // === CARTA DE PORTE ===
+  async getCartaPorte(idEnvio: string): Promise<CartaPorteDTO> {
+    return this.request<CartaPorteDTO>(`/envios/${idEnvio}/carta-porte`, {
+      method: 'GET',
+    });
   }
 
   // === RASTREO TIEMPO REAL DE ENVIO===
