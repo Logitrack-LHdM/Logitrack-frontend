@@ -10,6 +10,8 @@ import {
 import { Loader2, AlertCircle } from 'lucide-react';
 import type { CartaPorteDTO } from '@/types';
 import { obtenerCartaPorteCache } from '@/lib/offline-sync';
+import { QRCodeSVG } from 'qrcode.react';
+import { generarPayloadQR } from '@/lib/qr-utils';
 
 interface CartaPorteModalProps {
   idEnvio: string;
@@ -90,14 +92,36 @@ export function CartaPorteModal({ idEnvio, open, onOpenChange }: CartaPorteModal
             </div>
           )}
 
-          {/* Estado: Éxito (Placeholder temporal para la Fase 3.2 y 3.3) */}
+          {/* Estado: Éxito (QR con Alto Contraste) */}
           {!isLoading && !error && cartaPorte && (
-            <div className="text-center space-y-2">
-              <div className="inline-flex items-center justify-center p-3 bg-green-100 text-green-700 rounded-full mb-2">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
+            <div className="flex flex-col items-center justify-center w-full">
+
+              {/* CONTENEDOR DE ALTO CONTRASTE (AISLADO DEL MODO OSCURO) */}
+              <div className="bg-white text-black w-full flex flex-col items-center p-8 rounded-xl shadow-sm border-2 border-gray-200">
+
+                <h3 className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-6 text-center">
+                  Documento Electrónico de Transporte
+                </h3>
+
+                {/* Código QR */}
+                <div className="bg-white p-2 rounded-xl border-4 border-black">
+                  <QRCodeSVG
+                    value={generarPayloadQR(cartaPorte)}
+                    size={240}
+                    bgColor="#ffffff"
+                    fgColor="#000000"
+                    level="L" // Nivel de corrección 'L' (Low) hace que los cuadros sean más grandes y fáciles de leer
+                    includeMargin={false}
+                  />
+                </div>
+
+                <p className="mt-6 text-sm font-medium text-gray-600 text-center">
+                  Muestre esta pantalla al oficial de control
+                </p>
+
+                {/* (Placeholder temporal para la Fase 3.3: Datos Legibles) */}
+
               </div>
-              <p className="text-foreground font-medium">Datos recuperados correctamente.</p>
-              <p className="text-sm text-muted-foreground">(El código QR se renderizará aquí en el siguiente paso)</p>
             </div>
           )}
 
