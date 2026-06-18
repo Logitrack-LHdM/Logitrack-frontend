@@ -168,6 +168,22 @@ export interface EnvioUpdateDTO {
   prioridadIa?: Prioridad;
 }
 
+export interface CartaPorteDTO {
+  idEnvio: string;
+  cpe: string;
+  autorizacionArca: string;
+  patenteCamion: string;
+  nombreChofer: string;
+  cuilChofer: string;
+  licenciaChofer: string;
+  // Usamos 'string' en lugar del type 'TipoGrano' porque el backend 
+  // está configurado para devolver "S/D" (Sin Datos) en caso de nulos.
+  tipoGrano: string;
+  pesoEstimadoKg: number;
+  origen: string;
+  destino: string;
+}
+
 export interface IncidenciaDTO {
   tipoIncidencia: TipoIncidencia;
   descripcion?: string;

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import type { EnvioChofer, IncidenciaDTO } from '@/types';
 import { api } from '@/lib/api';
 import { FLUJO_LOGISTICO } from '@/lib/constants';
+import { guardarCartaPorteCache } from '@/lib/offline-sync';
 
 interface UseViajeChoferState {
   viaje: EnvioChofer | null;
@@ -37,6 +38,25 @@ export function useViajeChofer() {
         isUpdating: false,
         error: null,
       });
+
+      // === DESCARGA SILENCIOSA EN SEGUNDO PLANO ===
+      if (viajeActivo) {
+        try {
+          // Intentamos obtener los datos legales desde el nuevo endpoint de backend
+          const cartaPorteData = await api.getCartaPorte(viajeActivo.idEnvio);
+
+          // Si la petición es exitosa, guardamos/actualizamos el caché en IndexedDB
+          await guardarCartaPorteCache(viajeActivo.idEnvio, cartaPorteData);
+
+          console.log(`[Cache Offline] Carta de porte guardada con éxito para el envío: ${viajeActivo.idEnvio}`);
+        } catch (cacheError) {
+          // Captura de error silenciosa: Si el endpoint falla o el chofer tiene una señal
+          // intermitente que corta esta petición secundaria, no bloqueamos la renderización 
+          // ni la experiencia principal del viaje activo.
+          console.warn('[Cache Offline] No se pudo precargar la carta de porte:', cacheError);
+        }
+      }
+
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Error al cargar viaje';
       setState((prev) => ({
