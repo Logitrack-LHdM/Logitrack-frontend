@@ -221,6 +221,13 @@ export default function MiViajePage() {
           </div>
         )}
       </div>
+
+      {/* MODAL CARTA DE PORTE QR (US 55) */}
+      <CartaPorteModal
+        idEnvio={viaje.idEnvio}
+        open={isQrModalOpen}
+        onOpenChange={setIsQrModalOpen}
+      />
     </div>
   );
 }
