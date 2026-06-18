@@ -1,7 +1,8 @@
 'use client';
 
+import { useState } from 'react';
 import { toast } from 'sonner';
-import { Loader2, Package, RefreshCw, GlobeX } from 'lucide-react';
+import { Loader2, Package, RefreshCw, GlobeX, QrCode } from 'lucide-react'
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import {
@@ -18,6 +19,7 @@ import {
 import { ViajeCard } from '@/components/chofer/viaje-card';
 import { ActionButton } from '@/components/chofer/action-button';
 import { IncidenciaDrawer } from '@/components/chofer/incidencia-drawer';
+import { CartaPorteModal } from '@/components/chofer/carta-porte-modal';
 import { useViajeChofer } from '@/hooks/use-viaje-chofer';
 import { FLUJO_LOGISTICO } from '@/lib/constants';
 import type { IncidenciaDTO } from '@/types';
@@ -32,6 +34,9 @@ export default function MiViajePage() {
     avanzarEstado,
     reportarIncidencia,
   } = useViajeChofer();
+
+  // Estado para controlar la visibilidad del modal de la Carta de Porte (US 55)
+  const [isQrModalOpen, setIsQrModalOpen] = useState(false);
 
   const handleAvanzarEstado = async () => {
     try {
