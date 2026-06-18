@@ -1,5 +1,6 @@
 import { get, set } from 'idb-keyval';
 import type { AccionOffline, TipoAccionOffline, PayloadCambioEstado, PayloadIncidencia } from '@/types';
+import type { CartaPorteDTO } from '@/types';
 
 // La clave bajo la cual guardaremos nuestra lista de acciones en IndexedDB
 const OFFLINE_QUEUE_KEY = 'logitrack_offline_queue';
@@ -109,4 +110,32 @@ export async function procesarColaOffline(): Promise<void> {
     }
 
     console.log('[Offline Sync] Proceso de sincronización finalizado.');
+}
+
+// === CACHÉ DE CARTA DE PORTE (IDB-KEYVAL) ===
+const CARTA_PORTE_PREFIX = 'logitrack_cartaporte_';
+
+/**
+ * Guarda o actualiza los datos de la Carta de Porte en IndexedDB
+ */
+export async function guardarCartaPorteCache(idEnvio: string, data: CartaPorteDTO): Promise<void> {
+    try {
+        // Usamos el idEnvio como parte de la llave para poder guardar múltiples viajes si fuera necesario
+        await set(`${CARTA_PORTE_PREFIX}${idEnvio}`, data);
+    } catch (error) {
+        console.error(`[Offline Sync] Error al guardar Carta de Porte para el envío ${idEnvio}:`, error);
+    }
+}
+
+/**
+ * Recupera los datos de la Carta de Porte desde IndexedDB (Modo Offline)
+ */
+export async function obtenerCartaPorteCache(idEnvio: string): Promise<CartaPorteDTO | null> {
+    try {
+        const data = await get<CartaPorteDTO>(`${CARTA_PORTE_PREFIX}${idEnvio}`);
+        return data || null;
+    } catch (error) {
+        console.error(`[Offline Sync] Error al leer Carta de Porte para el envío ${idEnvio}:`, error);
+        return null;
+    }
 }
