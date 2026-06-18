@@ -66,12 +66,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
 
-  // Cargar usuario desde sessionStorage al inicio
+  // Cargar usuario desde localStorage al inicio
   useEffect(() => {
     const cargarSesion = () => {
       try {
-        const token = sessionStorage.getItem('jwt');
-        const usuarioStr = sessionStorage.getItem('usuario');
+        const token = localStorage.getItem('jwt');
+        const usuarioStr = localStorage.getItem('usuario');
 
         if (token && usuarioStr) {
           const usuarioData = JSON.parse(usuarioStr) as Usuario;
@@ -81,8 +81,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       } catch (error) {
         console.error('Error cargando sesion:', error);
-        sessionStorage.removeItem('jwt');
-        sessionStorage.removeItem('usuario');
+        localStorage.removeItem('jwt');
+        localStorage.removeItem('usuario');
       } finally {
         setIsLoading(false);
       }
@@ -105,8 +105,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       pathname.startsWith('/asignaciones') ||
       pathname.startsWith('/auditoria');
 
-    // Verificar si hay sesion en sessionStorage (puede que el estado aun no se haya actualizado)
-    const tieneTokenEnStorage = typeof window !== 'undefined' && sessionStorage.getItem('jwt');
+    // Verificar si hay sesion en localStorage
+    const tieneTokenEnStorage = typeof window !== 'undefined' && localStorage.getItem('jwt');
 
     // Si no esta autenticado y no esta en ruta publica, redirigir a login
     // Pero solo si tampoco hay token en sessionStorage (para evitar loop durante navegacion)
@@ -174,8 +174,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         rol: rolNormalizado,
       };
 
-      sessionStorage.setItem('jwt', response.token);
-      sessionStorage.setItem('usuario', JSON.stringify(nuevoUsuario));
+      // Guardar en localStorage
+      localStorage.setItem('jwt', response.token);
+      localStorage.setItem('usuario', JSON.stringify(nuevoUsuario));
       setUsuario(nuevoUsuario);
 
       // Redirigir segun rol
@@ -191,8 +192,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const logout = useCallback(() => {
-    sessionStorage.removeItem('jwt');
-    sessionStorage.removeItem('usuario');
+    // Limpiar localStorage
+    localStorage.removeItem('jwt');
+    localStorage.removeItem('usuario');
     setUsuario(null);
     router.push('/login');
   }, [router]);

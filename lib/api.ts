@@ -33,6 +33,7 @@ import type {
 import { adaptarRutaParaLeaflet } from '@/lib/utils';
 import { RespuestaCumplimiento } from '@/types/cumplimiento';
 import { AlertaWebDTO } from '@/types/websockets';
+import { agregarAccionACola } from '@/lib/offline-sync';
 
 // Base URL de la API - usar variable de entorno en produccion
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
@@ -41,7 +42,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/a
 class ApiClient {
   private getToken(): string | null {
     if (typeof window === 'undefined') return null;
-    return sessionStorage.getItem('jwt');
+    return localStorage.getItem('jwt');
   }
 
   private async request<T>(
@@ -73,8 +74,8 @@ class ApiClient {
 
       // 2. Si el 401 viene de CUALQUIER otra ruta, el token expiró. Limpiamos y redirigimos.
       if (typeof window !== 'undefined') {
-        sessionStorage.removeItem('jwt');
-        sessionStorage.removeItem('usuario');
+        localStorage.removeItem('jwt');
+        localStorage.removeItem('usuario');
 
         // Evitamos recargar si, por algún motivo extraño, ya estamos en /login
         if (window.location.pathname !== '/login') {
@@ -227,21 +228,48 @@ class ApiClient {
     return this.request<EnvioChofer[]>('/chofer/envios');
   }
 
-  async cambiarEstadoChofer(id: string | number, nuevoEstado: string): Promise<Envio> {
+  async cambiarEstadoChofer(
+    id: string | number,
+    nuevoEstado: string,
+    forceNetwork: boolean = false // NUEVO: Bandera para la sincronización en segundo plano
+  ): Promise<Envio & { _offlineQueued?: boolean }> {
+
+    // Intercepción Offline
+    if (!forceNetwork && typeof navigator !== 'undefined' && !navigator.onLine) {
+      await agregarAccionACola('CAMBIAR_ESTADO', { idEnvio: id, nuevoEstado });
+
+      // Devolvemos una estructura mínima simulada para no romper la UI.
+      // La bandera '_offlineQueued' le indicará a nuestro hook de React (Fase 4.2)
+      // que la acción no llegó al backend, sino que se guardó localmente.
+      return {
+        idEnvio: id,
+        estadoActual: nuevoEstado as any,
+        _offlineQueued: true,
+      } as Envio & { _offlineQueued?: boolean };
+    }
+
     return this.request<Envio>(`/envios/${id}/estado?nuevoEstado=${nuevoEstado}`, {
       method: 'PATCH',
     });
   }
 
-  async reportarIncidencia(id: string | number, incidencia: IncidenciaDTO): Promise<void> {
-    // Código original para restaurar cuando el endpoint en Spring Boot esté listo:
+  async reportarIncidencia(
+    id: string | number,
+    incidencia: IncidenciaDTO,
+    forceNetwork: boolean = false
+  ): Promise<{ _offlineQueued?: boolean } | void> {
+
+    // Intercepción Offline
+    if (!forceNetwork && typeof navigator !== 'undefined' && !navigator.onLine) {
+      await agregarAccionACola('REPORTAR_INCIDENCIA', { idEnvio: id, incidencia });
+      return { _offlineQueued: true };
+    }
+
     return this.request<void>(`/envios/${id}/incidencias`, {
       method: 'POST',
       body: JSON.stringify(incidencia),
     });
-
   }
-
 
   // === CATALOGOS ===
   async getMetadatos(): Promise<MetadatosCatalogo> {

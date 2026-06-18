@@ -89,8 +89,11 @@ export function useViajeChofer() {
       setState((prev) => ({ ...prev, isUpdating: true }));
 
       try {
-        await api.reportarIncidencia(state.viaje!.idEnvio, datosIncidencia);
+        // Guardamos el resultado para saber si se encoló offline
+        const resultado = await api.reportarIncidencia(state.viaje.idEnvio, datosIncidencia);
         setState((prev) => ({ ...prev, isUpdating: false }));
+
+        return resultado; // <-- Retornamos el resultado para que la UI lo lea
       } catch (error) {
         setState((prev) => ({ ...prev, isUpdating: false }));
         throw error;

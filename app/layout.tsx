@@ -6,6 +6,7 @@ import { AuthProvider } from '@/contexts/auth-context'
 import 'leaflet/dist/leaflet.css';
 import './globals.css'
 import { NavigationLoader } from '@/components/layout/navigation-loader'
+import { ServiceWorkerRegister } from '@/components/layout/service-worker-register'
 
 // 1. Configuramos las fuentes con variables CSS para Tailwind
 const geist = Geist({
@@ -26,6 +27,15 @@ export const metadata: Metadata = {
   description: 'Sistema integral de gestión, envíos y trazabilidad logística para el sector agropecuario.',
   applicationName: 'LogiTrack Agro',
   generator: 'Next.js',
+  manifest: '/manifest.json', // Vinculación del manifest
+  appleWebApp: { // Configuración nativa para dispositivos iOS
+    capable: true,
+    title: 'Logitrack',
+    statusBarStyle: 'default',
+  },
+  formatDetection: { // Evita que iOS convierta números y fechas aleatorias en links
+    telephone: false,
+  },
   icons: {
     icon: [
       {
@@ -54,6 +64,7 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
+  userScalable: false, // Crucial para PWA. Evita que la pantalla haga zoom cuando el chofer toca un input, dándole sensación de app nativa.
   // Integramos tu color institucional (#1b4332)
   themeColor: [
     { media: '(prefers-color-scheme: light)', color: '#ffffff' },
@@ -69,9 +80,11 @@ export default function RootLayout({
   return (
     // 4. Inyectamos las variables de las fuentes en el <html>
     <html lang="es" className={`${geist.variable} ${geistMono.variable} bg-background`}>
-      <body className="font-sans antialiased min-h-screen">
+      {/* Añadimos 'overscroll-y-none' para bloquear el pull-to-refresh nativo */}
+      <body className="font-sans antialiased min-h-screen overscroll-y-none">
         <AuthProvider>
-          <NavigationLoader /> {/* <-- Se inyecta aquí, disponible en toda la app */}
+          <ServiceWorkerRegister /> {/* Registra la PWA globalmente */}
+          <NavigationLoader />
           {children}
           <Toaster position="bottom-right" richColors />
         </AuthProvider>
