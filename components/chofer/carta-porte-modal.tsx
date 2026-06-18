@@ -119,7 +119,33 @@ export function CartaPorteModal({ idEnvio, open, onOpenChange }: CartaPorteModal
                   Muestre esta pantalla al oficial de control
                 </p>
 
-                {/* (Placeholder temporal para la Fase 3.3: Datos Legibles) */}
+
+                {/* Datos Legibles (Respaldo) */}
+                <div className="w-full mt-6 pt-6 border-t-2 border-gray-100 flex flex-col gap-4 text-left">
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <InfoField label="NRO CPE / CTG" value={cartaPorte.cpe} highlight />
+                    <InfoField label="Patente" value={cartaPorte.patenteCamion} />
+                  </div>
+
+                  <InfoField
+                    label="Chofer"
+                    value={cartaPorte.nombreChofer}
+                    subValue={`CUIL: ${cartaPorte.cuilChofer} • Lic: ${cartaPorte.licenciaChofer}`}
+                  />
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <InfoField label="Tipo de Grano" value={cartaPorte.tipoGrano} />
+                    <InfoField label="Peso Estimado" value={`${cartaPorte.pesoEstimadoKg.toLocaleString('es-AR')} kg`} />
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-4">
+                    <InfoField label="Origen" value={cartaPorte.origen} />
+                    <InfoField label="Destino" value={cartaPorte.destino} />
+                  </div>
+
+                </div>
+
 
               </div>
             </div>
@@ -128,5 +154,34 @@ export function CartaPorteModal({ idEnvio, open, onOpenChange }: CartaPorteModal
         </div>
       </DialogContent>
     </Dialog>
+  );
+}
+
+// Subcomponente utilitario para mantener la limpieza del modal
+function InfoField({
+  label,
+  value,
+  subValue,
+  highlight
+}: {
+  label: string;
+  value: string;
+  subValue?: string;
+  highlight?: boolean;
+}) {
+  return (
+    <div className="flex flex-col">
+      <span className="text-[11px] font-bold uppercase text-gray-500 tracking-wider mb-1">
+        {label}
+      </span>
+      <span className={`text-sm ${highlight ? 'font-black text-black text-base' : 'font-semibold text-gray-800'}`}>
+        {value}
+      </span>
+      {subValue && (
+        <span className="text-xs font-medium text-gray-500 mt-0.5">
+          {subValue}
+        </span>
+      )}
+    </div>
   );
 }
