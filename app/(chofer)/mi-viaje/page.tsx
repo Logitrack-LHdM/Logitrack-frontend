@@ -182,13 +182,25 @@ export default function MiViajePage() {
               </AlertDialogContent>
             </AlertDialog>
 
+
+            {/* NUEVO BOTÓN: Carta de Porte QR (US 55) */}
+            <Button
+              variant="outline"
+              size="lg"
+              className="w-full border-2 border-[#1b4332] text-[#1b4332] hover:bg-[#1b4332] hover:text-white transition-all bg-white"
+              onClick={() => setIsQrModalOpen(true)}
+            >
+              <QrCode className="mr-2 h-5 w-5" />
+              Ver Carta de Porte
+            </Button>
+
             {/* Boton de incidencia */}
             <IncidenciaDrawer
               onSubmit={handleReportarIncidencia}
               isLoading={isUpdating}
-              disabled={!esViajeEnCurso} // NUEVO: Deshabilita si el viaje no está en curso
+              disabled={!esViajeEnCurso}// Deshabilita si el viaje no está en curso
             />
-            {/* NUEVO: Mensaje explicativo (Criterio 3) */}
+            {/* Mensaje explicativo*/}
             {!esViajeEnCurso && (
               <p className="text-xs text-muted-foreground text-center pt-1 px-2">
                 Solo se pueden reportar incidencias sobre viajes en curso.
