@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import type { EnvioChofer, IncidenciaDTO } from '@/types';
 import { api } from '@/lib/api';
 import { FLUJO_LOGISTICO } from '@/lib/constants';
-import { guardarCartaPorteCache } from '@/lib/offline-sync';
+import { guardarCartaPorteCache, guardarPdfCache } from '@/lib/offline-sync';
 
 interface UseViajeChoferState {
   viaje: EnvioChofer | null;
@@ -39,21 +39,30 @@ export function useViajeChofer() {
         error: null,
       });
 
-      // === DESCARGA SILENCIOSA EN SEGUNDO PLANO ===
+      // === DESCARGA SILENCIOSA EN SEGUNDO PLANO (DATOS + PDF OFFLINE) ===
       if (viajeActivo) {
         try {
-          // Intentamos obtener los datos legales desde el nuevo endpoint de backend
+          // 1. Precargamos los datos JSON de la Carta de Porte
           const cartaPorteData = await api.getCartaPorte(viajeActivo.idEnvio);
 
           // Si la petición es exitosa, guardamos/actualizamos el caché en IndexedDB
           await guardarCartaPorteCache(viajeActivo.idEnvio, cartaPorteData);
 
-          console.log(`[Cache Offline] Carta de porte guardada con éxito para el envío: ${viajeActivo.idEnvio}`);
+          // 2. Precargamos el archivo PDF físico
+          const pdfBlob = await api.descargarCartaPortePdf(viajeActivo.idEnvio);
+          await guardarPdfCache(viajeActivo.idEnvio, pdfBlob);
+
+          console.log(`[Cache Offline] Datos y PDF sincronizados con éxito para el viaje: ${viajeActivo.idEnvio}`);
         } catch (cacheError) {
           // Captura de error silenciosa: Si el endpoint falla o el chofer tiene una señal
           // intermitente que corta esta petición secundaria, no bloqueamos la renderización 
           // ni la experiencia principal del viaje activo.
-          console.warn('[Cache Offline] No se pudo precargar la carta de porte:', cacheError);
+
+          // Si algo falla (ej. el internet se corta a la mitad de la descarga del PDF),
+          // lo atrapamos en silencio para no romper la pantalla principal del viaje.
+
+          // console.warn('[Cache Offline] No se pudo precargar la carta de porte:', cacheError);
+          console.warn('[Cache Offline] Advertencia al precargar documentos:', cacheError);
         }
       }
 
