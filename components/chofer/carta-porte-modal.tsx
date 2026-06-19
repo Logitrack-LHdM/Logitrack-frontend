@@ -153,7 +153,7 @@ export function CartaPorteModal({ idEnvio, open, onOpenChange }: CartaPorteModal
                 <Button
                   onClick={handleDescargarPdf}
                   disabled={isDownloading}
-                  className="mt-6 w-full max-w-[240px] bg-black text-white hover:bg-gray-800 transition-colors"
+                  className="mt-6 w-full max-w-[240px] text-white bg-[#1b4332] hover:bg-[#2d6a4f]"
                 >
                   {isDownloading ? (
                     <>
@@ -171,23 +171,35 @@ export function CartaPorteModal({ idEnvio, open, onOpenChange }: CartaPorteModal
                 {/* Datos Legibles (Respaldo) */}
                 <div className="w-full mt-6 pt-6 border-t-2 border-gray-100 flex flex-col gap-4 text-left">
 
-                  <div className="grid grid-cols-2 gap-4">
+                  {/* Fila 1: ID Envío y Autorización ARCA */}
+                  <div className="grid grid-cols-2 gap-4 border-b border-gray-100 pb-3">
+                    <InfoField label="ID Viaje" value={cartaPorte.idEnvio} />
+                    <InfoField label="Auth. ARCA" value={cartaPorte.autorizacionArca} />
+                  </div>
+
+                  {/* Fila 2: CPE y Patente */}
+                  <div className="grid grid-cols-2 gap-4 border-b border-gray-100 pb-3">
                     <InfoField label="NRO CPE / CTG" value={cartaPorte.cpe} highlight />
                     <InfoField label="Patente" value={cartaPorte.patenteCamion} />
                   </div>
 
-                  <InfoField
-                    label="Chofer"
-                    value={cartaPorte.nombreChofer}
-                    subValue={`CUIL: ${cartaPorte.cuilChofer} • Lic: ${cartaPorte.licenciaChofer}`}
-                  />
+                  {/* Fila 3: Chofer (Agrupado) */}
+                  <div className="border-b border-gray-100 pb-3">
+                    <InfoField
+                      label="Chofer Asignado"
+                      value={cartaPorte.nombreChofer}
+                      subValue={`CUIL: ${cartaPorte.cuilChofer} • Licencia: ${cartaPorte.licenciaChofer}`}
+                    />
+                  </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  {/* Fila 4: Carga */}
+                  <div className="grid grid-cols-2 gap-4 border-b border-gray-100 pb-3">
                     <InfoField label="Tipo de Grano" value={cartaPorte.tipoGrano} />
                     <InfoField label="Peso Estimado" value={`${cartaPorte.pesoEstimadoKg.toLocaleString('es-AR')} kg`} />
                   </div>
 
-                  <div className="grid grid-cols-1 gap-4">
+                  {/* Fila 5: Ruta */}
+                  <div className="grid grid-cols-1 gap-3 pt-1">
                     <InfoField label="Origen" value={cartaPorte.origen} />
                     <InfoField label="Destino" value={cartaPorte.destino} />
                   </div>
