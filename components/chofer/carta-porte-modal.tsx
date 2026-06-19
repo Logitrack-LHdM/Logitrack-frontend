@@ -14,7 +14,7 @@ import { api } from '@/lib/api';
 import { QRCodeSVG } from 'qrcode.react';
 import { generarPayloadQR, generarUrlPdfCartaPorte } from '@/lib/qr-utils';
 import type { CartaPorteDTO } from '@/types';
-import { obtenerCartaPorteCache } from '@/lib/offline-sync';
+import { obtenerCartaPorteCache, obtenerPdfCache } from '@/lib/offline-sync';
 
 interface CartaPorteModalProps {
   idEnvio: string;
@@ -34,22 +34,35 @@ export function CartaPorteModal({ idEnvio, open, onOpenChange }: CartaPorteModal
 
     setIsDownloading(true);
     try {
-      const blob = await api.descargarCartaPortePdf(cartaPorte.idEnvio);
+      // 1. Intentamos obtener el PDF físico desde el caché local (Modo Offline)
+      let blob = await obtenerPdfCache(cartaPorte.idEnvio);
+
+      // 2. Si no está en caché (ej. el chofer limpió los datos de su navegador), 
+      // intentamos hacer la petición a la API como plan de respaldo (Modo Online)
+      if (!blob) {
+        console.warn('[Offline Sync] PDF no encontrado en caché, intentando descargar desde el servidor...');
+        blob = await api.descargarCartaPortePdf(cartaPorte.idEnvio);
+      }
+
+      // 3. Generamos la URL local para forzar la descarga en el dispositivo
       const url = window.URL.createObjectURL(blob);
 
       const a = document.createElement('a');
       a.href = url;
       // Asignamos un nombre por defecto al archivo descargado
-      a.download = `CartaPorte_${cartaPorte.cpe || cartaPorte.idEnvio}.pdf`;
+      a.download = `Carta_Porte_${cartaPorte.cpe || cartaPorte.idEnvio}.pdf`;
+
+      // Forzamos el click invisible para que inicie la descarga
       document.body.appendChild(a);
       a.click();
 
+      // 4. Limpieza de memoria
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
 
-      toast.success('Carta de Porte descargada exitosamente');
+      toast.success(blob.type ? 'Carta de Porte descargada exitosamente' : 'Descarga completada (desde caché)');
     } catch (err) {
-      toast.error('Error al descargar el PDF. Verifique su conexión o intente más tarde.');
+      toast.error('Error al descargar el PDF. El archivo no está guardado en el dispositivo y no hay conexión a internet.');
     } finally {
       setIsDownloading(false);
     }
