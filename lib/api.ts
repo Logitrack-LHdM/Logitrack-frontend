@@ -202,6 +202,11 @@ class ApiClient {
     });
   }
 
+  // Descarga del PDF de la Carta de Porte
+  async descargarCartaPortePdf(idEnvio: string): Promise<Blob> {
+    return this.descargarArchivo(`/envios/${idEnvio}/pdf-carta-porte`);
+  }
+
   // === RASTREO TIEMPO REAL DE ENVIO===
   /**
    * Obtiene la ruta completa planificada para un envío y la 
