@@ -10,7 +10,7 @@ export function EmptyState({ type }: EmptyStateProps) {
       <div className="bg-white rounded-2xl shadow-sm p-8 md:p-12 text-center border-0">
         <div className="py-6">
           <Truck className="h-16 w-16 mx-auto text-muted-foreground opacity-20 mb-4" strokeWidth={1.5} />
-          <h6 className="text-lg font-bold text-gray-900">Panel de Monitoreo</h6>
+          <h6 className="text-lg font-bold text-foreground">Panel de Monitoreo</h6>
           <p className="text-sm text-muted-foreground mt-1">
             Ingresa los parámetros arriba para localizar un envío.
           </p>

@@ -156,7 +156,7 @@ export function AsignacionesTable() {
             <Truck className="h-6 w-6" />
           </div>
           <div>
-            <h4 className="text-xl md:text-2xl font-bold text-gray-900 flex items-center gap-2 mb-1">
+            <h4 className="text-xl md:text-2xl font-bold text-foreground flex items-center gap-2 mb-1">
               Asignación de Transporte
             </h4>
             <p className="text-muted-foreground text-sm">
@@ -243,7 +243,7 @@ export function AsignacionesTable() {
                           {/* <span className="text-xs text-muted-foreground">CTG: {envio.trackingCtg}</span> */}
                         </TableCell>
                         <TableCell>
-                          <span className="font-medium text-gray-900 block">
+                          <span className="font-medium text-foreground block">
                             {envio.origen?.empresa?.razonSocial || 'Sin cliente'}
                           </span>
                           <span className="text-xs text-muted-foreground">
@@ -260,7 +260,7 @@ export function AsignacionesTable() {
                           </span>
                         </TableCell>
                         <TableCell>
-                          <span className="font-medium text-gray-900 block">
+                          <span className="font-medium text-foreground block">
                             {normalizarEnum(envio.tipoGrano)}
                           </span>
                           <span className="text-xs text-muted-foreground">{pesoTn} Tn</span>
@@ -303,7 +303,7 @@ export function AsignacionesTable() {
 
                     <div className="flex justify-between items-center border-b pb-2">
                       <span className="text-xs font-semibold text-muted-foreground uppercase">Cliente</span>
-                      <span className="font-medium text-gray-900 text-right">
+                      <span className="font-medium text-foreground text-right">
                         {envio.origen?.empresa?.razonSocial || '-'}
                       </span>
                     </div>
@@ -319,7 +319,7 @@ export function AsignacionesTable() {
                     <div className="flex justify-between items-center border-b pb-2">
                       <span className="text-xs font-semibold text-muted-foreground uppercase">Carga</span>
                       <div className="text-right">
-                        <span className="font-medium text-gray-900 block">{normalizarEnum(envio.tipoGrano)}</span>
+                        <span className="font-medium text-foreground block">{normalizarEnum(envio.tipoGrano)}</span>
                         <span className="text-xs text-muted-foreground">{pesoTn} Tn</span>
                       </div>
                     </div>
@@ -343,7 +343,7 @@ export function AsignacionesTable() {
       <Dialog open={!!envioSeleccionado} onOpenChange={(open) => !open && cerrarModal()}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-gray-900">
+            <DialogTitle className="flex items-center gap-2 text-foreground">
               {modoModal === 'reasignar' ? (
                 <RefreshCw className="h-5 w-5 text-blue-600" />
               ) : (

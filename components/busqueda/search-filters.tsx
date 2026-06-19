@@ -100,7 +100,7 @@ export function SearchFilters({
               variant="outline"
               onClick={onClear}
               disabled={!hasFilters}
-              className="h-11 px-3 border-0 shadow-sm bg-gray-100 hover:bg-red-50 hover:text-red-600 text-gray-500 transition-colors"
+              className="h-11 px-3 border-0 shadow-sm bg-background hover:bg-red-50 hover:text-red-600 text-gray-500 transition-colors"
               title="Limpiar filtros"
             >
               <Eraser className="h-5 w-5" />

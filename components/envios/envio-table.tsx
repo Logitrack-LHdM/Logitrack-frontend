@@ -76,13 +76,13 @@ export function EnvioTable({ envios, onCancelar }: EnvioTableProps) {
                     <span className="text-xs text-muted-foreground">CPE: {envio.cpe}</span>
                   </TableCell>
                   <TableCell>
-                    <span className="font-medium text-gray-900 block">{envio.origen?.empresa?.razonSocial || 'Sin cliente'}</span>
+                    <span className="font-medium text-foreground block">{envio.origen?.empresa?.razonSocial || 'Sin cliente'}</span>
                     <span className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
                       <MapPin className="h-3 w-3" /> {envio.destino?.nombreLugar || 'Destino pendiente'}
                     </span>
                   </TableCell>
                   <TableCell>
-                    <span className="font-medium text-gray-900 block">{normalizarEnum(envio.tipoGrano)}</span>
+                    <span className="font-medium text-foreground block">{normalizarEnum(envio.tipoGrano)}</span>
                     <span className="text-xs text-muted-foreground">{pesoTn} Tn</span>
                   </TableCell>
                   <TableCell>
@@ -163,7 +163,7 @@ export function EnvioTable({ envios, onCancelar }: EnvioTableProps) {
               <div className="flex justify-between items-center border-b pb-2">
                 <span className="text-xs font-semibold text-muted-foreground uppercase">Cliente</span>
                 <div className="text-right">
-                  <span className="font-medium text-gray-900 block">{envio.origen?.empresa?.razonSocial || '-'}</span>
+                  <span className="font-medium text-foreground block">{envio.origen?.empresa?.razonSocial || '-'}</span>
                   <span className="text-xs text-muted-foreground">{envio.destino?.nombreLugar || '-'}</span>
                 </div>
               </div>
@@ -171,7 +171,7 @@ export function EnvioTable({ envios, onCancelar }: EnvioTableProps) {
               <div className="flex justify-between items-center border-b pb-2">
                 <span className="text-xs font-semibold text-muted-foreground uppercase">Carga</span>
                 <div className="text-right">
-                  <span className="font-medium text-gray-900 block">{normalizarEnum(envio.tipoGrano)}</span>
+                  <span className="font-medium text-foreground block">{normalizarEnum(envio.tipoGrano)}</span>
                   <span className="text-xs text-muted-foreground">{pesoTn} Tn</span>
                 </div>
               </div>

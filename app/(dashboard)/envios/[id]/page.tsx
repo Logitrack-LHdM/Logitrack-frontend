@@ -219,7 +219,7 @@ export default function DetalleEnvioPage({
                 <FileText className="h-7 w-7" />
               </div>
               <div>
-                <h4 className="font-bold mb-1 text-xl md:text-2xl flex items-center gap-2 text-gray-900">
+                <h4 className="font-bold mb-1 text-xl md:text-2xl flex items-center gap-2 text-foreground">
                   {/* <FileText className="text-blue-600 h-6 w-6" />  */} Ficha Operativa
                 </h4>
                 <p className="text-muted-foreground text-sm m-0">Detalles del transporte de carga.</p>
@@ -250,7 +250,7 @@ export default function DetalleEnvioPage({
               <input
                 type="text"
                 disabled
-                className="w-full bg-transparent border-b border-dashed border-gray-300 pb-2 text-gray-700 font-medium outline-none"
+                className="w-full bg-transparent border-b border-dashed border-border pb-2 text-gray-700 font-medium outline-none"
                 value={envio.origen?.empresa?.razonSocial || "No especificado"}
               />
             </div>
@@ -267,7 +267,7 @@ export default function DetalleEnvioPage({
               </label>
               <input
                 disabled
-                className="w-full bg-transparent border-b border-dashed border-gray-300 pb-2 text-gray-700 font-medium outline-none"
+                className="w-full bg-transparent border-b border-dashed border-border pb-2 text-gray-700 font-medium outline-none"
                 value={envio.origen?.nombreLugar || "No especificado"}
               />
             </div>
@@ -277,7 +277,7 @@ export default function DetalleEnvioPage({
               </label>
               <input
                 disabled
-                className="w-full bg-transparent border-b border-dashed border-gray-300 pb-2 text-gray-700 font-medium outline-none"
+                className="w-full bg-transparent border-b border-dashed border-border pb-2 text-gray-700 font-medium outline-none"
                 value={envio.destino?.nombreLugar || "No especificado"}
               />
             </div>
@@ -289,7 +289,7 @@ export default function DetalleEnvioPage({
             <MapPin className="h-4 w-4" /> Mapa interactivo
           </h6>
           <div className="mb-10">
-            <div className="w-full h-[320px] md:h-[480px] bg-gray-50 border border-gray-100 rounded-2xl overflow-hidden shadow-sm relative">
+            <div className="w-full h-[320px] md:h-[480px] bg-background border border-gray-100 rounded-2xl overflow-hidden shadow-sm relative">
 
               {/* Evaluamos si tenemos la data geográfica completa */}
               {envio.origen?.latitud && envio.origen?.longitud && envio.destino?.latitud && envio.destino?.longitud ? (
@@ -330,7 +330,7 @@ export default function DetalleEnvioPage({
               </label>
               <input
                 disabled
-                className="w-full bg-transparent border-b border-dashed border-gray-300 pb-2 text-gray-700 font-medium outline-none"
+                className="w-full bg-transparent border-b border-dashed border-border pb-2 text-gray-700 font-medium outline-none"
                 value={pesoTn}
               />
             </div>
@@ -340,7 +340,7 @@ export default function DetalleEnvioPage({
               </label>
               <input
                 disabled
-                className="w-full bg-transparent border-b border-dashed border-gray-300 pb-2 text-gray-700 font-medium outline-none"
+                className="w-full bg-transparent border-b border-dashed border-border pb-2 text-gray-700 font-medium outline-none"
                 value={normalizarEnum(envio.tipoGrano) || "General"}
               />
             </div>
@@ -386,7 +386,7 @@ export default function DetalleEnvioPage({
               </label>
               <input
                 disabled
-                className="w-full bg-transparent border-b border-dashed border-gray-300 pb-2 text-gray-700 font-medium outline-none"
+                className="w-full bg-transparent border-b border-dashed border-border pb-2 text-gray-700 font-medium outline-none"
                 value={envio.cpe || 'No especificado'}
               />
             </div>
@@ -396,7 +396,7 @@ export default function DetalleEnvioPage({
               </label>
               <input
                 disabled
-                className="w-full bg-transparent border-b border-dashed border-gray-300 pb-2 text-gray-700 font-medium outline-none"
+                className="w-full bg-transparent border-b border-dashed border-border pb-2 text-gray-700 font-medium outline-none"
                 value={
                   envio.chofer
                     ? `${envio.chofer.personaAsociada.nombre} ${envio.chofer.personaAsociada.apellido}`
@@ -410,7 +410,7 @@ export default function DetalleEnvioPage({
               </label>
               <input
                 disabled
-                className="w-full bg-transparent border-b border-dashed border-gray-300 pb-2 text-gray-700 font-medium outline-none"
+                className="w-full bg-transparent border-b border-dashed border-border pb-2 text-gray-700 font-medium outline-none"
                 value={formatearHora(envio.fechaSalida)}
               />
             </div>
@@ -420,7 +420,7 @@ export default function DetalleEnvioPage({
               </label>
               <input
                 disabled
-                className="w-full bg-transparent border-b border-dashed border-gray-300 pb-2 text-gray-700 font-medium outline-none"
+                className="w-full bg-transparent border-b border-dashed border-border pb-2 text-gray-700 font-medium outline-none"
                 value={formatearHora(envio.fechaEstimadaLlegada)}
               />
             </div>
@@ -430,7 +430,7 @@ export default function DetalleEnvioPage({
               </label>
               <input
                 disabled
-                className="w-full bg-transparent border-b border-dashed border-gray-300 pb-2 text-gray-700 font-medium outline-none"
+                className="w-full bg-transparent border-b border-dashed border-border pb-2 text-gray-700 font-medium outline-none"
                 value={envio.distanciaKm ? `${envio.distanciaKm.toFixed(1)} km` : 'No disponible'}
               />
             </div>
@@ -554,7 +554,7 @@ export default function DetalleEnvioPage({
           {
             (permisos?.editarEstado || permisos?.editarPrioridad) && (
               <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-6 md:p-8 mb-10">
-                <h6 className="font-bold mb-5 text-lg flex items-center gap-2 text-gray-900">
+                <h6 className="font-bold mb-5 text-lg flex items-center gap-2 text-foreground">
                   <ClipboardList className="text-amber-500 h-6 w-6" /> Gestión Operativa
                 </h6>
 
@@ -617,7 +617,7 @@ export default function DetalleEnvioPage({
           }
 
           {/* Auditoría */}
-          <h6 className="font-bold text-gray-900 mb-4">Auditoría</h6>
+          <h6 className="font-bold text-foreground mb-4">Auditoría</h6>
           <div className="border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
             <HistorialTable historial={historial} />
           </div>

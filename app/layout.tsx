@@ -7,6 +7,7 @@ import 'leaflet/dist/leaflet.css';
 import './globals.css'
 import { NavigationLoader } from '@/components/layout/navigation-loader'
 import { ServiceWorkerRegister } from '@/components/layout/service-worker-register'
+import { ThemeProvider } from "@/components/theme-provider";
 
 // 1. Configuramos las fuentes con variables CSS para Tailwind
 const geist = Geist({
@@ -79,20 +80,26 @@ export default function RootLayout({
 }>) {
   return (
     // 4. Inyectamos las variables de las fuentes en el <html>
-    <html lang="es" className={`${geist.variable} ${geistMono.variable} bg-background`}>
+    <html lang="es" suppressHydrationWarning className={`${geist.variable} ${geistMono.variable}`}>
       {/* Añadimos 'overscroll-y-none' para bloquear el pull-to-refresh nativo */}
       <body className="font-sans antialiased min-h-screen overscroll-y-none">
-        <a href="#main-content" className="skip-to-content">
-          Saltar al contenido principal
-        </a>        
-        <AuthProvider>
-          <ServiceWorkerRegister /> {/* Registra la PWA globalmente */}
-          <NavigationLoader />
-          {children}
-          <Toaster position="bottom-right" richColors />
-        </AuthProvider>
-        {process.env.NODE_ENV === 'production' && <Analytics />}
-      </body>
+  <ThemeProvider
+    attribute="class"
+    defaultTheme="light"
+    enableSystem={false}
+  >
+    <a href="#main-content" className="skip-to-content">
+      Saltar al contenido principal
+    </a>
+
+    <AuthProvider>
+      <ServiceWorkerRegister />
+      <NavigationLoader />
+      {children}
+      <Toaster position="bottom-right" richColors />
+    </AuthProvider>
+  </ThemeProvider>
+</body>
     </html>
   )
 }
