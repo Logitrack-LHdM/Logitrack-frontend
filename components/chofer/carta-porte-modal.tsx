@@ -150,6 +150,24 @@ export function CartaPorteModal({ idEnvio, open, onOpenChange }: CartaPorteModal
                   Muestre esta pantalla al oficial de control
                 </p> */}
 
+                <Button
+                  onClick={handleDescargarPdf}
+                  disabled={isDownloading}
+                  className="mt-6 w-full max-w-[240px] bg-black text-white hover:bg-gray-800 transition-colors"
+                >
+                  {isDownloading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Descargando...
+                    </>
+                  ) : (
+                    <>
+                      <Download className="mr-2 h-4 w-4" />
+                      Descargar PDF
+                    </>
+                  )}
+                </Button>
+
                 {/* Datos Legibles (Respaldo) */}
                 <div className="w-full mt-6 pt-6 border-t-2 border-gray-100 flex flex-col gap-4 text-left">
 
