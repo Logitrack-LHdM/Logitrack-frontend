@@ -20,3 +20,14 @@ export function generarPayloadQR(cartaPorte: CartaPorteDTO): string {
     // Ej: {"cpe":"...","pat":"...","chf":"...","grn":"...","kg":30000,"dst":"..."}
     return JSON.stringify(payloadOptimizada);
 }
+
+/**
+ * Genera la URL absoluta para la descarga del PDF de la Carta de Porte.
+ * Esta URL es la que se inyectará en el Código QR.
+ */
+export function generarUrlPdfCartaPorte(idEnvio: string): string {
+    // Obtenemos la URL base de las variables de entorno, con un fallback para desarrollo local
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
+
+    return `${API_BASE_URL}/envios/${idEnvio}/pdf-carta-porte`;
+}
