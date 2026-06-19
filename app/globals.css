@@ -145,4 +145,56 @@
   body {
     @apply bg-background text-foreground;
   }
+ 
+  /* #416 Focus en todos los elementos interactivos */
+  :focus-visible {
+    outline: 3px solid var(--ring);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible,
+  [tabindex]:focus-visible {
+    outline: 3px solid var(--ring);
+    outline-offset: 2px;
+  }
+
+  .skip-to-content {
+    position: absolute;
+    left: -9999px;
+    top: auto;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    z-index: -999;
+  }
+  .skip-to-content:focus {
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    z-index: 9999;
+    background: var(--primary);
+    color: var(--primary-foreground);
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius);
+    font-weight: 600;
+    outline: 3px solid var(--ring);
+    outline-offset: 2px;
+  }
+
+  /* #415: Texto sobre fondos claros  */
+  .bg-purple-100 { color: #4c1d95 !important; }
+  .bg-blue-100   { color: #1e3a5f !important; }
+  .bg-teal-100   { color: #134e4a !important; }
+  .bg-orange-100 { color: #7c2d12 !important; }
+  .bg-green-100  { color: #14532d !important; }
+  .bg-red-100    { color: #7f1d1d !important; }
+  .bg-amber-100  { color: #78350f !important; }  
 }

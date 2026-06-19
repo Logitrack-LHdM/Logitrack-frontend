@@ -71,8 +71,15 @@ export function NotificationBell() {
                     variant="ghost"
                     size="icon"
                     className="relative text-white hover:bg-white/10 hover:text-white transition-colors"
+                    aria-label={
+                        cantidadNoLeidas > 0
+                            ? `Notificaciones: ${cantidadNoLeidas} sin leer`
+                            : 'Notificaciones: sin pendientes'
+                    }
+                    aria-haspopup="true"
+                    aria-expanded={isOpen}
                 >
-                    <Bell className="h-5 w-5" />
+                    <Bell className="h-5 w-5" aria-hidden="true" />
 
                     {/* Badge rojo dinámico */}
                     {cantidadNoLeidas > 0 && (
@@ -96,39 +103,44 @@ export function NotificationBell() {
                 </div>
 
                 {/* FASE 4.2: Listado de Alertas con Scroll */}
-                <ScrollArea className="h-[300px]">
+                <ScrollArea className="h-[300px]" aria-labelledby="notifications-title">
                     {alertas.length === 0 ? (
-                        <div className="p-6 text-center text-sm text-muted-foreground flex flex-col items-center gap-2">
-                            <Bell className="h-8 w-8 text-muted-foreground/50" />
+                        <div className="p-6 text-center text-sm text-muted-foreground flex flex-col items-center gap-2" role="status">
+                            <Bell className="h-8 w-8 text-muted-foreground/50" aria-hidden="true" />
                             <p>No tienes notificaciones pendientes</p>
                         </div>
                     ) : (
-                        <div className="flex flex-col">
+                        <ul className="flex flex-col" role="list" aria-live="polite" aria-label="Lista de notificaciones">
                             {alertas.map((alerta) => (
-                                <button
-                                    key={alerta.idAlertaWeb}
-                                    onClick={() => handleNotificacionClick(alerta.idAlertaWeb)}
-                                    className={`
-                    flex flex-col gap-1 p-4 border-b text-left transition-colors hover:bg-muted/50
+                                <li key={alerta.idAlertaWeb} role="listitem">
+                                    <button
+                                        onClick={() => handleNotificacionClick(alerta.idAlertaWeb)}
+                                        className={`
+                    flex flex-col gap-1 p-4 border-b text-left transition-colors hover:bg-muted/50 w-full
                     ${!alerta.leido ? 'bg-primary/5' : 'opacity-70'}
                   `}
-                                >
-                                    <div className="flex items-start justify-between gap-3 w-full">
-                                        <span className={`text-sm leading-snug ${!alerta.leido ? 'font-semibold text-foreground' : 'font-medium text-muted-foreground'}`}>
-                                            {alerta.mensaje}
-                                        </span>
+                                        aria-label={`${alerta.leido ? 'Notificación leída' : 'Notificación sin leer'}: ${alerta.mensaje}. ${formatearTiempoRelativo(alerta.fechaHora)}`}
+                                    >
+                                        <div className="flex items-start justify-between gap-3 w-full">
+                                            <span className={`text-sm leading-snug ${!alerta.leido ? 'font-semibold text-foreground' : 'font-medium text-muted-foreground'}`}>
+                                                {alerta.mensaje}
+                                            </span>
 
                                         {/* Indicador visual de "No leída" (Punto) */}
                                         {!alerta.leido && (
-                                            <span className={`flex h-2.5 w-2.5 mt-1 rounded-full flex-shrink-0 ${isOperador ? 'bg-blue-600' : 'bg-destructive'}`} />
-                                        )}
-                                    </div>
-                                    <span className="text-xs text-muted-foreground mt-1">
-                                        {formatearTiempoRelativo(alerta.fechaHora)}
-                                    </span>
-                                </button>
+                                                <span
+                                                    className={`flex h-2.5 w-2.5 mt-1 rounded-full flex-shrink-0 ${isOperador ? 'bg-blue-600' : 'bg-destructive'}`}
+                                                    aria-hidden="true"
+                                                />
+                                            )}
+                                        </div>
+                                        <span className="text-xs text-muted-foreground mt-1" aria-hidden="true">
+                                            {formatearTiempoRelativo(alerta.fechaHora)}
+                                        </span>
+                                    </button>
+                                </li>
                             ))}
-                        </div>
+                        </ul>
                     )}
                 </ScrollArea>
             </PopoverContent>

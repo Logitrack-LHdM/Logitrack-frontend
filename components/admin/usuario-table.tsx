@@ -117,8 +117,9 @@ export function UsuarioTable({ usuarios, onDesactivar, onEditar }: UsuarioTableP
                                                         size="sm"
                                                         className="text-amber-600 border-amber-400/40 hover:bg-amber-50 shadow-sm"
                                                         onClick={() => onEditar(usuario)}
+                                                        aria-label={`Editar usuario ${usuario.username}`}
                                                     >
-                                                        <Pencil className="h-4 w-4" />
+                                                        <Pencil className="h-4 w-4" aria-hidden="true" />
                                                     </Button>
                                                 </TooltipTrigger>
                                                 <TooltipContent>Editar usuario</TooltipContent>
@@ -132,8 +133,9 @@ export function UsuarioTable({ usuarios, onDesactivar, onEditar }: UsuarioTableP
                                                             size="sm"
                                                             className="text-red-500 border-red-300/40 hover:bg-red-50 shadow-sm"
                                                             onClick={() => setUsuarioADesactivar(usuario)}
+                                                            aria-label={`Desactivar acceso de ${usuario.username}`}
                                                         >
-                                                            <UserX className="h-4 w-4" />
+                                                            <UserX className="h-4 w-4" aria-hidden="true" />
                                                         </Button>
                                                     </TooltipTrigger>
                                                     <TooltipContent>Desactivar acceso</TooltipContent>

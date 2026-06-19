@@ -55,7 +55,7 @@ export function EnvioTable({ envios, onCancelar }: EnvioTableProps) {
     <>
       {/* Vista Desktop - 5 Columnas Originales */}
       <div className="hidden md:block overflow-x-auto">
-        <Table>
+        <Table aria-label="Listado de envíos">
           <TableHeader className="bg-muted/30">
             <TableRow className="hover:bg-transparent">
               <TableHead className="py-4 pl-6 font-semibold">ID Rastreo</TableHead>
@@ -95,8 +95,8 @@ export function EnvioTable({ envios, onCancelar }: EnvioTableProps) {
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <Button variant="outline" size="sm" className="text-[#198754] border-[#198754]/30 hover:bg-[#198754]/10 shadow-sm" asChild>
-                              <Link href={`/envios/${envio.idEnvio}`}>
-                                <Eye className="h-4 w-4" />
+                              <Link href={`/envios/${envio.idEnvio}`} aria-label={`Ver ficha del envío #${envio.idEnvio}`}>
+                                <Eye className="h-4 w-4" aria-hidden="true" />
                               </Link>
                             </Button>
                           </TooltipTrigger>
@@ -108,8 +108,8 @@ export function EnvioTable({ envios, onCancelar }: EnvioTableProps) {
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <Button variant="outline" size="sm" className="text-amber-600 border-amber-400/40 hover:bg-amber-50 shadow-sm" asChild>
-                                  <Link href={`/envios/${envio.idEnvio}/editar`}>
-                                    <Pencil className="h-4 w-4" />
+                                  <Link href={`/envios/${envio.idEnvio}/editar`} aria-label={`Editar envío #${envio.idEnvio}`}>
+                                    <Pencil className="h-4 w-4" aria-hidden="true" />
                                   </Link>
                                 </Button>
                                 {/* <Button variant="outline" size="sm" className="text-amber-600 border-amber-400/40 hover:bg-amber-50 shadow-sm">
