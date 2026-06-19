@@ -33,7 +33,7 @@ export default function AdminLayout({
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
       {/* Aquí a futuro podríamos integrar un Sidebar exclusivo de configuración */}
-      <main className="flex-1 bg-slate-50">{children}</main>
+      <main id="main-content" className="flex-1 bg-slate-50" tabIndex={-1}>{children}</main>
       <Footer />
     </div>
   );

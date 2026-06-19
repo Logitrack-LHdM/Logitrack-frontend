@@ -24,14 +24,15 @@ export function PageContainer({
   headerActions,
 }: PageContainerProps) {
   return (
-    <div className="container mx-auto px-4 py-6">
+    <main id="main-content" className="container mx-auto px-4 py-6" tabIndex={-1}>
       {/* Enlace volver */}
       {backHref && (
         <Link
           href={backHref as string as Route}
           className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4"
+          aria-label={`${backLabel} — volver a la página anterior`}
         >
-          <ArrowLeft className="h-4 w-4" />
+          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
           {backLabel}
         </Link>
       )}
@@ -39,11 +40,11 @@ export function PageContainer({
       {/* Card principal */}
       <Card className={cn('shadow-sm', className)}>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-          <CardTitle className="text-xl font-semibold">{title}</CardTitle>
+          <h1 className="text-xl font-semibold">{title}</h1>
           {headerActions}
         </CardHeader>
         <CardContent>{children}</CardContent>
       </Card>
-    </div>
+    </main>
   );
 }

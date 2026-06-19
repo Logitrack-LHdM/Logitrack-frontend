@@ -13,12 +13,12 @@
   --agro-light: #40916c;
 
   /* Estados de envio */
-  --status-pending: #6c757d;
-  --status-transit: #0d6efd;
-  --status-pickup: #fd7e14;
-  --status-delivery: #6f42c1;
-  --status-delivered: #198754;
-  --status-cancelled: #dc3545;
+  --status-pending: #5a6370;
+  --status-transit: #0a58ca;
+  --status-pickup: #c7620e;
+  --status-delivery: #59359a;
+  --status-delivered: #146c43;
+  --status-cancelled: #b02a37;
 
   /* Prioridades */
   --priority-high: #dc3545;
@@ -37,11 +37,11 @@
   --secondary: oklch(0.96 0.01 150);
   --secondary-foreground: oklch(0.25 0.05 150);
   --muted: oklch(0.96 0.01 150);
-  --muted-foreground: oklch(0.5 0.02 150);
+  --muted-foreground: oklch(0.42 0.02 150);
   --accent: oklch(0.92 0.02 150);
   --accent-foreground: oklch(0.25 0.05 150);
   --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.985 0 0);
   --border: oklch(0.9 0.01 150);
   --input: oklch(0.9 0.01 150);
   --ring: oklch(0.45 0.1 150);
@@ -145,4 +145,56 @@
   body {
     @apply bg-background text-foreground;
   }
+ 
+  /* #416 Focus en todos los elementos interactivos */
+  :focus-visible {
+    outline: 3px solid var(--ring);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible,
+  [tabindex]:focus-visible {
+    outline: 3px solid var(--ring);
+    outline-offset: 2px;
+  }
+
+  .skip-to-content {
+    position: absolute;
+    left: -9999px;
+    top: auto;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    z-index: -999;
+  }
+  .skip-to-content:focus {
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    z-index: 9999;
+    background: var(--primary);
+    color: var(--primary-foreground);
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius);
+    font-weight: 600;
+    outline: 3px solid var(--ring);
+    outline-offset: 2px;
+  }
+
+  /* #415: Texto sobre fondos claros  */
+  .bg-purple-100 { color: #4c1d95 !important; }
+  .bg-blue-100   { color: #1e3a5f !important; }
+  .bg-teal-100   { color: #134e4a !important; }
+  .bg-orange-100 { color: #7c2d12 !important; }
+  .bg-green-100  { color: #14532d !important; }
+  .bg-red-100    { color: #7f1d1d !important; }
+  .bg-amber-100  { color: #78350f !important; }  
 }
