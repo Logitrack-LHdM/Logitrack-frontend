@@ -62,12 +62,10 @@ export function EnvioForm({ modo = 'crear', envioInicial, envioId }: EnvioFormPr
       idDestino: esEdicion ? envioInicial?.destino?.idEstablecimiento ?? 0 : 0,
       tipoGrano: esEdicion ? envioInicial?.tipoGrano ?? '' : '',
       kgOrigen: esEdicion ? (envioInicial?.kgOrigen ?? 0) / 1000 : 0,
-      aceptaTerminos: esEdicion,
     },
   });
 
   const clienteCuit = watch('clienteCuit');
-  const aceptaTerminos = watch('aceptaTerminos');
 
   // Almacenamos el CUIT inicial/actual para comparar cambios reales de valor
   const prevCuitRef = useRef<string>(clienteCuit);
@@ -404,31 +402,6 @@ export function EnvioForm({ modo = 'crear', envioInicial, envioId }: EnvioFormPr
               </div>
             </div>
 
-            {/* Checkbox Legal (Réplica exacta de tu HTML) */}
-            <div className="bg-[#198754]/10 p-4 rounded-lg border border-[#198754]/25">
-              <Controller
-                name="aceptaTerminos"
-                control={control}
-                render={({ field }) => (
-                  <div className="flex items-center space-x-3">
-                    <Checkbox
-                      id="aceptaTerminos"
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                      className="data-[state=checked]:bg-[#198754] data-[state=checked]:border-[#198754]"
-                    />
-                    <label
-                      htmlFor="aceptaTerminos"
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                    >
-                      Acepta el tratamiento de los datos según la Ley 25.326.
-                    </label>
-                  </div>
-                )}
-              />
-              {errors.aceptaTerminos && <p className="text-xs text-destructive mt-2">{errors.aceptaTerminos.message}</p>}
-            </div>
-
             {/* Solo el botón de submit cambia el texto */}
             <div className="flex flex-col md:flex-row justify-end gap-4 pt-6 border-t">
               <Button
@@ -441,7 +414,7 @@ export function EnvioForm({ modo = 'crear', envioInicial, envioId }: EnvioFormPr
               </Button>
               <Button
                 type="submit"
-                disabled={isSubmitting || !aceptaTerminos}
+                disabled={isSubmitting}
                 className="px-10 h-11 font-bold text-white bg-gradient-to-r from-[#1b4332] to-[#2d6a4f] hover:from-[#2d6a4f] hover:to-[#40916c] border-none shadow-sm transition-all"
               >
                 {isSubmitting ? (

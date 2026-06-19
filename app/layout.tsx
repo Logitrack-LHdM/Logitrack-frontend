@@ -82,6 +82,9 @@ export default function RootLayout({
     <html lang="es" className={`${geist.variable} ${geistMono.variable} bg-background`}>
       {/* Añadimos 'overscroll-y-none' para bloquear el pull-to-refresh nativo */}
       <body className="font-sans antialiased min-h-screen overscroll-y-none">
+        <a href="#main-content" className="skip-to-content">
+          Saltar al contenido principal
+        </a>        
         <AuthProvider>
           <ServiceWorkerRegister /> {/* Registra la PWA globalmente */}
           <NavigationLoader />

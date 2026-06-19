@@ -52,7 +52,7 @@ export default function ChoferLayout({
       <div className="flex flex-col min-h-screen relative">
         {/* El resto de tu estructura actual (Header, etc.) */}
         <Header />
-        <main className="flex-1 bg-muted/20">
+        <main id="main-content" className="flex-1 bg-muted/20" tabIndex={-1}>
           {children}
         </main>
         <Footer />
