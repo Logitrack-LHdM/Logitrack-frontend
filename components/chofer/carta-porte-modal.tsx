@@ -7,11 +7,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Loader2, AlertCircle } from 'lucide-react';
+import { Loader2, AlertCircle, Download } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
+import { api } from '@/lib/api';
+import { QRCodeSVG } from 'qrcode.react';
+import { generarPayloadQR, generarUrlPdfCartaPorte } from '@/lib/qr-utils';
 import type { CartaPorteDTO } from '@/types';
 import { obtenerCartaPorteCache } from '@/lib/offline-sync';
-import { QRCodeSVG } from 'qrcode.react';
-import { generarPayloadQR } from '@/lib/qr-utils';
 
 interface CartaPorteModalProps {
   idEnvio: string;
@@ -23,6 +26,34 @@ export function CartaPorteModal({ idEnvio, open, onOpenChange }: CartaPorteModal
   const [cartaPorte, setCartaPorte] = useState<CartaPorteDTO | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const [isDownloading, setIsDownloading] = useState(false); // Nuevo estado
+
+  const handleDescargarPdf = async () => {
+    if (!cartaPorte) return;
+
+    setIsDownloading(true);
+    try {
+      const blob = await api.descargarCartaPortePdf(cartaPorte.idEnvio);
+      const url = window.URL.createObjectURL(blob);
+
+      const a = document.createElement('a');
+      a.href = url;
+      // Asignamos un nombre por defecto al archivo descargado
+      a.download = `CartaPorte_${cartaPorte.cpe || cartaPorte.idEnvio}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      toast.success('Carta de Porte descargada exitosamente');
+    } catch (err) {
+      toast.error('Error al descargar el PDF. Verifique su conexión o intente más tarde.');
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
   // Hook para cargar los datos desde el caché local cada vez que se abre el modal
   useEffect(() => {
@@ -106,11 +137,11 @@ export function CartaPorteModal({ idEnvio, open, onOpenChange }: CartaPorteModal
                 {/* Código QR */}
                 <div className="bg-white p-2 rounded-xl border-4 border-black">
                   <QRCodeSVG
-                    value={generarPayloadQR(cartaPorte)}
+                    value={generarUrlPdfCartaPorte(cartaPorte.idEnvio)} // Actualizado con la URL
                     size={240}
                     bgColor="#ffffff"
                     fgColor="#000000"
-                    level="L" // Nivel de corrección 'L' (Low) hace que los cuadros sean más grandes y fáciles de leer
+                    level="L"
                     includeMargin={false}
                   />
                 </div>
