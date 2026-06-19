@@ -103,14 +103,16 @@ export function IncidenciaDrawer({ onSubmit, isLoading, disabled }: IncidenciaDr
           </SheetDescription>
         </SheetHeader>
 
-        <div className="py-2 space-y-5 px-1">
+        <div className="py-2 space-y-5 px-1" role="form" aria-label="Formulario de reporte de incidencia">
           {/* Campo Tipo de Incidencia */}
           <div className="space-y-2 px-1">
             <Label htmlFor="tipo-incidencia" className="flex items-center gap-1 text-sm font-medium">
-              Tipo de incidencia <span className="text-destructive font-bold">*</span>
+              Tipo de incidencia{' '}
+              <span className="text-destructive font-bold" aria-hidden="true">*</span>
+              <span className="sr-only">(requerido)</span>
             </Label>
             <Select value={tipo} onValueChange={setTipo}>
-              <SelectTrigger id="tipo-incidencia" className="w-full bg-background transition-colors">
+              <SelectTrigger id="tipo-incidencia" className="w-full bg-background transition-colors" aria-required="true" aria-label="Tipo de incidencia (requerido)">
                 <SelectValue placeholder="Seleccione un motivo..." />
               </SelectTrigger>
               <SelectContent>

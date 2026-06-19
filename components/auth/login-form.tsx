@@ -140,17 +140,21 @@ export function LoginForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" aria-label="Formulario de inicio de sesión" noValidate>
       <div className="space-y-2">
         <Label htmlFor="username" className="text-foreground/80">
           Usuario
         </Label>
         <div className="relative">
-          <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+          <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" aria-hidden="true" />
           <Input
             id="username"
             type="text"
             placeholder="Ingrese su usuario"
+            autoComplete="username"
+            aria-required="true"
+            aria-invalid={!!errors.username}
+            aria-describedby={errors.username ? "username-error" : undefined}
             className={cn(
               "pl-10 h-12 bg-muted/50 border-0 focus-visible:ring-2",
               errors.username ? "ring-2 ring-destructive" : "focus-visible:ring-primary"
@@ -159,6 +163,11 @@ export function LoginForm() {
             disabled={isSubmitting}
           />
         </div>
+        {errors.username && (
+          <p id="username-error" role="alert" className="text-sm text-destructive font-medium">
+            {errors.username.message || 'El usuario es requerido'}
+          </p>
+        )}
       </div>
 
       <div className="space-y-2">
@@ -166,11 +175,15 @@ export function LoginForm() {
           Contraseña
         </Label>
         <div className="relative">
-          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" aria-hidden="true" />
           <Input
             id="password"
             type={showPassword ? 'text' : 'password'}
             placeholder="Ingrese su contraseña"
+            autoComplete="current-password"
+            aria-required="true"
+            aria-invalid={!!errors.password}
+            aria-describedby={errors.password ? "password-error" : undefined}
             className={cn(
               "pl-10 pr-10 h-12 bg-muted/50 border-0 focus-visible:ring-2",
               errors.password ? "ring-2 ring-destructive" : "focus-visible:ring-primary"
@@ -181,28 +194,33 @@ export function LoginForm() {
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-            tabIndex={-1}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring focus-visible:rounded"
+            aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+            aria-pressed={showPassword}
           >
-            {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+            {showPassword
+              ? <EyeOff className="h-5 w-5" aria-hidden="true" />
+              : <Eye className="h-5 w-5" aria-hidden="true" />
+            }
           </button>
         </div>
-        {/* {(errors.username || errors.password) && (
-          <p className="text-sm text-destructive font-medium">
-            Verifique sus credenciales e intente nuevamente.
+        {errors.password && (
+          <p id="password-error" role="alert" className="text-sm text-destructive font-medium">
+            {errors.password.message || 'La contraseña es requerida'}
           </p>
-        )} */}
+        )}
       </div>
 
       <Button
         type="submit"
         className="w-full h-12 text-base font-semibold bg-gradient-to-r from-[#1b4332] to-[#2d6a4f] hover:from-[#2d6a4f] hover:to-[#40916c] transition-all duration-300"
         disabled={isSubmitting || !camposCompletos}
+        aria-disabled={isSubmitting || !camposCompletos}
       >
         {isSubmitting ? (
           <>
-            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-            Autenticando...
+            <Loader2 className="mr-2 h-5 w-5 animate-spin" aria-hidden="true" />
+            <span>Autenticando...</span>
           </>
         ) : (
           'INGRESAR AL SISTEMA'

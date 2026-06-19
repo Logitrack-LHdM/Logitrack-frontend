@@ -139,3 +139,31 @@ export async function obtenerCartaPorteCache(idEnvio: string): Promise<CartaPort
         return null;
     }
 }
+
+// === CACHÉ DE CARTA DE PORTE (PDF BINARIO) ===
+const PDF_PREFIX = 'logitrack_pdf_';
+
+/**
+ * Guarda el archivo PDF físico (Blob) en IndexedDB para disponibilidad offline.
+ */
+export async function guardarPdfCache(idEnvio: string, pdfBlob: Blob): Promise<void> {
+    try {
+        await set(`${PDF_PREFIX}${idEnvio}`, pdfBlob);
+        console.log(`[Offline Sync] PDF guardado en caché para el envío ${idEnvio}`);
+    } catch (error) {
+        console.error(`[Offline Sync] Error al guardar PDF en caché para el envío ${idEnvio}:`, error);
+    }
+}
+
+/**
+ * Recupera el archivo PDF físico (Blob) desde IndexedDB (Modo Offline).
+ */
+export async function obtenerPdfCache(idEnvio: string): Promise<Blob | null> {
+    try {
+        const data = await get<Blob>(`${PDF_PREFIX}${idEnvio}`);
+        return data || null;
+    } catch (error) {
+        console.error(`[Offline Sync] Error al obtener PDF de caché para el envío ${idEnvio}:`, error);
+        return null;
+    }
+}
