@@ -1,10 +1,29 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
-import { MapPin } from 'lucide-react';
+import { MapPin, Search, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 export default function PublicTrackingPage() {
+    const [trackingId, setTrackingId] = useState('');
+    const [cuit, setCuit] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+
+    const handleSearch = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!trackingId || !cuit) return;
+
+        setIsLoading(true);
+        // Simulación temporal para visualizar el botón de carga.
+        // La conexión real con la API la haremos en la Fase 2.4.
+        setTimeout(() => {
+            setIsLoading(false);
+        }, 1000);
+    };
+
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4 sm:p-6 md:p-8">
 
@@ -36,15 +55,52 @@ export default function PublicTrackingPage() {
                 <div className="p-6 md:p-8">
                     {/* Skeletons como placeholders visuales mientras implementamos los inputs reales */}
                     <div className="space-y-5">
-                        <div className="space-y-2">
-                            <div className="h-4 w-24 bg-gray-200 rounded animate-pulse"></div>
-                            <div className="h-11 bg-gray-100 rounded-lg animate-pulse"></div>
-                        </div>
-                        <div className="space-y-2">
-                            <div className="h-4 w-16 bg-gray-200 rounded animate-pulse"></div>
-                            <div className="h-11 bg-gray-100 rounded-lg animate-pulse"></div>
-                        </div>
-                        <div className="h-11 w-full bg-[#1b4332]/20 rounded-lg animate-pulse mt-6"></div>
+                        <form onSubmit={handleSearch} className="space-y-5">
+                            <div className="space-y-2">
+                                <Label htmlFor="trackingId" className="text-gray-700 font-bold">Tracking ID</Label>
+                                <Input
+                                    id="trackingId"
+                                    placeholder="Ej: ENV-2026-089"
+                                    value={trackingId}
+                                    onChange={(e) => setTrackingId(e.target.value)}
+                                    disabled={isLoading}
+                                    className="h-11 bg-gray-50 border-gray-200 focus:bg-white transition-colors"
+                                    required
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="cuit" className="text-gray-700 font-bold">CUIT (Remitente/Destinatario)</Label>
+                                <Input
+                                    id="cuit"
+                                    placeholder="Ej: 30-12345678-9"
+                                    value={cuit}
+                                    onChange={(e) => setCuit(e.target.value)}
+                                    disabled={isLoading}
+                                    className="h-11 bg-gray-50 border-gray-200 focus:bg-white transition-colors"
+                                    required
+                                />
+                            </div>
+
+                            <div className="pt-2">
+                                <Button
+                                    type="submit"
+                                    disabled={isLoading || !trackingId || !cuit}
+                                    className="w-full h-11 bg-[#1b4332] hover:bg-[#2d6a4f] text-white font-bold transition-all shadow-md hover:shadow-lg"
+                                >
+                                    {isLoading ? (
+                                        <>
+                                            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                                            Buscando información...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Search className="mr-2 h-5 w-5" />
+                                            Rastrear Envío
+                                        </>
+                                    )}
+                                </Button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
