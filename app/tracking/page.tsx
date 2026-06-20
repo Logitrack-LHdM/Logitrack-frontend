@@ -61,15 +61,14 @@ export default function PublicTrackingPage() {
                 </p>
             </div>
 
-            {/* Tarjeta del Formulario (Contenedor para la Fase 2.3) */}
-            <div className="w-full max-w-md bg-white rounded-2xl shadow-lg shadow-gray-200/50 border border-gray-100 overflow-hidden">
-                {/* Línea decorativa superior */}
-                <div className="h-2 w-full bg-[#1b4332]"></div>
+            {/* Renderizado Condicional: Formulario vs Vista de Detalle */}
+            {!trackingData ? (
+                // === VISTA 1: FORMULARIO DE BÚSQUEDA ===
+                <div className="w-full max-w-md bg-white rounded-2xl shadow-lg shadow-gray-200/50 border border-gray-100 overflow-hidden">
+                    {/* Línea decorativa superior */}
+                    <div className="h-2 w-full bg-[#1b4332]"></div>
 
-                <div className="p-6 md:p-8">
-                    {/* Skeletons como placeholders visuales mientras implementamos los inputs reales */}
-                    <div className="space-y-5">
-
+                    <div className="p-6 md:p-8">
                         {/* Mensaje de Error de Privacidad */}
                         {error && (
                             <div className="mb-5 p-4 bg-red-50 border border-red-100 rounded-xl flex items-start gap-3 text-red-800 animate-in fade-in slide-in-from-top-2 duration-300">
@@ -126,7 +125,21 @@ export default function PublicTrackingPage() {
                         </form>
                     </div>
                 </div>
-            </div>
+            ) : (
+                // === VISTA 2: DETALLE DEL ENVÍO PÚBLICO (Esqueleto para las siguientes fases) ===
+                <div className="w-full max-w-4xl bg-white rounded-2xl shadow-lg shadow-gray-200/50 border border-gray-100 overflow-hidden animate-in fade-in zoom-in-95 duration-300">
+                    <div className="p-6 md:p-8 text-center">
+                        <h2 className="text-xl font-bold mb-4">Resultados encontrados para: {trackingData.trackingId}</h2>
+                        <Button
+                            variant="outline"
+                            onClick={() => setTrackingData(null)}
+                            className="border-gray-300"
+                        >
+                            Realizar nueva búsqueda
+                        </Button>
+                    </div>
+                </div>
+            )}
 
             {/* Footer minimalista público */}
             <div className="mt-10 text-center">
