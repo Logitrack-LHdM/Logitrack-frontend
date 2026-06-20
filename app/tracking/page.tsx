@@ -2,12 +2,13 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
-import { MapPin, Search, Loader2, AlertCircle } from 'lucide-react';
+import { MapPin, Search, Loader2, AlertCircle, ArrowLeft, Calendar, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { api } from '@/lib/api';
 import type { TrackingPublicoResponseDTO } from '@/types/tracking';
+import { formatearFechaHora } from '@/lib/utils';
 
 export default function PublicTrackingPage() {
     const [trackingId, setTrackingId] = useState('');
@@ -126,17 +127,83 @@ export default function PublicTrackingPage() {
                     </div>
                 </div>
             ) : (
-                // === VISTA 2: DETALLE DEL ENVÍO PÚBLICO (Esqueleto para las siguientes fases) ===
+                // === VISTA 2: DETALLE DEL ENVÍO PÚBLICO ===
                 <div className="w-full max-w-4xl bg-white rounded-2xl shadow-lg shadow-gray-200/50 border border-gray-100 overflow-hidden animate-in fade-in zoom-in-95 duration-300">
-                    <div className="p-6 md:p-8 text-center">
-                        <h2 className="text-xl font-bold mb-4">Resultados encontrados para: {trackingData.trackingId}</h2>
-                        <Button
-                            variant="outline"
-                            onClick={() => setTrackingData(null)}
-                            className="border-gray-300"
-                        >
-                            Realizar nueva búsqueda
-                        </Button>
+
+                    {/* Header Superior - Ficha Pública */}
+                    <div className="bg-blue-600/10 px-4 py-4 md:px-6 md:py-5 border-b border-blue-600/20 flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div className="flex items-center gap-3 md:gap-4 w-full sm:w-auto">
+                            <Button
+                                variant="ghost"
+                                onClick={() => setTrackingData(null)}
+                                className="text-blue-700 hover:text-blue-800 hover:bg-blue-600/20 px-2 md:px-3 h-9"
+                            >
+                                <ArrowLeft className="mr-1 md:mr-2 h-4 w-4 md:h-5 md:w-5" />
+                                <span className="hidden sm:inline">Volver</span>
+                            </Button>
+                            <h2 className="text-lg md:text-xl font-bold flex items-center text-gray-900 m-0">
+                                Seguimiento de Carga
+                            </h2>
+                        </div>
+                        <div className="bg-white px-4 md:px-5 py-2 rounded-xl border shadow-sm text-center w-full sm:w-auto">
+                            <span className="block text-[10px] text-muted-foreground font-bold uppercase tracking-wider mb-1">
+                                Tracking ID
+                            </span>
+                            <span className="font-extrabold text-lg md:text-xl text-blue-600 leading-none">
+                                {trackingData.trackingId}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div className="p-5 md:p-8">
+                        {/* Detalles del Viaje Sanitizados */}
+                        <h6 className="font-bold text-[#198754] mb-4 border-b border-[#198754]/20 pb-2">
+                            Detalles del Viaje
+                        </h6>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 md:gap-6 mb-8">
+                            <div>
+                                <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">
+                                    Origen
+                                </label>
+                                <div className="font-medium text-gray-900 break-words">
+                                    {trackingData.origenNombre}
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">
+                                    Destino
+                                </label>
+                                <div className="font-medium text-gray-900 break-words">
+                                    {trackingData.destinoNombre}
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1 mb-1">
+                                    <Calendar className="h-3 w-3" /> Fecha Creación
+                                </label>
+                                <div className="font-medium text-gray-900">
+                                    {formatearFechaHora(trackingData.fechaCreacion)}
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="text-[11px] font-bold text-blue-600 uppercase tracking-wider flex items-center gap-1 mb-1">
+                                    <Clock className="h-3 w-3" /> Tiempo Estimado (ETA)
+                                </label>
+                                <div className="font-bold text-blue-700">
+                                    {trackingData.eta ? formatearFechaHora(trackingData.eta) : 'A calcular...'}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Placeholder para las Fases 3.3 y 3.4 */}
+                        <div className="mt-8 p-8 border-2 border-dashed border-gray-200 rounded-2xl text-center text-muted-foreground">
+                            Línea de Tiempo y Mapa Interactivos irán aquí
+                        </div>
+
                     </div>
                 </div>
             )}
