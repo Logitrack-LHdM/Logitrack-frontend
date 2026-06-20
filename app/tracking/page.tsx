@@ -12,39 +12,24 @@ import { formatearFechaHora } from '@/lib/utils';
 import { EstadoTimeline } from '@/components/envios/estado-timeline';
 import { TruckStepper } from '@/components/envios/truck-stepper';
 import { MapaEnvio } from '@/components/envios/mapa-envio';
+import { useTrackingPublico } from '@/hooks/use-tracking-publico';
 
 export default function PublicTrackingPage() {
-    const [trackingId, setTrackingId] = useState('');
-    const [cuit, setCuit] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
-
-    const [error, setError] = useState<string | null>(null);
-    // Estado para almacenar los datos del envío si la búsqueda es exitosa
-    const [trackingData, setTrackingData] = useState<TrackingPublicoResponseDTO | null>(null);
-
-    const handleSearch = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!trackingId || !cuit) return;
-
-        setIsLoading(true);
-        setError(null); // Limpiamos errores previos
-
-        try {
-            const resultado = await api.consultarTrackingPublico({ trackingId, cuit });
-
-            // Guardamos el resultado en un estado para mostrar la Vista de Detalle.
-            setTrackingData(resultado);
-        } catch (err) {
-            // Manejo de errores de privacidad: Mostramos estrictamente el mensaje genérico.
-            setError(err instanceof Error ? err.message : 'No se encontró información para los datos ingresados');
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    // Consumimos toda la lógica directamente desde el hook
+    const {
+        trackingId,
+        cuit,
+        isLoading,
+        error,
+        trackingData,
+        setTrackingId,
+        setCuit,
+        handleSearch,
+        resetBusqueda // Lo usaremos en el botón "Volver"
+    } = useTrackingPublico();
 
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4 sm:p-6 md:p-8">
-
             {/* Header con Logotipo y Títulos */}
             <div className="mb-6 md:mb-8 text-center w-full max-w-md">
                 <div className="relative w-48 h-16 mx-auto mb-4">
@@ -138,7 +123,7 @@ export default function PublicTrackingPage() {
                         <div className="flex items-center gap-3 md:gap-4 w-full sm:w-auto">
                             <Button
                                 variant="ghost"
-                                onClick={() => setTrackingData(null)}
+                                onClick={resetBusqueda}
                                 className="text-blue-700 hover:text-blue-800 hover:bg-blue-600/20 px-2 md:px-3 h-9"
                             >
                                 <ArrowLeft className="mr-1 md:mr-2 h-4 w-4 md:h-5 md:w-5" />
