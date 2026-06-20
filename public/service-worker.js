@@ -1,16 +1,22 @@
 // Nombre de nuestro caché. Al cambiar este número (ej. v2), el navegador borrará el caché anterior.
 const CACHE_NAME = 'logitrack-cache-v1';
+const FALLBACK_HTML_URL = '/offline.html';
 
 // FASE 1: Instalación
 self.addEventListener('install', (event) => {
-    console.log('[Service Worker] Instalando nueva versión...');
+    // Obligamos al navegador a esperar a que esta promesa se cumpla antes de considerar instalado el Service Worker
+    event.waitUntil(
+        caches.open(CACHE_NAME).then((cache) => {
+            console.log('[Service Worker] Precargando pantalla de contingencia (offline.html)');
+            return cache.add(FALLBACK_HTML_URL);
+        })
+    );
 
-    // self.skipWaiting() fuerza a que este nuevo service worker se active inmediatamente,
-    // sin esperar a que el usuario cierre todas las pestañas de la aplicación.
+    // Fuerza al Service Worker a tomar el control inmediatamente sin esperar a que se cierren las pestañas
     self.skipWaiting();
 });
 
-// FASE 2: Activación y Limpieza
+// Activación y Limpieza
 self.addEventListener('activate', (event) => {
     console.log('[Service Worker] Activado y listo para interceptar red.');
 
@@ -33,7 +39,7 @@ self.addEventListener('activate', (event) => {
     event.waitUntil(self.clients.claim());
 });
 
-// FASE 3: Intercepción de Peticiones (Estrategia Network First con Fallback a Caché)
+// Intercepción de Peticiones (Estrategia Network First con Fallback a Caché)
 self.addEventListener('fetch', (event) => {
     const request = event.request;
 
