@@ -71,14 +71,23 @@ self.addEventListener('fetch', (event) => {
             })
             .catch(() => {
                 // Si el fetch falla (NO HAY INTERNET), buscamos en nuestro almacenamiento local
-                console.log(`[Service Worker] Modo Offline: Sirviendo desde caché -> ${request.url}`);
+                console.log(`[Service Worker] Modo Offline: Falló la red para -> ${request.url}`);
+
                 return caches.match(request).then((cachedResponse) => {
                     if (cachedResponse) {
                         return cachedResponse; // Devolvemos la vista/recurso guardado
                     }
 
-                    // Opcional: Si es una petición de navegación y no está en caché, 
-                    // aquí se podría devolver una página HTML offline predeterminada.
+                    // FASE 3: Intercepción de Navegación
+                    // Si la petición es de navegación (ej. un F5 o entrar a una ruta nueva)
+                    // y no está en caché, sacamos nuestra pantalla de contingencia de la bóveda.
+                    if (request.mode === 'navigate') {
+                        console.log('[Service Worker] Sirviendo pantalla de contingencia (offline.html)');
+                        return caches.match(FALLBACK_HTML_URL);
+                    }
+
+                    // Si es otro tipo de recurso (ej. una imagen que no está en caché), 
+                    // simplemente no devolvemos nada para no romper el hilo.
                 });
             })
     );
