@@ -117,27 +117,33 @@
         <div class="icon-wrapper">
             <svg class="icon-pulse" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="2" y1="2" x2="22" y2="22"></line>
+                <!-- Punto central de la señal -->
+                <path d="M12 20h.01"></path>
+                <!-- Onda inferior -->
                 <path d="M8.5 16.5a5 5 0 0 1 7 0"></path>
-                <path d="M2 8.82a15 15 0 0 1 4.17-2.65"></path>
-                <path d="M10.66 5c4.01-.36 8.14.9 11.34 3.82"></path>
+                <!-- Onda intermedia completa -->
+                <path d="M5 13a10 10 0 0 1 14 0"></path>
+                <!-- Onda superior externa completa -->
+                <path d="M1.5 9.5a15 15 0 0 1 21 0"></path>
+                <!-- Línea diagonal de bloqueo/apagado -->
+                <line x1="2" y1="2" x2="22" y2="22"></line>
             </svg>
         </div>
 
         <h1 class="title">Sin conexión a internet</h1>
 
         <p class="description">
-            Estás intentando acceder a una pantalla que no está guardada en tu dispositivo y actualmente no tienes
-            señal.
+            No se pudo conectar con el servidor. Verifique su conexión o intente más tarde.
         </p>
 
-        <a href="/mi-viaje" class="btn">
+        <a href="javascript:window.location.reload();" class="btn">
             <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                <polyline points="23 4 23 10 17 10"></polyline>
+                <polyline points="1 20 1 14 7 14"></polyline>
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
             </svg>
-            Volver a Mi Viaje
+            Reintentar
         </a>
     </div>
 
