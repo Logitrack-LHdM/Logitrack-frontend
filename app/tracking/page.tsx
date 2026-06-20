@@ -2,26 +2,40 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
-import { MapPin, Search, Loader2 } from 'lucide-react';
+import { MapPin, Search, Loader2, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { api } from '@/lib/api';
 
 export default function PublicTrackingPage() {
     const [trackingId, setTrackingId] = useState('');
     const [cuit, setCuit] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
-    const handleSearch = (e: React.FormEvent) => {
+    const [error, setError] = useState<string | null>(null);
+
+    const handleSearch = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!trackingId || !cuit) return;
 
         setIsLoading(true);
-        // Simulación temporal para visualizar el botón de carga.
-        // La conexión real con la API la haremos en la Fase 2.4.
-        setTimeout(() => {
+        setError(null); // Limpiamos errores previos
+
+        try {
+            const resultado = await api.consultarTrackingPublico({ trackingId, cuit });
+
+            // Por ahora lo mostramos en consola. 
+            // En el Paso 3, guardaremos este 'resultado' en un estado para mostrar la Vista de Detalle.
+            console.log('Datos obtenidos de forma segura:', resultado);
+
+        } catch (err) {
+            // Aplicamos el Criterio 2: Manejo de errores de privacidad.
+            // Mostramos estrictamente el mensaje genérico.
+            setError(err instanceof Error ? err.message : 'No se encontró información para los datos ingresados');
+        } finally {
             setIsLoading(false);
-        }, 1000);
+        }
     };
 
     return (
@@ -55,6 +69,15 @@ export default function PublicTrackingPage() {
                 <div className="p-6 md:p-8">
                     {/* Skeletons como placeholders visuales mientras implementamos los inputs reales */}
                     <div className="space-y-5">
+
+                        {/* Mensaje de Error de Privacidad */}
+                        {error && (
+                            <div className="mb-5 p-4 bg-red-50 border border-red-100 rounded-xl flex items-start gap-3 text-red-800 animate-in fade-in slide-in-from-top-2 duration-300">
+                                <AlertCircle className="h-5 w-5 text-red-600 shrink-0 mt-0.5" />
+                                <p className="text-sm font-medium leading-relaxed">{error}</p>
+                            </div>
+                        )}
+
                         <form onSubmit={handleSearch} className="space-y-5">
                             <div className="space-y-2">
                                 <Label htmlFor="trackingId" className="text-gray-700 font-bold">Tracking ID</Label>
