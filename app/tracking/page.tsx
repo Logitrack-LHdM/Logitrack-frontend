@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { api } from '@/lib/api';
+import type { TrackingPublicoResponseDTO } from '@/types/tracking';
 
 export default function PublicTrackingPage() {
     const [trackingId, setTrackingId] = useState('');
@@ -14,6 +15,8 @@ export default function PublicTrackingPage() {
     const [isLoading, setIsLoading] = useState(false);
 
     const [error, setError] = useState<string | null>(null);
+    // Estado para almacenar los datos del envío si la búsqueda es exitosa
+    const [trackingData, setTrackingData] = useState<TrackingPublicoResponseDTO | null>(null);
 
     const handleSearch = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -25,13 +28,10 @@ export default function PublicTrackingPage() {
         try {
             const resultado = await api.consultarTrackingPublico({ trackingId, cuit });
 
-            // Por ahora lo mostramos en consola. 
-            // En el Paso 3, guardaremos este 'resultado' en un estado para mostrar la Vista de Detalle.
-            console.log('Datos obtenidos de forma segura:', resultado);
-
+            // Guardamos el resultado en un estado para mostrar la Vista de Detalle.
+            setTrackingData(resultado);
         } catch (err) {
-            // Aplicamos el Criterio 2: Manejo de errores de privacidad.
-            // Mostramos estrictamente el mensaje genérico.
+            // Manejo de errores de privacidad: Mostramos estrictamente el mensaje genérico.
             setError(err instanceof Error ? err.message : 'No se encontró información para los datos ingresados');
         } finally {
             setIsLoading(false);
