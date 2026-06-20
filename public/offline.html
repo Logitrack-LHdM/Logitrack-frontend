@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sin conexión | LogiTrack Agro</title>
+    <style>
+        /* Estilos nativos blindados para funcionar sin internet (Traducción de tus clases Tailwind) */
+        body {
+            margin: 0;
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: #ffffff;
+            color: #09090b;
+        }
+
+        .container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        .icon-wrapper {
+            background-color: #f4f4f5;
+            padding: 1.5rem;
+            border-radius: 9999px;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .icon-pulse {
+            width: 3rem;
+            height: 3rem;
+            color: #71717a;
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        .title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-top: 0;
+            margin-bottom: 0.5rem;
+        }
+
+        .description {
+            color: #71717a;
+            max-width: 24rem;
+            margin-bottom: 2rem;
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            background: linear-gradient(to right, #1b4332, #2d6a4f);
+            color: #ffffff;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 1.125rem;
+            transition: opacity 0.2s;
+        }
+
+        .btn:active {
+            opacity: 0.8;
+        }
+
+        .btn-icon {
+            width: 1.25rem;
+            height: 1.25rem;
+            margin-right: 0.5rem;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: .5;
+            }
+        }
+
+        /* Soporte básico para Modo Oscuro nativo */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background-color: #09090b;
+                color: #fafafa;
+            }
+
+            .icon-wrapper {
+                background-color: #27272a;
+            }
+
+            .icon-pulse,
+            .description {
+                color: #a1a1aa;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="icon-wrapper">
+            <svg class="icon-pulse" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="2" y1="2" x2="22" y2="22"></line>
+                <path d="M8.5 16.5a5 5 0 0 1 7 0"></path>
+                <path d="M2 8.82a15 15 0 0 1 4.17-2.65"></path>
+                <path d="M10.66 5c4.01-.36 8.14.9 11.34 3.82"></path>
+            </svg>
+        </div>
+
+        <h1 class="title">Sin conexión a internet</h1>
+
+        <p class="description">
+            Estás intentando acceder a una pantalla que no está guardada en tu dispositivo y actualmente no tienes
+            señal.
+        </p>
+
+        <a href="/mi-viaje" class="btn">
+            <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+            Volver a Mi Viaje
+        </a>
+    </div>
+
+</body>
+
+</html>
