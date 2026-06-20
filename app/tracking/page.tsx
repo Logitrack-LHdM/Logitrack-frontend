@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
-import { MapPin, Search, Loader2, AlertCircle, ArrowLeft, Calendar, Clock } from 'lucide-react';
+import { MapPin, Search, Loader2, AlertCircle, ArrowLeft, Calendar, Clock, MapPinOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,6 +11,7 @@ import type { TrackingPublicoResponseDTO } from '@/types/tracking';
 import { formatearFechaHora } from '@/lib/utils';
 import { EstadoTimeline } from '@/components/envios/estado-timeline';
 import { TruckStepper } from '@/components/envios/truck-stepper';
+import { MapaEnvio } from '@/components/envios/mapa-envio';
 
 export default function PublicTrackingPage() {
     const [trackingId, setTrackingId] = useState('');
@@ -214,9 +215,33 @@ export default function PublicTrackingPage() {
                             </div>
                         </div>
 
-                        {/* Placeholder temporal para el Mapa (Fase 3.4) */}
-                        <div className="p-8 border-2 border-dashed border-gray-200 rounded-2xl text-center text-muted-foreground">
-                            El Mapa Interactivo irá aquí
+                        {/* Mapa Interactivo Restringido */}
+                        <h6 className="font-bold text-[#198754] mb-4 border-b border-[#198754]/20 pb-2 flex items-center gap-2">
+                            <MapPin className="h-4 w-4" /> Ubicación Aproximada
+                        </h6>
+                        <div className="mb-2">
+                            <div className="w-full h-[320px] md:h-[400px] bg-gray-50 border border-gray-100 rounded-2xl overflow-hidden shadow-sm relative">
+
+                                {trackingData.ubicacionActual ? (
+                                    <MapaEnvio
+                                        camionLat={trackingData.ubicacionActual.latitud}
+                                        camionLng={trackingData.ubicacionActual.longitud}
+                                        estadoActual={trackingData.estadoActual}
+                                    // INTENCIONAL: No pasamos coordenadas de origen, destino ni la ruta (polyline)
+                                    // De esta forma protegemos las ubicaciones exactas de los clientes.
+                                    />
+                                ) : (
+                                    /* Empty State: Cuando el viaje no inició o se perdió la señal */
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground p-6 text-center bg-gray-50/50">
+                                        <MapPinOff className="h-12 w-12 mb-4 opacity-20 text-gray-500" />
+                                        <p className="font-bold text-lg text-gray-700">Ubicación no disponible</p>
+                                        <p className="text-sm mt-1 max-w-sm">
+                                            El vehículo aún no ha iniciado el recorrido o no cuenta con señal en este momento.
+                                        </p>
+                                    </div>
+                                )}
+
+                            </div>
                         </div>
 
                     </div>
