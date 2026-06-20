@@ -25,7 +25,8 @@ export default function PublicTrackingPage() {
         setTrackingId,
         setCuit,
         handleSearch,
-        resetBusqueda // Lo usaremos en el botón "Volver"
+        resetBusqueda, // Lo usaremos en el botón "Volver"
+        inputRef
     } = useTrackingPublico();
 
     return (
@@ -71,6 +72,7 @@ export default function PublicTrackingPage() {
                                 <Label htmlFor="trackingId" className="text-gray-700 font-bold">Tracking ID</Label>
                                 <Input
                                     id="trackingId"
+                                    ref={inputRef}
                                     placeholder="Ej: ENV-2026-089"
                                     value={trackingId}
                                     onChange={(e) => setTrackingId(e.target.value)}

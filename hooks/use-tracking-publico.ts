@@ -1,5 +1,4 @@
-// hooks/use-tracking-publico.ts
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { api } from '@/lib/api';
 import type { TrackingPublicoResponseDTO } from '@/types/tracking';
 
@@ -10,6 +9,9 @@ export function useTrackingPublico() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [trackingData, setTrackingData] = useState<TrackingPublicoResponseDTO | null>(null);
+
+    // Referencia para el input del Tracking ID
+    const inputRef = useRef<HTMLInputElement>(null);
 
     const handleSearch = async (e?: React.FormEvent) => {
         if (e) e.preventDefault();
@@ -34,6 +36,14 @@ export function useTrackingPublico() {
         setTrackingId('');
         setCuit('');
         setError(null);
+
+        // Usamos setTimeout para esperar a que React re-renderice el DOM 
+        // (mostrando el formulario nuevamente) antes de intentar hacer focus.
+        setTimeout(() => {
+            if (inputRef.current) {
+                inputRef.current.focus();
+            }
+        }, 100);
     };
 
     return {
@@ -48,6 +58,7 @@ export function useTrackingPublico() {
         setCuit,
         // Acciones
         handleSearch,
-        resetBusqueda
+        resetBusqueda,
+        inputRef
     };
 }
