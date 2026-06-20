@@ -9,6 +9,8 @@ import { Label } from '@/components/ui/label';
 import { api } from '@/lib/api';
 import type { TrackingPublicoResponseDTO } from '@/types/tracking';
 import { formatearFechaHora } from '@/lib/utils';
+import { EstadoTimeline } from '@/components/envios/estado-timeline';
+import { TruckStepper } from '@/components/envios/truck-stepper';
 
 export default function PublicTrackingPage() {
     const [trackingId, setTrackingId] = useState('');
@@ -199,9 +201,22 @@ export default function PublicTrackingPage() {
                             </div>
                         </div>
 
-                        {/* Placeholder para las Fases 3.3 y 3.4 */}
-                        <div className="mt-8 p-8 border-2 border-dashed border-gray-200 rounded-2xl text-center text-muted-foreground">
-                            Línea de Tiempo y Mapa Interactivos irán aquí
+                        {/* Estado del Recorrido (Timeline y Progreso) */}
+                        <h6 className="font-bold text-[#198754] mb-6 border-b border-[#198754]/20 pb-2 mt-2">
+                            Estado del Recorrido
+                        </h6>
+                        <div className="mb-10">
+                            <EstadoTimeline estadoActual={trackingData.estadoActual} />
+
+                            <div className="mt-8">
+                                {/* El componente TruckStepper se encargará de renderizar el camión animado basándose en el estado sanitizado que recibió desde el backend */}
+                                <TruckStepper estadoActual={trackingData.estadoActual} />
+                            </div>
+                        </div>
+
+                        {/* Placeholder temporal para el Mapa (Fase 3.4) */}
+                        <div className="p-8 border-2 border-dashed border-gray-200 rounded-2xl text-center text-muted-foreground">
+                            El Mapa Interactivo irá aquí
                         </div>
 
                     </div>
