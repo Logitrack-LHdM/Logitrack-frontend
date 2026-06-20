@@ -1,16 +1,22 @@
 // Nombre de nuestro caché. Al cambiar este número (ej. v2), el navegador borrará el caché anterior.
 const CACHE_NAME = 'logitrack-cache-v1';
+const FALLBACK_HTML_URL = '/offline.html';
 
 // FASE 1: Instalación
 self.addEventListener('install', (event) => {
-    console.log('[Service Worker] Instalando nueva versión...');
+    // Obligamos al navegador a esperar a que esta promesa se cumpla antes de considerar instalado el Service Worker
+    event.waitUntil(
+        caches.open(CACHE_NAME).then((cache) => {
+            console.log('[Service Worker] Precargando pantalla de contingencia (offline.html)');
+            return cache.add(FALLBACK_HTML_URL);
+        })
+    );
 
-    // self.skipWaiting() fuerza a que este nuevo service worker se active inmediatamente,
-    // sin esperar a que el usuario cierre todas las pestañas de la aplicación.
+    // Fuerza al Service Worker a tomar el control inmediatamente sin esperar a que se cierren las pestañas
     self.skipWaiting();
 });
 
-// FASE 2: Activación y Limpieza
+// Activación y Limpieza
 self.addEventListener('activate', (event) => {
     console.log('[Service Worker] Activado y listo para interceptar red.');
 
@@ -33,7 +39,7 @@ self.addEventListener('activate', (event) => {
     event.waitUntil(self.clients.claim());
 });
 
-// FASE 3: Intercepción de Peticiones (Estrategia Network First con Fallback a Caché)
+// Intercepción de Peticiones (Estrategia Network First con Fallback a Caché)
 self.addEventListener('fetch', (event) => {
     const request = event.request;
 
@@ -65,14 +71,23 @@ self.addEventListener('fetch', (event) => {
             })
             .catch(() => {
                 // Si el fetch falla (NO HAY INTERNET), buscamos en nuestro almacenamiento local
-                console.log(`[Service Worker] Modo Offline: Sirviendo desde caché -> ${request.url}`);
+                console.log(`[Service Worker] Modo Offline: Falló la red para -> ${request.url}`);
+
                 return caches.match(request).then((cachedResponse) => {
                     if (cachedResponse) {
                         return cachedResponse; // Devolvemos la vista/recurso guardado
                     }
 
-                    // Opcional: Si es una petición de navegación y no está en caché, 
-                    // aquí se podría devolver una página HTML offline predeterminada.
+                    // FASE 3: Intercepción de Navegación
+                    // Si la petición es de navegación (ej. un F5 o entrar a una ruta nueva)
+                    // y no está en caché, sacamos nuestra pantalla de contingencia de la bóveda.
+                    if (request.mode === 'navigate') {
+                        console.log('[Service Worker] Sirviendo pantalla de contingencia (offline.html)');
+                        return caches.match(FALLBACK_HTML_URL);
+                    }
+
+                    // Si es otro tipo de recurso (ej. una imagen que no está en caché), 
+                    // simplemente no devolvemos nada para no romper el hilo.
                 });
             })
     );
