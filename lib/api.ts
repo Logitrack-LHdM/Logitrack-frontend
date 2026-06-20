@@ -229,6 +229,15 @@ class ApiClient {
     throw new Error('No se encontró información para los datos ingresados');
   }
 
+  // === PORTAL PÚBLICO DE SEGUIMIENTO ===
+  // async consultarTrackingPublico(data: TrackingPublicoRequestDTO): Promise<TrackingPublicoResponseDTO> {
+  //   // Hacemos un POST al endpoint público enviando el Tracking ID y el CUIT en el body
+  //   return this.request<TrackingPublicoResponseDTO>('/public/tracking/consulta', {
+  //     method: 'POST',
+  //     body: JSON.stringify(data),
+  //   });
+  // }
+
   // === RASTREO TIEMPO REAL DE ENVIO===
   /**
    * Obtiene la ruta completa planificada para un envío y la 
