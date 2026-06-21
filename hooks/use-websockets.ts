@@ -128,6 +128,24 @@ export const useWebSocket = ({ idUsuario, onMensajeGlobal, onAlertaPrivada, onAl
                     });
                     console.log(`🚨 Suscrito a /queue/alertas-${idUsuario} (Campana Privada)`);
                 }
+
+                // Suscripción exclusiva para el canal de fatiga (US 68)
+                if (onAlertaFatigaRef.current) {
+                    client.subscribe('/topic/alertas-supervisores', (mensaje) => {
+                        if (mensaje.body) {
+                            try {
+                                const data = JSON.parse(mensaje.body) as AlertaFatigaDTO;
+                                if (onAlertaFatigaRef.current) {
+                                    onAlertaFatigaRef.current(data);
+                                }
+                            } catch (error) {
+                                console.error("❌ Error al parsear alerta de fatiga:", error);
+                            }
+                        }
+                    });
+                    console.log('🚨 Suscrito a /topic/alertas-supervisores (Prevención de Fatiga)');
+                }
+
             },
             onStompError: (frame) => {
                 console.error('❌ Error STOMP:', frame.headers['message']);
