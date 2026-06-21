@@ -84,8 +84,9 @@ export default function RootLayout({
       <body className="font-sans antialiased min-h-screen overscroll-y-none">
         <a href="#main-content" className="skip-to-content">
           Saltar al contenido principal
-        </a>        
+        </a>
         <AuthProvider>
+          {/* Este es el motor de arranque de nuestro Service Worker manual */}
           <ServiceWorkerRegister /> {/* Registra la PWA globalmente */}
           <NavigationLoader />
           {children}
