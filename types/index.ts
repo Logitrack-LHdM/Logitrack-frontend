@@ -301,7 +301,8 @@ export interface ResolverAlertaDTO {
 
 // === PWA & OFFLINE SYNC ===
 
-export type TipoAccionOffline = 'CAMBIAR_ESTADO' | 'REPORTAR_INCIDENCIA';
+// 1. Agrega 'REGISTRAR_EVALUACION' a la unión
+export type TipoAccionOffline = 'CAMBIAR_ESTADO' | 'REPORTAR_INCIDENCIA' | 'REGISTRAR_EVALUACION';
 
 export interface PayloadCambioEstado {
   idEnvio: string | number;
@@ -313,10 +314,16 @@ export interface PayloadIncidencia {
   incidencia: IncidenciaDTO;
 }
 
+// 2. Agrega la nueva interfaz de payload (usando el DTO de la Fase 1)
+export interface PayloadEvaluacionFatiga {
+  dto: EvaluacionFatigaRequestDTO;
+}
+
+// 3. Añade el nuevo payload a la interfaz principal
 export interface AccionOffline {
   id: string; // Identificador único (ej. crypto.randomUUID) para evitar duplicados
   tipo: TipoAccionOffline;
-  payload: PayloadCambioEstado | PayloadIncidencia;
+  payload: PayloadCambioEstado | PayloadIncidencia | PayloadEvaluacionFatiga;
   timestamp: number; // Fecha y hora exacta en la que el chofer presionó el botón en la ruta
 }
 
