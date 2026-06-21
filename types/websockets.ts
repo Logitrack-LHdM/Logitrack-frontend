@@ -24,6 +24,7 @@ export interface AlertaWebDTO {
 
 // 3. Interfaz para la Alerta de Fatiga en tiempo real (US 68)
 export interface AlertaFatigaDTO {
+    idEvaluacion: number;
     idEnvio: string;
     nombreChofer: string;
     motivo: string;
