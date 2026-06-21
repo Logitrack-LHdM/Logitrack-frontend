@@ -59,7 +59,7 @@ export default function MiViajePage() {
     }
   };
 
-  // Esqueleto para procesar el test (Se completará en 4.3)
+  // Para procesar el test
   const handleTestCompletado = async (resultado: { tipoJuego: TipoJuego; tiempoReaccionMs: number }) => {
     if (!viaje || !usuario) return;
 
@@ -69,12 +69,18 @@ export default function MiViajePage() {
         idEnvio: viaje.idEnvio.toString(),
         tipoJuego: resultado.tipoJuego,
         tiempoReaccionMs: resultado.tiempoReaccionMs,
-        idChofer: usuario.username, // El backend mapeará este identificador
+        idChofer: usuario.username,
       });
 
       setMostrarTestFatiga(false);
 
-      if (response.aprobado) {
+      // BLOQUE DE VALIDACIÓN
+      if (response._offlineQueued) {
+        toast.warning('Sin conexión: Test de fatiga guardado localmente', {
+          description: 'El viaje iniciará ahora y el test se enviará cuando recuperes la señal.',
+        });
+        await handleAvanzarEstado();
+      } else if (response.aprobado) {
         toast.success('Test aprobado. ¡Buen viaje!', { description: response.mensaje });
         // Si aprueba, forzamos el avance de estado sin pasar por el Dialog
         await handleAvanzarEstado();
@@ -88,7 +94,7 @@ export default function MiViajePage() {
       setMostrarTestFatiga(false);
       // Aquí dejaremos el espacio preparado para el Paso 4.3 (Manejo Offline)
       toast.error('Error de conexión', {
-        description: 'No se pudo verificar el test de reflejos con el servidor.',
+        description: 'No se pudo procesar el test de reflejos.',
       });
     }
   };
