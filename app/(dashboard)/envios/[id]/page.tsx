@@ -35,10 +35,18 @@ import { MapaEnvio } from '@/components/envios/mapa-envio';
 // import { useProgresoEnvio } from '@/hooks/use-progress';
 import { useRastreoTiempoReal } from '@/hooks/use-rastreo-tiempo-real';
 import { api } from '@/lib/api';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+
+import type { AlertaFatigaDTO } from '@/types/websockets';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { AlertaFatigaDTO } from '@/types/websockets';
 
 export default function DetalleEnvioPage({
   params,
@@ -64,17 +72,18 @@ export default function DetalleEnvioPage({
   const [isExporting, setIsExporting] = useState(false);
 
   // =========================================================================
-  // PEGA ESTO: NUEVOS ESTADOS - FASE 5 (US 68)
+  // NUEVOS ESTADOS Y ESCUCHA DE EVENTOS LOCALES - FASE 5 (US 68)
   // =========================================================================
   const [alertaFatiga, setAlertaFatiga] = useState<AlertaFatigaDTO | null>(null);
   const [isFuerzaMayorModalOpen, setIsFuerzaMayorModalOpen] = useState(false);
   const [motivoFuerzaMayor, setMotivoFuerzaMayor] = useState('');
   const [isProcesandoFatiga, setIsProcesandoFatiga] = useState(false);
 
-  // Y asegúrate de que el useEffect también esté aquí adentro:
+  // Escuchamos el evento que emite useCampanaAlertas sin abrir otro WebSocket
   useEffect(() => {
     const handleFatigaWs = (e: Event) => {
       const customEvent = e as CustomEvent<AlertaFatigaDTO>;
+      // Validación estricta: atrapamos la alerta SOLO si pertenece a este envío
       if (customEvent.detail.idEnvio === id) {
         setAlertaFatiga(customEvent.detail);
       }
@@ -83,7 +92,7 @@ export default function DetalleEnvioPage({
     window.addEventListener('alerta-fatiga-ws', handleFatigaWs);
     return () => window.removeEventListener('alerta-fatiga-ws', handleFatigaWs);
   }, [id]);
-
+  // =========================================================================
 
   // Sincronizar el estado local cuando se carga el envío
   useEffect(() => {
