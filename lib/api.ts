@@ -514,7 +514,21 @@ class ApiClient {
    * Envía el identificador del envío, el tipo de juego, el tiempo en milisegundos y el ID del chofer[cite: 40].
    * @param dto Datos estructurados de la evaluación realizada en la PWA[cite: 40].
    */
-  async registrarEvaluacion(dto: EvaluacionFatigaRequestDTO): Promise<EvaluacionFatigaResponseDTO> {
+  async registrarEvaluacion(dto: EvaluacionFatigaRequestDTO, forceNetwork: boolean = false): Promise<EvaluacionFatigaResponseDTO & { _offlineQueued?: boolean }> {
+
+    // Intercepción Offline (Misma lógica que usas para incidencias)
+    if (!forceNetwork && typeof navigator !== 'undefined' && !navigator.onLine) {
+      await agregarAccionACola('REGISTRAR_EVALUACION', { dto });
+
+      // Aprobación optimista offline: destraba la UI para que inicie el viaje localmente
+      return {
+        idEvaluacion: 0,
+        aprobado: true,
+        mensaje: "Guardado localmente. Se sincronizará con el servidor.",
+        _offlineQueued: true,
+      };
+    }
+
     return this.request<EvaluacionFatigaResponseDTO>('/evaluaciones', {
       method: 'POST',
       body: JSON.stringify(dto),
