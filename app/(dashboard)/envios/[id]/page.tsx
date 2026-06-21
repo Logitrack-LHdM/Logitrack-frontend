@@ -11,7 +11,8 @@ import {
   MapPinOff,
   ClipboardList,
   Loader2,
-  FileDown
+  FileDown,
+  AlertTriangle
 } from 'lucide-react';
 import { EstadoTimeline } from '@/components/envios/estado-timeline';
 import { HistorialTable } from '@/components/envios/historial-table';
@@ -34,6 +35,10 @@ import { MapaEnvio } from '@/components/envios/mapa-envio';
 // import { useProgresoEnvio } from '@/hooks/use-progress';
 import { useRastreoTiempoReal } from '@/hooks/use-rastreo-tiempo-real';
 import { api } from '@/lib/api';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { AlertaFatigaDTO } from '@/types/websockets';
 
 export default function DetalleEnvioPage({
   params,
@@ -44,7 +49,7 @@ export default function DetalleEnvioPage({
   const { id } = use(params);
 
   // Pasamos el "id" directamente como string sin usar parseInt. Hook existente con los datos generales estáticos
-  const { envio, historial, isLoading, isUpdating, error, actualizarEnvio } = useEnvioDetail(id);
+  const { envio, historial, isLoading, isUpdating, error, actualizarEnvio, recargar } = useEnvioDetail(id);
 
   // Consumimos la ruta desde el nuevo hook independiente. Extraemos también las coordenadas dinámicas del camión y el estado de error
   // MODIFICACIÓN: Le inyectamos 'envio?.estadoActual' al hook
@@ -57,6 +62,28 @@ export default function DetalleEnvioPage({
 
   // Estado para la exportación
   const [isExporting, setIsExporting] = useState(false);
+
+  // =========================================================================
+  // PEGA ESTO: NUEVOS ESTADOS - FASE 5 (US 68)
+  // =========================================================================
+  const [alertaFatiga, setAlertaFatiga] = useState<AlertaFatigaDTO | null>(null);
+  const [isFuerzaMayorModalOpen, setIsFuerzaMayorModalOpen] = useState(false);
+  const [motivoFuerzaMayor, setMotivoFuerzaMayor] = useState('');
+  const [isProcesandoFatiga, setIsProcesandoFatiga] = useState(false);
+
+  // Y asegúrate de que el useEffect también esté aquí adentro:
+  useEffect(() => {
+    const handleFatigaWs = (e: Event) => {
+      const customEvent = e as CustomEvent<AlertaFatigaDTO>;
+      if (customEvent.detail.idEnvio === id) {
+        setAlertaFatiga(customEvent.detail);
+      }
+    };
+
+    window.addEventListener('alerta-fatiga-ws', handleFatigaWs);
+    return () => window.removeEventListener('alerta-fatiga-ws', handleFatigaWs);
+  }, [id]);
+
 
   // Sincronizar el estado local cuando se carga el envío
   useEffect(() => {
@@ -209,6 +236,59 @@ export default function DetalleEnvioPage({
         <ArrowLeftCircle className="h-5 w-5" /> Volver a Rastreo
       </Link>
 
+      {/* Botón Volver */}
+      <Link
+        href="/busqueda"
+        className="text-[#198754] font-semibold mb-3 md:mb-4 inline-flex items-center gap-2 hover:opacity-80 transition-opacity"
+      >
+        <ArrowLeftCircle className="h-5 w-5" /> Volver a Rastreo
+      </Link>
+
+      {/* ======================================================================= */}
+      {/* NUEVO: BANNER AMARILLO DE ALERTA DE FATIGA (FASE 5.3)                   */}
+      {/* ======================================================================= */}
+      {alertaFatiga && (
+        <div className="mb-6 mt-2 rounded-2xl border-2 border-amber-500 bg-amber-50 p-5 md:p-6 shadow-md animate-in slide-in-from-top-4">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
+            <div className="flex items-start gap-4 w-full md:w-auto">
+              <div className="rounded-full bg-amber-100 p-3 shrink-0">
+                <AlertTriangle className="h-8 w-8 text-amber-600" />
+              </div>
+              <div>
+                <h3 className="text-lg md:text-xl font-bold text-amber-900">
+                  Bloqueo por Prevención de Fatiga
+                </h3>
+                <p className="text-amber-800 mt-1 font-medium text-sm md:text-base">
+                  El chofer <span className="font-bold">{alertaFatiga.nombreChofer}</span> no superó el test de reflejos.
+                </p>
+                <p className="text-xs md:text-sm text-amber-700/80 mt-1">
+                  Motivo del sistema: {alertaFatiga.motivo}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row w-full md:w-auto gap-3 shrink-0">
+              <Button
+                variant="outline"
+                className="border-amber-500 text-amber-700 hover:bg-amber-100 bg-white"
+                disabled={isProcesandoFatiga}
+                onClick={() => {/* Lógica Paso 5.4 */ }}
+              >
+                Permitir reintento
+              </Button>
+              <Button
+                className="bg-amber-600 text-white hover:bg-amber-700 shadow-sm"
+                disabled={isProcesandoFatiga}
+                onClick={() => setIsFuerzaMayorModalOpen(true)}
+              >
+                Forzar autorización
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Contenedor principal original */}
       <div className="bg-white border-0 shadow-sm rounded-2xl overflow-hidden mt-2 md:mt-3 mb-10">
 
         {/* Header Azul - Ficha Operativa */}
@@ -624,6 +704,65 @@ export default function DetalleEnvioPage({
 
         </div >
       </div >
+
+      {/* ======================================================================= */}
+      {/* NUEVO: MODAL DE FUERZA MAYOR (FASE 5.3)                                 */}
+      {/* ======================================================================= */}
+      <Dialog open={isFuerzaMayorModalOpen} onOpenChange={setIsFuerzaMayorModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-amber-600 flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5" />
+              Forzar Autorización de Viaje
+            </DialogTitle>
+            <DialogDescription className="pt-2 text-sm">
+              Está a punto de sobreescribir un bloqueo por fatiga extrema.
+              Esta acción excepcional permitirá al chofer iniciar el viaje y quedará registrada en la auditoría bajo su autoría.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="motivo" className="text-sm font-semibold text-gray-700">
+                Motivo de autorización <span className="text-red-500">*</span>
+              </Label>
+              <Textarea
+                id="motivo"
+                placeholder="Ej: Chofer presentó certificado médico en mano. Se autoriza la salida..."
+                value={motivoFuerzaMayor}
+                onChange={(e) => setMotivoFuerzaMayor(e.target.value)}
+                className="min-h-[100px] resize-none"
+                disabled={isProcesandoFatiga}
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0 mt-2">
+            <Button
+              variant="outline"
+              disabled={isProcesandoFatiga}
+              onClick={() => {
+                setIsFuerzaMayorModalOpen(false);
+                setMotivoFuerzaMayor('');
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              disabled={!motivoFuerzaMayor.trim() || isProcesandoFatiga}
+              className="bg-amber-600 hover:bg-amber-700 text-white"
+              onClick={() => {/* Lógica Paso 5.4 */ }}
+            >
+              {isProcesandoFatiga ? (
+                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Procesando...</>
+              ) : (
+                'Confirmar y Autorizar'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
     </div >
   );
 }
