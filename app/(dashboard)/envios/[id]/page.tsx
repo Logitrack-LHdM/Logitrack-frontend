@@ -293,14 +293,6 @@ export default function DetalleEnvioPage({
         <ArrowLeftCircle className="h-5 w-5" /> Volver a Rastreo
       </Link>
 
-      {/* Botón Volver */}
-      <Link
-        href="/busqueda"
-        className="text-[#198754] font-semibold mb-3 md:mb-4 inline-flex items-center gap-2 hover:opacity-80 transition-opacity"
-      >
-        <ArrowLeftCircle className="h-5 w-5" /> Volver a Rastreo
-      </Link>
-
       {/* ======================================================================= */}
       {/* NUEVO: BANNER AMARILLO DE ALERTA DE FATIGA (FASE 5.3)                   */}
       {/* ======================================================================= */}
