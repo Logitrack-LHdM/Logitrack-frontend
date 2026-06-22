@@ -168,6 +168,12 @@ export interface EnvioUpdateDTO {
   prioridadIa?: Prioridad;
 }
 
+export interface ReasignacionViajeRequestDTO {
+  nuevoChoferId: number;
+  nuevoCamionId: string; // patente
+  motivoReasignacion: string;
+}
+
 export interface CartaPorteDTO {
   idEnvio: string;
   cpe: string;

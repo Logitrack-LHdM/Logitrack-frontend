@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { EstadoBadge } from '@/components/envios/estado-badge';
 import { api } from '@/lib/api';
 import { getNombreChofer, normalizarEnum } from '@/lib/utils';
@@ -31,8 +32,12 @@ export function AsignacionesTable() {
   const [envioSeleccionado, setEnvioSeleccionado] = useState<Envio | null>(null);
   const [choferSeleccionado, setChoferSeleccionado] = useState('');
   const [camionSeleccionado, setCamionSeleccionado] = useState('');
+  const [motivoReasignacion, setMotivoReasignacion] = useState(''); // US 67 (#590)
   const [guardando, setGuardando] = useState(false);
   const [modoModal, setModoModal] = useState<'asignar' | 'reasignar'>('asignar');
+
+  // US 67 (#592) — fuerza el re-fetch de AsignacionesSearch tras reasignar
+  const [refreshBusquedaKey, setRefreshBusquedaKey] = useState(0);
 
   // ── Carga inicial ─ Temporal ─────────────────────────────────────────────────────
   const cargarDatos = useCallback(async () => {
@@ -84,6 +89,7 @@ export function AsignacionesTable() {
   const abrirModal = (envio: Envio, modo: 'asignar' | 'reasignar' = 'asignar') => {
     setEnvioSeleccionado(envio);
     setModoModal(modo);
+    setMotivoReasignacion(''); // US 67 (#590) — siempre arranca vacío
     if (modo === 'reasignar') {
       setChoferSeleccionado(envio.chofer?.idChofer?.toString() ?? '');
       setCamionSeleccionado(envio.camion?.patente ?? '');
@@ -98,21 +104,44 @@ export function AsignacionesTable() {
     setEnvioSeleccionado(null);
     setChoferSeleccionado('');
     setCamionSeleccionado('');
+    setMotivoReasignacion(''); // US 67 (#590)
   };
 
-  // ── Confirmar asignación ───────────────────────────────────────────────────
+  // ── Confirmar asignación / reasignación ─────────────────────────────────
   const confirmarAsignacion = async () => {
     if (!envioSeleccionado || !choferSeleccionado || !camionSeleccionado) return;
 
+    // US 67 — Criterio 4: el motivo es obligatorio al reasignar (#590/#592)
+    if (modoModal === 'reasignar' && !motivoReasignacion.trim()) {
+      toast.error('Falta el motivo', {
+        description: 'Contá por qué se reasigna este viaje antes de confirmar.',
+      });
+      return;
+    }
+
     setGuardando(true);
     try {
-      await api.asignarTransporte(String(envioSeleccionado.idEnvio), {
-        idChofer: parseInt(choferSeleccionado, 10),
-        patenteCamion: camionSeleccionado,
-      });
+      if (modoModal === 'reasignar') {
+        // US 67 (#592) — PUT /envios/{id}/reasignar: además de actualizar
+        // chofer/camión, libera los recursos viejos, desvincula los bloqueos
+        // de fatiga del chofer anterior para este viaje y deja la auditoría
+        // con el motivo ingresado (#587, #588, #589 en el backend).
+        await api.reasignarViaje(String(envioSeleccionado.idEnvio), {
+          nuevoChoferId: parseInt(choferSeleccionado, 10),
+          nuevoCamionId: camionSeleccionado,
+          motivoReasignacion: motivoReasignacion.trim(),
+        });
+        toast.success(`Viaje ${envioSeleccionado.idEnvio} reasignado correctamente`);
+      } else {
+        await api.asignarTransporte(String(envioSeleccionado.idEnvio), {
+          idChofer: parseInt(choferSeleccionado, 10),
+          patenteCamion: camionSeleccionado,
+        });
+        toast.success(`Transporte asignado al envío ${envioSeleccionado.idEnvio}`);
+      }
 
-      toast.success(`Transporte asignado al envío ${envioSeleccionado.idEnvio}`);
-
+      // Recarga visual de los catálogos (#592): los recursos viejos vuelven a
+      // estar disponibles y los nuevos salen de la lista.
       const [choferesData, camionesData] = await Promise.all([
         api.getChoferesDisponibles(),
         api.getCamionesDisponibles(),
@@ -120,18 +149,30 @@ export function AsignacionesTable() {
       setChoferes(choferesData);
       setCamiones(camionesData);
 
-      // Quitar el envío de la lista (ya quedó asignado)
-      setEnvios((prev) => prev.filter((e) => e.idEnvio !== envioSeleccionado.idEnvio));
+      if (modoModal === 'asignar') {
+        // Quitar el envío de la lista de "sin asignar" (ya quedó asignado)
+        setEnvios((prev) => prev.filter((e) => e.idEnvio !== envioSeleccionado.idEnvio));
+      } else {
+        // US 67 (#592) — recargar visualmente la tabla de búsqueda
+        setRefreshBusquedaKey((k) => k + 1);
+      }
       cerrarModal();
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Error al asignar el transporte';
-      toast.error('Error al asignar transporte', { description: message });
+      const message = error instanceof Error ? error.message : 'Error al guardar los cambios';
+      toast.error(
+        modoModal === 'reasignar' ? 'Error al reasignar el viaje' : 'Error al asignar transporte',
+        { description: message }
+      );
     } finally {
       setGuardando(false);
     }
   };
 
-  const puedeConfirmar = !!choferSeleccionado && !!camionSeleccionado && !guardando;
+  const puedeConfirmar =
+    !!choferSeleccionado &&
+    !!camionSeleccionado &&
+    (modoModal !== 'reasignar' || !!motivoReasignacion.trim()) &&
+    !guardando;
 
   // ── Camiones aptos para la carga del envío seleccionado ────────────────────
   const kgCarga = envioSeleccionado?.kgOrigen ?? 0;
@@ -338,7 +379,10 @@ export function AsignacionesTable() {
         )}
       </div>
 
-      <AsignacionesSearch onReasignar={(envio) => abrirModal(envio, 'reasignar')} />
+      <AsignacionesSearch
+        onReasignar={(envio) => abrirModal(envio, 'reasignar')}
+        refreshKey={refreshBusquedaKey}
+      />
       {/* ── Modal de Asignación ──────────────────────────────────────────────── */}
       <Dialog open={!!envioSeleccionado} onOpenChange={(open) => !open && cerrarModal()}>
         <DialogContent className="sm:max-w-md">
@@ -453,6 +497,26 @@ export function AsignacionesTable() {
                 </p>
               )}
             </div>
+
+            {/* US 67 (#590) — Motivo de la reasignación: solo aplica en modo reasignar */}
+            {modoModal === 'reasignar' && (
+              <div className="space-y-2">
+                <Label className="text-xs font-bold uppercase text-muted-foreground">
+                  Motivo de la reasignación <span className="text-destructive">*</span>
+                </Label>
+                <Textarea
+                  value={motivoReasignacion}
+                  onChange={(e) => setMotivoReasignacion(e.target.value)}
+                  placeholder="Ej: el chofer presentó fatiga extrema y no puede continuar el viaje."
+                  rows={3}
+                  disabled={guardando}
+                  className="bg-muted/30 border-0 shadow-sm resize-none"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Este motivo queda registrado en la auditoría del viaje junto con el chofer anterior y el nuevo.
+                </p>
+              </div>
+            )}
           </div>
 
           <DialogFooter className="gap-2 sm:gap-0">

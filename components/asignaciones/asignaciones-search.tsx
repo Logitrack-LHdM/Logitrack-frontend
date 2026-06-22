@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Search, RefreshCw, MapPin, User, Truck, AlertCircle, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -16,9 +16,10 @@ import type { Envio, EstadoEnvio } from '@/types';
 
 interface AsignacionesSearchProps {
   onReasignar: (envio: Envio) => void;
+  refreshKey?: number; // US 67 (#592) — al cambiar, re-ejecuta la búsqueda actual
 }
 
-export function AsignacionesSearch({ onReasignar }: AsignacionesSearchProps) {
+export function AsignacionesSearch({ onReasignar, refreshKey }: AsignacionesSearchProps) {
   // Estado local para la búsqueda (similar al hook useEnvios)
   const [envios, setEnvios] = useState<Envio[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -75,6 +76,15 @@ export function AsignacionesSearch({ onReasignar }: AsignacionesSearchProps) {
   const paginaSiguiente = () => {
     if (currentPage + 1 < totalPages) buscar(currentPage + 1);
   };
+
+  // US 67 (#592) — recarga visual: si ya había una búsqueda activa, la repite
+  // para reflejar el nuevo chofer/camión apenas se confirma una reasignación.
+  useEffect(() => {
+    if (refreshKey && refreshKey > 0 && hasSearched) {
+      buscar(currentPage);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refreshKey]);
 
   return (
     <>

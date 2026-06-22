@@ -4,6 +4,7 @@ import type {
   Envio,
   EnvioRequestDTO,
   EnvioUpdateDTO,
+  ReasignacionViajeRequestDTO,
   IncidenciaDTO,
   BusquedaEnviosParams,
   PaginatedResponse,
@@ -325,6 +326,23 @@ class ApiClient {
   ): Promise<Envio> {
     return this.request<Envio>(`/envios/${idEnvio}/asignar-transporte`, {
       method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  // US 67 — Reasignación de viajes (#592)
+  // PUT /api/envios/{idEnvio}/reasignar (backend Tarea #586).
+  // A diferencia de asignarTransporte, este endpoint además:
+  //   - libera el chofer/camión anterior (#587),
+  //   - desvincula los bloqueos de fatiga del chofer viejo para este viaje (#588),
+  //   - registra el evento de auditoría con el motivo ingresado (#589).
+  // El endpoint responde 200 OK con body vacío.
+  async reasignarViaje(
+    idEnvio: string,
+    data: ReasignacionViajeRequestDTO
+  ): Promise<void> {
+    return this.request<void>(`/envios/${idEnvio}/reasignar`, {
+      method: 'PUT',
       body: JSON.stringify(data),
     });
   }
