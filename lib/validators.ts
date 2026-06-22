@@ -24,10 +24,6 @@ export const envioSchema = z
     kgOrigen: z
       .number({ invalid_type_error: 'Ingrese el peso' })
       .positive('El peso debe ser mayor a 0'),
-    // NUEVO CAMPO: Validación estricta para el término legal
-    aceptaTerminos: z.boolean().refine((val) => val === true, {
-      message: 'Debe aceptar el tratamiento de datos para continuar',
-    }),
   })
   .refine((data) => data.idOrigen !== data.idDestino, {
     message: 'El origen y destino deben ser diferentes',
