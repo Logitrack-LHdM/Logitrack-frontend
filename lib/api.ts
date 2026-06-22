@@ -559,6 +559,18 @@ class ApiClient {
     });
   }
 
+  /**
+   * Mantiene el rechazo del test de fatiga y registra la justificación del supervisor.
+   * @param idEvaluacion Identificador de la evaluación
+   * @param motivo Texto explicativo obligatorio
+   */
+  async rechazarEvaluacion(idEvaluacion: number | string, motivo: string): Promise<void> {
+    return this.request<void>(`/evaluaciones/${idEvaluacion}/rechazar`, {
+      method: 'POST',
+      body: JSON.stringify({ motivo }),
+    });
+  }
+
 }
 
 export const api = new ApiClient();

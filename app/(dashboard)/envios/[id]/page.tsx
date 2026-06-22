@@ -77,6 +77,11 @@ export default function DetalleEnvioPage({
   const [alertaFatiga, setAlertaFatiga] = useState<AlertaFatigaDTO | null>(null);
   const [isFuerzaMayorModalOpen, setIsFuerzaMayorModalOpen] = useState(false);
   const [motivoFuerzaMayor, setMotivoFuerzaMayor] = useState('');
+
+  // ESTADOS PARA EL RECHAZO
+  const [isRechazarModalOpen, setIsRechazarModalOpen] = useState(false);
+  const [motivoRechazo, setMotivoRechazo] = useState('');
+
   const [isProcesandoFatiga, setIsProcesandoFatiga] = useState(false);
 
   // Escuchamos el evento que emite useCampanaAlertas sin abrir otro WebSocket
@@ -135,6 +140,31 @@ export default function DetalleEnvioPage({
       await recargar(); // Refrescamos la auditoría para ver el registro
     } catch (err) {
       toast.error('Error al autorizar', {
+        description: err instanceof Error ? err.message : 'Error inesperado del servidor'
+      });
+    } finally {
+      setIsProcesandoFatiga(false);
+    }
+  };
+
+  const handleRechazarFatiga = async () => {
+    if (!alertaFatiga || !motivoRechazo.trim()) return;
+    setIsProcesandoFatiga(true);
+
+    try {
+      await api.rechazarEvaluacion(alertaFatiga.idEvaluacion, motivoRechazo);
+      toast.success('Rechazo confirmado', {
+        description: 'El viaje se mantiene bloqueado y se ha registrado su justificación.'
+      });
+
+      // Limpiamos la UI
+      setAlertaFatiga(null);
+      setIsRechazarModalOpen(false);
+      setMotivoRechazo('');
+
+      await recargar(); // Refrescamos la auditoría
+    } catch (err) {
+      toast.error('Error al rechazar', {
         description: err instanceof Error ? err.message : 'Error inesperado del servidor'
       });
     } finally {
@@ -325,6 +355,15 @@ export default function DetalleEnvioPage({
               >
                 Permitir reintento
               </Button>
+
+              <Button
+                className="bg-red-600 text-white hover:bg-red-700 shadow-sm"
+                disabled={isProcesandoFatiga}
+                onClick={() => setIsRechazarModalOpen(true)}
+              >
+                Rechazar
+              </Button>
+
               <Button
                 className="bg-amber-600 text-white hover:bg-amber-700 shadow-sm"
                 disabled={isProcesandoFatiga}
@@ -806,6 +845,64 @@ export default function DetalleEnvioPage({
                 <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Procesando...</>
               ) : (
                 'Confirmar y Autorizar'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ======================================================================= */}
+      {/* MODAL DE CONFIRMACIÓN DE RECHAZO                                        */}
+      {/* ======================================================================= */}
+      <Dialog open={isRechazarModalOpen} onOpenChange={setIsRechazarModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-red-600 flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5" />
+              Confirmar Rechazo Definitivo
+            </DialogTitle>
+            <DialogDescription className="pt-2 text-sm">
+              Está a punto de ratificar el bloqueo del viaje. El chofer no podrá iniciar el recorrido.
+              Debe ingresar un motivo para la auditoría.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="motivoRechazo" className="text-sm font-semibold text-gray-700">
+                Motivo de rechazo <span className="text-red-500">*</span>
+              </Label>
+              <Textarea
+                id="motivoRechazo"
+                placeholder="Ej: Me comuniqué con el chofer y confirma sentirse indispuesto..."
+                value={motivoRechazo}
+                onChange={(e) => setMotivoRechazo(e.target.value)}
+                className="min-h-[100px] resize-none"
+                disabled={isProcesandoFatiga}
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0 mt-2">
+            <Button
+              variant="outline"
+              disabled={isProcesandoFatiga}
+              onClick={() => {
+                setIsRechazarModalOpen(false);
+                setMotivoRechazo('');
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              disabled={!motivoRechazo.trim() || isProcesandoFatiga}
+              className="bg-red-600 hover:bg-red-700 text-white"
+              onClick={handleRechazarFatiga}
+            >
+              {isProcesandoFatiga ? (
+                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Procesando...</>
+              ) : (
+                'Confirmar Rechazo'
               )}
             </Button>
           </DialogFooter>
