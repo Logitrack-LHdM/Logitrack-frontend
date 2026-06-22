@@ -210,33 +210,33 @@ class ApiClient {
   }
 
   // === PORTAL PÚBLICO DE SEGUIMIENTO (MOCK) ===
-  async consultarTrackingPublico(data: TrackingPublicoRequestDTO): Promise<TrackingPublicoResponseDTO> {
-    // 1. Simulamos latencia de red para visualizar los estados de carga en el frontend
-    await new Promise((resolve) => setTimeout(resolve, 800));
+  // async consultarTrackingPublico(data: TrackingPublicoRequestDTO): Promise<TrackingPublicoResponseDTO> {
+  //   // 1. Simulamos latencia de red para visualizar los estados de carga en el frontend
+  //   await new Promise((resolve) => setTimeout(resolve, 800));
 
-    // 2. LÓGICA DE VERIFICACIÓN ESTRICTA (#620)
-    // Definimos credenciales hardcodeadas que coincidan con nuestro mock para pruebas locales.
-    const trackingIdValido = MOCK_TRACKING_EN_TRANSITO.trackingId; // 'ENV-2026-089'
-    const cuitValido = '30-12345678-9'; // CUIT de prueba
+  //   // 2. LÓGICA DE VERIFICACIÓN ESTRICTA (#620)
+  //   // Definimos credenciales hardcodeadas que coincidan con nuestro mock para pruebas locales.
+  //   const trackingIdValido = MOCK_TRACKING_EN_TRANSITO.trackingId; // 'ENV-2026-089'
+  //   const cuitValido = '30-12345678-9'; // CUIT de prueba
 
-    if (data.trackingId === trackingIdValido && data.cuit === cuitValido) {
-      return MOCK_TRACKING_EN_TRANSITO;
-    }
+  //   if (data.trackingId === trackingIdValido && data.cuit === cuitValido) {
+  //     return MOCK_TRACKING_EN_TRANSITO;
+  //   }
 
-    // 3. MANEJO DE ERRORES DE PRIVACIDAD (#623)
-    // Si el ID no existe o el CUIT no coincide, lanzamos un error genérico idéntico 
-    // para evitar ataques de enumeración.
-    throw new Error('No se encontró información para los datos ingresados');
-  }
+  //   // 3. MANEJO DE ERRORES DE PRIVACIDAD (#623)
+  //   // Si el ID no existe o el CUIT no coincide, lanzamos un error genérico idéntico 
+  //   // para evitar ataques de enumeración.
+  //   throw new Error('No se encontró información para los datos ingresados');
+  // }
 
   // === PORTAL PÚBLICO DE SEGUIMIENTO ===
-  // async consultarTrackingPublico(data: TrackingPublicoRequestDTO): Promise<TrackingPublicoResponseDTO> {
-  //   // Hacemos un POST al endpoint público enviando el Tracking ID y el CUIT en el body
-  //   return this.request<TrackingPublicoResponseDTO>('/public/tracking/consulta', {
-  //     method: 'POST',
-  //     body: JSON.stringify(data),
-  //   });
-  // }
+  async consultarTrackingPublico(data: TrackingPublicoRequestDTO): Promise<TrackingPublicoResponseDTO> {
+    // Hacemos un POST al endpoint público enviando el Tracking ID y el CUIT en el body
+    return this.request<TrackingPublicoResponseDTO>('/public/tracking/consulta', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
 
   // === RASTREO TIEMPO REAL DE ENVIO===
   /**
