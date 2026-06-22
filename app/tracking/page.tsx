@@ -172,10 +172,19 @@ export default function PublicTrackingPage() {
 
                             <div>
                                 <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1 mb-1">
-                                    <Calendar className="h-3 w-3" /> Fecha Creación
+                                    <Calendar className="h-3 w-3" /> Fecha de Creación
                                 </label>
                                 <div className="font-medium text-gray-900">
                                     {formatearFechaHora(trackingData.fechaCreacion)}
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1 mb-1">
+                                    <Calendar className="h-3 w-3" /> Fecha de Salida
+                                </label>
+                                <div className="font-medium text-gray-900">
+                                    {trackingData.fechaSalida ? formatearFechaHora(trackingData.fechaSalida) : 'Sin fecha'}
                                 </div>
                             </div>
 
