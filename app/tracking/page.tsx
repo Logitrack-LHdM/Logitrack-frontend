@@ -209,13 +209,21 @@ export default function PublicTrackingPage() {
                         <div className="mb-2">
                             <div className="w-full h-[320px] md:h-[400px] bg-gray-50 border border-gray-100 rounded-2xl overflow-hidden shadow-sm relative">
 
-                                {trackingData.ubicacionActual ? (
+                                {trackingData.estadoActual === 'CANCELADO' ? (
+                                    /* Empty State: Cuando el viaje fue cancelado */
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-red-50/80">
+                                        <MapPinOff className="h-12 w-12 mb-4 opacity-40 text-red-600" />
+                                        <p className="font-bold text-lg text-red-800">Viaje Cancelado</p>
+                                        <p className="text-sm mt-1 max-w-sm text-red-700">
+                                            Este envío ha sido cancelado. El rastreo por mapa ya no se encuentra disponible.
+                                        </p>
+                                    </div>
+                                ) : trackingData.ubicacionActual ? (
+                                    /* Mapa normal cuando hay coordenadas válidas y no está cancelado */
                                     <MapaEnvio
                                         camionLat={trackingData.ubicacionActual.latitud}
                                         camionLng={trackingData.ubicacionActual.longitud}
                                         estadoActual={trackingData.estadoActual}
-                                    // INTENCIONAL: No pasamos coordenadas de origen, destino ni la ruta (polyline)
-                                    // De esta forma protegemos las ubicaciones exactas de los clientes.
                                     />
                                 ) : (
                                     /* Empty State: Cuando el viaje no inició o se perdió la señal */
