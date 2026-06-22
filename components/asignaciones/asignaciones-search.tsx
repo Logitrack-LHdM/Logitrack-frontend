@@ -94,7 +94,7 @@ export function AsignacionesSearch({ onReasignar, refreshKey }: AsignacionesSear
             <Search className="h-6 w-6" />
           </div>
           <div>
-            <h4 className="text-xl md:text-2xl font-bold text-gray-900 flex items-center gap-2 mb-1">
+            <h4 className="text-xl md:text-2xl font-bold text-foreground flex items-center gap-2 mb-1">
               Buscar Envíos Asignados
             </h4>
             <p className="text-muted-foreground text-sm">
@@ -161,7 +161,7 @@ export function AsignacionesSearch({ onReasignar, refreshKey }: AsignacionesSear
           {hasSearched && !isLoading && envios.length > 0 && (
             <div>
               <div className="flex items-center justify-between mb-3 px-2">
-                <h5 className="font-bold text-gray-900 text-lg">Resultados</h5>
+                <h5 className="font-bold text-foreground text-lg">Resultados</h5>
                 <span className="text-sm text-muted-foreground">{totalElements} envíos encontrados</span>
               </div>
               <div className="border rounded-xl overflow-hidden">

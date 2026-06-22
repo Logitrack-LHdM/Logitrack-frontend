@@ -45,7 +45,7 @@ const getRolColor = (rol: string) => {
         case 'ROLE_CHOFER':
             return 'bg-orange-100 text-orange-700 hover:bg-orange-100';
         default:
-            return 'bg-gray-100 text-gray-700 hover:bg-gray-100';
+            return 'bg-background text-gray-700 hover:bg-background';
     }
 };
 
@@ -94,7 +94,7 @@ export function UsuarioTable({ usuarios, onDesactivar, onEditar }: UsuarioTableP
                                     <span className="text-xs text-muted-foreground">{usuario.telefono}</span>
                                 </TableCell>
                                 <TableCell>
-                                    <span className="font-medium text-gray-900 block">{usuario.nombre} {usuario.apellido}</span>
+                                    <span className="font-medium text-foreground block">{usuario.nombre} {usuario.apellido}</span>
                                     <span className="text-xs text-muted-foreground">CUIL: {usuario.cuil}</span>
                                 </TableCell>
                                 <TableCell>

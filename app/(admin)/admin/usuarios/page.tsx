@@ -92,7 +92,7 @@ export default function UsuariosAdminPage() {
             <Users className="h-7 w-7" />
           </div>
           <div>
-            <h4 className="font-bold text-gray-900 mb-1 text-xl md:text-2xl">Gestión de Usuarios</h4>
+            <h4 className="font-bold text-foreground mb-1 text-xl md:text-2xl">Gestión de Usuarios</h4>
             <p className="text-muted-foreground text-sm m-0">
               Registro, edición y configuración de perfiles de usuario y roles asignados.
             </p>
@@ -125,7 +125,7 @@ export default function UsuariosAdminPage() {
           variant="outline"
           size="sm"
           onClick={refrescar}
-          className="w-full sm:w-auto border-gray-300 hover:bg-gray-50 shadow-sm"
+          className="w-full sm:w-auto border-border hover:bg-background shadow-sm"
           disabled={isLoading}
         >
           <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
@@ -134,7 +134,7 @@ export default function UsuariosAdminPage() {
       </div>
 
       {/* Contenedor reactivo de la Grilla/Tabla */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+      <div className="bg-white rounded-xl shadow-sm border border-border overflow-hidden">
         {isLoading ? (
           <div className="flex items-center justify-center py-16">
             <Spinner className="h-8 w-8 text-[#2d6a4f]" />

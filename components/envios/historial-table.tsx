@@ -108,7 +108,7 @@ function EventoCell({ registro, isMobile = false }: { registro: RegistroHistoria
 
   if (estadoAnterior) {
     return (
-      <span className="text-sm font-medium text-gray-900 flex items-center gap-1.5 justify-end md:justify-start text-right md:text-left">
+      <span className="text-sm font-medium text-foreground flex items-center gap-1.5 justify-end md:justify-start text-right md:text-left">
         {!isMobile && <ArrowRight className="h-4 w-4 text-[#198754]" />}
         De {estadoAnterior} a {estadoNuevo}
       </span>
@@ -116,7 +116,7 @@ function EventoCell({ registro, isMobile = false }: { registro: RegistroHistoria
   }
 
   return (
-    <span className="text-sm font-medium text-gray-900 flex items-center gap-1.5 justify-end md:justify-start text-right md:text-left">
+    <span className="text-sm font-medium text-foreground flex items-center gap-1.5 justify-end md:justify-start text-right md:text-left">
       {!isMobile && <ArrowRight className="h-4 w-4 text-[#198754]" />}
       Envío creado y puesto En {estadoNuevo}
     </span>

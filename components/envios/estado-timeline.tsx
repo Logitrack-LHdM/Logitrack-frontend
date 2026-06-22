@@ -81,8 +81,8 @@ export function EstadoTimeline({ estadoActual }: EstadoTimelineProps) {
                 className={cn(
                   "absolute left-[-3.5rem] top-0 w-10 h-10 rounded-full flex items-center justify-center border-[3px] z-10 transition-all duration-300",
                   isCompleted ? "bg-[#198754] border-[#198754] text-white" : 
-                  isActive ? "bg-amber-400 border-amber-400 text-gray-900 animate-pulse-warning" : 
-                  "bg-gray-50 border-gray-200 text-gray-400"
+                  isActive ? "bg-amber-400 border-amber-400 text-foreground animate-pulse-warning" : 
+                  "bg-background border-border text-gray-400"
                 )}
               >
                 <IconComponent className="h-[18px] w-[18px]" strokeWidth={2.5} />
@@ -99,7 +99,7 @@ export function EstadoTimeline({ estadoActual }: EstadoTimelineProps) {
                   <h6 className={cn(
                     "mb-0 font-bold text-base md:text-lg",
                     isCompleted ? "text-[#198754]" :
-                    isActive ? "text-gray-900" :
+                    isActive ? "text-foreground" :
                     "text-gray-400"
                   )}>
                     {estado === 'PENDIENTE' && 'Pendiente - Carga Asignada'}

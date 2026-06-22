@@ -21,7 +21,7 @@ export const ESTADO_CONFIG: Record<
   PENDIENTE: {
     label: 'Pendiente',
     color: 'text-gray-700',
-    bgColor: 'bg-gray-100',
+    bgColor: 'bg-background',
     icon: 'Clock',
   },
   EN_TRANSITO: {

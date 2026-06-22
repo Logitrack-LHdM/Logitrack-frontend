@@ -28,7 +28,7 @@ export function GlobalHistorialTable({ historial }: GlobalHistorialTableProps) {
       {/* Vista Desktop - 6 Columnas */}
       <div className="hidden md:block overflow-x-auto">
         <Table>
-          <TableHeader className="bg-gray-50/80">
+          <TableHeader className="bg-muted/50">
             <TableRow className="hover:bg-transparent">
               <TableHead className="py-3 pl-6 text-xs font-bold text-muted-foreground uppercase tracking-wider">ID Reg.</TableHead>
               <TableHead className="py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">ID Rastreo</TableHead>
@@ -40,7 +40,7 @@ export function GlobalHistorialTable({ historial }: GlobalHistorialTableProps) {
           </TableHeader>
           <TableBody>
             {historialOrdenado.map((registro, index) => (
-              <TableRow key={registro.idHistorial || `desk-${index}`} className="hover:bg-gray-50/50 transition-colors">
+              <TableRow key={registro.idHistorial || `desk-${index}`} className="hover:bg-muted/40 transition-colors">
                 <TableCell className="py-3 pl-6 text-sm font-bold text-muted-foreground">
                   #{registro.idHistorial}
                 </TableCell>
@@ -59,7 +59,7 @@ export function GlobalHistorialTable({ historial }: GlobalHistorialTableProps) {
                   {formatearHora(registro.fechaHora)}
                 </TableCell>
                 <TableCell className="py-3 pr-6 text-sm text-muted-foreground text-right">
-                  <span className="inline-flex items-center justify-center gap-1.5 bg-gray-50 border rounded-md px-2.5 py-1">
+                  <span className="inline-flex items-center justify-center gap-1.5 bg-background border rounded-md px-2.5 py-1">
                     <User className="h-3.5 w-3.5" />
                     {registro.username || 'Sistema'}
                   </span>
@@ -73,30 +73,30 @@ export function GlobalHistorialTable({ historial }: GlobalHistorialTableProps) {
       {/* Vista Mobile - Replicando tu CSS de Tarjetas Apiladas */}
       <div className="md:hidden space-y-4 p-4">
         {historialOrdenado.map((registro, index) => (
-          <div key={registro.idHistorial || `desk-${index}`} className="bg-white border rounded-xl shadow-sm p-4 flex flex-col">
-            <div className="flex justify-between items-center border-b border-dashed border-gray-100 pb-2 mb-2">
+          <div key={registro.idHistorial || `desk-${index}`} className="bg-card border rounded-xl shadow-sm p-4 flex flex-col">
+            <div className="flex justify-between items-center border-b border-dashed border-border pb-2 mb-2">
               <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">ID Reg.</span>
               <span className="text-sm font-bold text-muted-foreground">#{registro.idHistorial}</span>
             </div>
-            <div className="flex justify-between items-center border-b border-dashed border-gray-100 pb-2 mb-2">
+            <div className="flex justify-between items-center border-b border-dashed border-border pb-2 mb-2">
               <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">ID Rastreo</span>
               <Link href={`/envios/${registro.idEnvio}`} className="text-[#198754] font-bold text-sm">
                 {registro.idEnvio}
               </Link>
             </div>
-            <div className="flex flex-col border-b border-dashed border-gray-100 pb-2 mb-2 gap-1">
+            <div className="flex flex-col border-b border-dashed border-border pb-2 mb-2 gap-1">
               <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Modificación</span>
               <div className="text-right flex justify-end">
                 <EventoCell registro={registro} isMobile />
               </div>
             </div>
-            <div className="flex justify-between items-center border-b border-dashed border-gray-100 pb-2 mb-2">
+            <div className="flex justify-between items-center border-b border-dashed border-border pb-2 mb-2">
               <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Fecha y Hora</span>
               <span className="text-sm text-muted-foreground">{formatearFecha(registro.fechaHora)} - {formatearHora(registro.fechaHora)}</span>
             </div>
             <div className="flex justify-between items-center pt-1">
               <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Responsable</span>
-              <span className="text-sm text-muted-foreground flex items-center gap-1 bg-gray-50 border rounded-md px-2 py-0.5">
+              <span className="text-sm text-muted-foreground flex items-center gap-1 bg-background border rounded-md px-2 py-0.5">
                 <User className="h-3.5 w-3.5" />
                 {registro.username || 'Sistema'}
               </span>
@@ -114,7 +114,7 @@ function EventoCell({ registro, isMobile = false }: { registro: RegistroHistoria
 
   if (estadoAnterior) {
     return (
-      <span className="text-sm text-gray-900 flex items-center gap-1.5">
+      <span className="text-sm text-foreground flex items-center gap-1.5">
         <span className="font-bold">{estadoAnterior}</span>
         <ArrowRight className="h-4 w-4 text-muted-foreground" />
         <span className="font-bold">{estadoNuevo}</span>
@@ -123,7 +123,7 @@ function EventoCell({ registro, isMobile = false }: { registro: RegistroHistoria
   }
 
   return (
-    <span className="text-sm font-bold text-gray-900">
+    <span className="text-sm font-bold text-foreground">
       Creación <ArrowRight className="h-4 w-4 text-muted-foreground inline mx-1" /> {estadoNuevo}
     </span>
   );

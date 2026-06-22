@@ -21,7 +21,7 @@ export default function CrearEnvioPage() {
           <Truck className="h-7 w-7" />
         </div>
         <div>
-          <h4 className="font-bold mb-1 text-xl md:text-2xl flex items-center gap-2 text-gray-900">
+          <h4 className="font-bold mb-1 text-xl md:text-2xl flex items-center gap-2 text-foreground">
             Crear Nuevo Envío
           </h4>
           <p className="text-muted-foreground text-sm m-0">Complete la orden de transporte seleccionando el cliente y la ruta.</p>

@@ -23,7 +23,7 @@ export function AlertasList({ alertas, onResolver }: AlertasListProps) {
         return (
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center flex flex-col items-center justify-center">
                 <CheckCircle2 className="h-16 w-16 text-green-500/50 mb-4" strokeWidth={1.5} />
-                <h3 className="text-xl font-bold text-gray-900 mb-2">Todo en orden</h3>
+                <h3 className="text-xl font-bold text-foreground mb-2">Todo en orden</h3>
                 <p className="text-muted-foreground text-sm max-w-md">
                     No hay alertas ni incidencias registradas en este momento. Los viajes se están desarrollando con normalidad.
                 </p>
@@ -36,7 +36,7 @@ export function AlertasList({ alertas, onResolver }: AlertasListProps) {
             {/* Sección de Alertas Activas (Pendientes y No Resueltas) */}
             {alertasActivas.length > 0 && (
                 <section>
-                    <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <h3 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
                         Incidencias que requieren atención
                         <span className="bg-red-100 text-red-700 text-xs py-0.5 px-2 rounded-full font-bold">
                             {alertasActivas.length}
@@ -57,7 +57,7 @@ export function AlertasList({ alertas, onResolver }: AlertasListProps) {
             {/* Sección de Historial (Resueltas) */}
             {alertasResueltas.length > 0 && (
                 <section>
-                    <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2 border-t pt-6">
+                    <h3 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2 border-t pt-6">
                         Historial de resueltas
                     </h3>
                     <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 md:gap-5">
