@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sin conexión | LogiTrack Agro</title>
+    <style>
+        /* Estilos nativos blindados para funcionar sin internet (Traducción de tus clases Tailwind) */
+        body {
+            margin: 0;
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: #ffffff;
+            color: #09090b;
+        }
+
+        .container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        .icon-wrapper {
+            background-color: #f4f4f5;
+            padding: 1.5rem;
+            border-radius: 9999px;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .icon-pulse {
+            width: 3rem;
+            height: 3rem;
+            color: #71717a;
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        .title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-top: 0;
+            margin-bottom: 0.5rem;
+        }
+
+        .description {
+            color: #71717a;
+            max-width: 24rem;
+            margin-bottom: 2rem;
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            background: linear-gradient(to right, #1b4332, #2d6a4f);
+            color: #ffffff;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 1.125rem;
+            transition: opacity 0.2s;
+        }
+
+        .btn:active {
+            opacity: 0.8;
+        }
+
+        .btn-icon {
+            width: 1.25rem;
+            height: 1.25rem;
+            margin-right: 0.5rem;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: .5;
+            }
+        }
+
+        /* Soporte básico para Modo Oscuro nativo */
+        /* @media (prefers-color-scheme: dark) {
+            body {
+                background-color: #09090b;
+                color: #fafafa;
+            }
+
+            .icon-wrapper {
+                background-color: #27272a;
+            }
+
+            .icon-pulse,
+            .description {
+                color: #a1a1aa;
+            }
+        } */
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="icon-wrapper">
+            <svg class="icon-pulse" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <!-- Punto central de la señal -->
+                <path d="M12 20h.01"></path>
+                <!-- Onda inferior -->
+                <path d="M8.5 16.5a5 5 0 0 1 7 0"></path>
+                <!-- Onda intermedia completa -->
+                <path d="M5 13a10 10 0 0 1 14 0"></path>
+                <!-- Onda superior externa completa -->
+                <path d="M1.5 9.5a15 15 0 0 1 21 0"></path>
+                <!-- Línea diagonal de bloqueo/apagado -->
+                <line x1="2" y1="2" x2="22" y2="22"></line>
+            </svg>
+        </div>
+
+        <h1 class="title">Sin conexión a internet</h1>
+
+        <p class="description">
+            No se pudo conectar con el servidor. Verifique su conexión o intente más tarde.
+        </p>
+
+        <a href="javascript:window.location.reload();" class="btn">
+            <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="23 4 23 10 17 10"></polyline>
+                <polyline points="1 20 1 14 7 14"></polyline>
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+            </svg>
+            Reintentar
+        </a>
+    </div>
+
+</body>
+
+</html>

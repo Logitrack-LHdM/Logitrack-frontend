@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import { MensajeGlobalViaje } from '@/types/websockets';
+import { useNetwork } from '@/hooks/use-network';
 
 // En hooks/use-websocket.ts
 
@@ -36,7 +37,7 @@ interface UseWebSocketProps {
 }
 
 export const useWebSocket = ({ idUsuario, onMensajeGlobal, onAlertaPrivada }: UseWebSocketProps) => {
-    // FASE 2.1: Estado interno para saber si estamos conectados
+    // Estado interno para saber si estamos conectados
     const [isConnected, setIsConnected] = useState(false);
 
     // Usamos una referencia para mantener la instancia del cliente viva
@@ -48,16 +49,35 @@ export const useWebSocket = ({ idUsuario, onMensajeGlobal, onAlertaPrivada }: Us
     const onMensajeGlobalRef = useRef(onMensajeGlobal);
     const onAlertaPrivadaRef = useRef(onAlertaPrivada);
 
+    // Observamos si hay internet a nivel de aplicación
+    const { isOnline } = useNetwork();
+
     useEffect(() => {
         onMensajeGlobalRef.current = onMensajeGlobal;
         onAlertaPrivadaRef.current = onAlertaPrivada;
     }, [onMensajeGlobal, onAlertaPrivada]);
 
+    // EFECTO PRINCIPAL: Control de ciclo de vida del WebSocket basado en red
     useEffect(() => {
         // Si no hay ventana (SSR), no intentamos conectar
         if (typeof window === 'undefined') return;
 
-        // FASE 2.2: Configuración del Cliente STOMP y Reconexión Automática
+        // Candado de verdad inmediata. 
+        // navigator.onLine nos dice la verdad exacta en el milisegundo cero (útil para el F5).
+        // isOnline reacciona a los cambios posteriores (útil para cuando se cae la red durante el uso).
+        const tieneInternetReal = navigator.onLine && isOnline;
+
+        // Bloqueo de conexión con el doble candado
+        if (!tieneInternetReal) {
+            console.log('📶 Sin internet: Bloqueando intentos de WebSocket.');
+
+            if (clientRef.current?.active) {
+                clientRef.current.deactivate();
+            }
+            setIsConnected(false);
+            return;
+        }
+
         const client = new Client({
             webSocketFactory: () => new SockJS(SOCKET_URL),
             // Criterio 2: Reintento automático cada 5 segundos si hay micro-cortes
@@ -75,7 +95,7 @@ export const useWebSocket = ({ idUsuario, onMensajeGlobal, onAlertaPrivada }: Us
                 console.log('✅ Conectado a WebSockets LogiTrack');
                 setIsConnected(true);
 
-                // FASE 3: Suscripción condicionada para OPERADOR
+                // Suscripción condicionada para OPERADOR
                 if (onMensajeGlobalRef.current) {
                     client.subscribe('/topic/viajes', (mensaje) => {
                         if (mensaje.body) {
@@ -86,14 +106,14 @@ export const useWebSocket = ({ idUsuario, onMensajeGlobal, onAlertaPrivada }: Us
                                     onMensajeGlobalRef.current(data);
                                 }
                             } catch (error) {
-                                console.error("❌ Error al parsear el mensaje global:", error);
+                                console.error("❌ Error al parsear:", error);
                             }
                         }
                     });
                     console.log('📡 Suscrito a /topic/viajes (Dashboard Global)');
                 }
 
-                // FASE 3: Suscripción condicionada para SUPERVISOR
+                // Suscripción condicionada para SUPERVISOR
                 if (idUsuario && onAlertaPrivadaRef.current) {
                     client.subscribe(`/queue/alertas-${idUsuario}`, (mensaje) => {
                         if (mensaje.body) {
@@ -113,12 +133,12 @@ export const useWebSocket = ({ idUsuario, onMensajeGlobal, onAlertaPrivada }: Us
             onWebSocketClose: () => {
                 // Esto se dispara en micro-cortes. setIsConnected(false) puede servir 
                 // para mostrar un indicador visual de "Reconectando..." si lo deseas a futuro.
-                console.warn('🔌 Desconexión temporal del WebSocket. Intentando reconectar...');
+                console.warn('🔌 Desconexión del WebSocket.');
                 setIsConnected(false);
             }
         });
 
-        // Iniciamos la conexión
+        // Activamos solo si llegamos aquí (hay internet)
         client.activate();
         clientRef.current = client;
 
@@ -128,7 +148,7 @@ export const useWebSocket = ({ idUsuario, onMensajeGlobal, onAlertaPrivada }: Us
                 client.deactivate();
             }
         };
-    }, [idUsuario]); // Solo se reconecta si cambia el ID del usuario
+    }, [idUsuario, isOnline]); // Añadimos isOnline como dependencia vital
 
     return { isConnected };
 };

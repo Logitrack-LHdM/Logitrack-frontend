@@ -83,23 +83,19 @@ export default function RootLayout({
     <html lang="es" suppressHydrationWarning className={`${geist.variable} ${geistMono.variable}`}>
       {/* Añadimos 'overscroll-y-none' para bloquear el pull-to-refresh nativo */}
       <body className="font-sans antialiased min-h-screen overscroll-y-none">
-  <ThemeProvider
-    attribute="class"
-    defaultTheme="light"
-    enableSystem={false}
-  >
+  <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} >
     <a href="#main-content" className="skip-to-content">
       Saltar al contenido principal
     </a>
-
     <AuthProvider>
-      <ServiceWorkerRegister />
-      <NavigationLoader />
-      {children}
-      <Toaster position="bottom-right" richColors />
-    </AuthProvider>
-  </ThemeProvider>
-</body>
+          {/* Este es el motor de arranque de nuestro Service Worker manual */}
+          <ServiceWorkerRegister /> {/* Registra la PWA globalmente */}
+          <NavigationLoader />
+          {children}
+          <Toaster position="bottom-right" richColors />
+        </AuthProvider>
+        {process.env.NODE_ENV === 'production' && <Analytics />}
+      </body>
     </html>
   )
 }

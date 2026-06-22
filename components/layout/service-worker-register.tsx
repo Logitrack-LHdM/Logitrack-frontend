@@ -6,17 +6,19 @@ export function ServiceWorkerRegister() {
     useEffect(() => {
         // Verificamos si el navegador soporta Service Workers
         if ('serviceWorker' in navigator) {
-            // Esperamos a que la página cargue completamente para no afectar el rendimiento inicial
-            window.addEventListener('load', () => {
-                navigator.serviceWorker
-                    .register('/service-worker.js')
-                    .then((registration) => {
-                        console.log('[Service Worker] Registrado exitosamente con alcance:', registration.scope);
-                    })
-                    .catch((error) => {
-                        console.error('[Service Worker] Error durante el registro:', error);
-                    });
-            });
+            // Eliminamos el window.addEventListener('load'). 
+            // Al estar dentro de un useEffect, ya es seguro registrarlo directamente.
+            navigator.serviceWorker
+                .register('/service-worker.js')
+                .then((registration) => {
+                    console.log('[Service Worker] Registrado exitosamente en:', registration.scope);
+                })
+                .catch((error) => {
+                    console.error('[Service Worker] Error de registro:', error);
+                });
+        } else {
+            // 3. Si no entra, lanzamos una advertencia para saber por qué
+            console.warn('[Service Worker] La API no está disponible. ¿Estás usando una IP local sin HTTPS?');
         }
     }, []);
 
