@@ -94,6 +94,54 @@ export default function DetalleEnvioPage({
   }, [id]);
   // =========================================================================
 
+  // =========================================================================
+  // FUNCIONES DE RESOLUCIÓN DE FATIGA - FASE 5.4
+  // =========================================================================
+  const handleResetearFatiga = async () => {
+    if (!alertaFatiga) return;
+    setIsProcesandoFatiga(true);
+
+    try {
+      await api.resetearEvaluacion(alertaFatiga.idEvaluacion);
+      toast.success('Evaluación reseteada', {
+        description: 'Se ha notificado al sistema. El chofer ya puede intentar nuevamente.'
+      });
+      setAlertaFatiga(null); // Ocultamos el banner
+      await recargar(); // Refrescamos el historial en pantalla
+    } catch (err) {
+      toast.error('Error al resetear', {
+        description: err instanceof Error ? err.message : 'Error inesperado del servidor'
+      });
+    } finally {
+      setIsProcesandoFatiga(false);
+    }
+  };
+
+  const handleAutorizarFatiga = async () => {
+    if (!alertaFatiga || !motivoFuerzaMayor.trim()) return;
+    setIsProcesandoFatiga(true);
+
+    try {
+      await api.autorizarFuerzaMayor(alertaFatiga.idEvaluacion, motivoFuerzaMayor);
+      toast.success('Autorización forzada aplicada', {
+        description: 'El viaje ha sido desbloqueado exitosamente.'
+      });
+
+      // Limpiamos la UI
+      setAlertaFatiga(null);
+      setIsFuerzaMayorModalOpen(false);
+      setMotivoFuerzaMayor('');
+
+      await recargar(); // Refrescamos la auditoría para ver el registro
+    } catch (err) {
+      toast.error('Error al autorizar', {
+        description: err instanceof Error ? err.message : 'Error inesperado del servidor'
+      });
+    } finally {
+      setIsProcesandoFatiga(false);
+    }
+  };
+
   // Sincronizar el estado local cuando se carga el envío
   useEffect(() => {
     if (envio) {
@@ -281,7 +329,7 @@ export default function DetalleEnvioPage({
                 variant="outline"
                 className="border-amber-500 text-amber-700 hover:bg-amber-100 bg-white"
                 disabled={isProcesandoFatiga}
-                onClick={() => {/* Lógica Paso 5.4 */ }}
+                onClick={handleResetearFatiga}
               >
                 Permitir reintento
               </Button>
@@ -760,7 +808,7 @@ export default function DetalleEnvioPage({
             <Button
               disabled={!motivoFuerzaMayor.trim() || isProcesandoFatiga}
               className="bg-amber-600 hover:bg-amber-700 text-white"
-              onClick={() => {/* Lógica Paso 5.4 */ }}
+              onClick={handleAutorizarFatiga}
             >
               {isProcesandoFatiga ? (
                 <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Procesando...</>
