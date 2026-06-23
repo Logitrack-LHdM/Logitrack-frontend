@@ -14,6 +14,7 @@ import { useCampanaAlertas } from '@/hooks/use-campana-alertas';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
 import { formatearFechaHora } from '@/lib/utils';
+import type { AlertaWebDTO } from '@/types/websockets';
 
 // Función auxiliar para mostrar el tiempo relativo de forma amigable
 function formatearTiempoRelativo(fechaIso: string) {
@@ -51,14 +52,23 @@ export function NotificationBell() {
 
     const isOperador = usuario?.rol === 'ROLE_OPERADOR';
 
-    const handleNotificacionClick = async (idAlertaWeb: number) => {
-        // 1. Siempre marcamos la alerta como leída primero
-        marcarComoLeida(idAlertaWeb);
+    const handleNotificacionClick = async (alerta: AlertaWebDTO) => {
+        console.log(alerta);
 
-        // 2. Evaluamos el rol para redirigir (solo Supervisor viaja a la tabla)
+        // 1. Siempre marcamos la alerta como leída primero
+        marcarComoLeida(alerta.idAlertaWeb);
+
+        // 2. Evaluamos el rol para redirigir (solo Supervisor viaja)
         if (usuario?.rol === 'ROLE_SUPERVISOR') {
-            setIsOpen(false); // <-- Cierra el Popover inmediatamente
-            router.push('/alertas');
+            setIsOpen(false); // Cierra el Popover inmediatamente
+
+            // 3. Redirección dinámica basada en el tipo
+            if (alerta.tipo === 'FATIGA' && alerta.idEnvio) {
+                router.push(`/envios/${alerta.idEnvio}`);
+            } else {
+                // Por defecto, o si es CRITICA, vamos al panel general
+                router.push('/alertas');
+            }
         }
     };
 
@@ -114,7 +124,7 @@ export function NotificationBell() {
                             {alertas.map((alerta) => (
                                 <li key={alerta.idAlertaWeb} role="listitem">
                                     <button
-                                        onClick={() => handleNotificacionClick(alerta.idAlertaWeb)}
+                                        onClick={() => handleNotificacionClick(alerta)}
                                         className={`
                     flex flex-col gap-1 p-4 border-b text-left transition-colors hover:bg-muted/50 w-full
                     ${!alerta.leido ? 'bg-primary/5' : 'opacity-70'}
