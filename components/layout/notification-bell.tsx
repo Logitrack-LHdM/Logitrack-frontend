@@ -126,8 +126,8 @@ export function NotificationBell() {
                                                 {alerta.mensaje}
                                             </span>
 
-                                        {/* Indicador visual de "No leída" (Punto) */}
-                                        {!alerta.leido && (
+                                            {/* Indicador visual de "No leída" (Punto) */}
+                                            {!alerta.leido && (
                                                 <span
                                                     className={`flex h-2.5 w-2.5 mt-1 rounded-full flex-shrink-0 ${isOperador ? 'bg-blue-600' : 'bg-destructive'}`}
                                                     aria-hidden="true"
