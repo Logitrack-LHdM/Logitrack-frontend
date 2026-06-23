@@ -36,6 +36,8 @@ import { adaptarRutaParaLeaflet } from '@/lib/utils';
 import { RespuestaCumplimiento } from '@/types/cumplimiento';
 import { AlertaWebDTO } from '@/types/websockets';
 import { agregarAccionACola } from '@/lib/offline-sync';
+import type { TrackingPublicoRequestDTO, TrackingPublicoResponseDTO } from '@/types/tracking';
+import { MOCK_TRACKING_EN_TRANSITO } from '@/mocks/trackingMock';
 
 // Base URL de la API - usar variable de entorno en produccion
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
@@ -206,6 +208,35 @@ class ApiClient {
   // Descarga del PDF de la Carta de Porte
   async descargarCartaPortePdf(idEnvio: string): Promise<Blob> {
     return this.descargarArchivo(`/envios/${idEnvio}/pdf-carta-porte`);
+  }
+
+  // === PORTAL PÚBLICO DE SEGUIMIENTO (MOCK) ===
+  // async consultarTrackingPublico(data: TrackingPublicoRequestDTO): Promise<TrackingPublicoResponseDTO> {
+  //   // 1. Simulamos latencia de red para visualizar los estados de carga en el frontend
+  //   await new Promise((resolve) => setTimeout(resolve, 800));
+
+  //   // 2. LÓGICA DE VERIFICACIÓN ESTRICTA (#620)
+  //   // Definimos credenciales hardcodeadas que coincidan con nuestro mock para pruebas locales.
+  //   const trackingIdValido = MOCK_TRACKING_EN_TRANSITO.trackingId; // 'ENV-2026-089'
+  //   const cuitValido = '30-12345678-9'; // CUIT de prueba
+
+  //   if (data.trackingId === trackingIdValido && data.cuit === cuitValido) {
+  //     return MOCK_TRACKING_EN_TRANSITO;
+  //   }
+
+  //   // 3. MANEJO DE ERRORES DE PRIVACIDAD (#623)
+  //   // Si el ID no existe o el CUIT no coincide, lanzamos un error genérico idéntico 
+  //   // para evitar ataques de enumeración.
+  //   throw new Error('No se encontró información para los datos ingresados');
+  // }
+
+  // === PORTAL PÚBLICO DE SEGUIMIENTO ===
+  async consultarTrackingPublico(data: TrackingPublicoRequestDTO): Promise<TrackingPublicoResponseDTO> {
+    // Hacemos un POST al endpoint público enviando el Tracking ID y el CUIT en el body
+    return this.request<TrackingPublicoResponseDTO>('/public/tracking/consulta', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
   }
 
   // === RASTREO TIEMPO REAL DE ENVIO===

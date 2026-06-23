@@ -95,7 +95,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (isLoading) return;
 
-    const esRutaPublica = pathname === '/login' || pathname === '/';
+    const esRutaPublica = pathname === '/login' || pathname === '/' || pathname.startsWith('/tracking');
     const esRutaChofer = pathname.startsWith('/mi-viaje');
     const esRutaAdmin = pathname.startsWith('/admin');
     const esRutaDashboard =
