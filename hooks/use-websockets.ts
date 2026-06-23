@@ -133,13 +133,25 @@ export const useWebSocket = ({ idUsuario, onMensajeGlobal, onAlertaPrivada, onAl
                 if (onAlertaFatigaRef.current) {
                     client.subscribe('/topic/alertas-supervisores', (mensaje) => {
                         if (mensaje.body) {
-                            try {
-                                const data = JSON.parse(mensaje.body) as AlertaFatigaDTO;
-                                if (onAlertaFatigaRef.current) {
-                                    onAlertaFatigaRef.current(data);
+                            // 1. Obtenemos el content-type directamente de las cabeceras STOMP
+                            const contentType = mensaje.headers['content-type'] || '';
+
+                            // 2. Si es JSON (Mensaje de FALLO con el DTO)
+                            if (contentType.includes('application/json')) {
+                                try {
+                                    const data = JSON.parse(mensaje.body) as AlertaFatigaDTO;
+                                    if (onAlertaFatigaRef.current) {
+                                        onAlertaFatigaRef.current(data);
+                                    }
+                                } catch (error) {
+                                    console.error("❌ Error al parsear alerta de fatiga:", error);
                                 }
-                            } catch (error) {
-                                console.error("❌ Error al parsear alerta de fatiga:", error);
+                            }
+                            // 3. Si es Texto Plano (Mensaje de ÉXITO)
+                            else if (contentType.includes('text/plain')) {
+                                // Como el chofer aprobó, no necesitamos desplegar el banner amarillo de bloqueo.
+                                // Lo registramos silenciosamente en consola para fines de depuración.
+                                console.log("✅ Test de fatiga superado:", mensaje.body);
                             }
                         }
                     });
