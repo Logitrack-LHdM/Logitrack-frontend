@@ -101,10 +101,12 @@ export function AlertaCard({ alerta, onResolver }: AlertaCardProps) {
                         </Link>
                     </div>
 
-                    <div className="flex items-center gap-1.5 text-sm text-foreground/80">
-                        <User className="h-4 w-4 text-muted-foreground" />
-                        {alerta.chofer.nombreCompleto}
-                    </div>
+                    {alerta.chofer.nombreCompleto && (
+                        <div className="flex items-center gap-1.5 text-sm text-foreground/80">
+                            <User className="h-4 w-4 text-muted-foreground" />
+                            {alerta.chofer.nombreCompleto}
+                        </div>
+                    )}
 
                     {alerta.chofer.telefono && (
                         <div className="flex items-center gap-1.5 text-sm text-foreground/80">
