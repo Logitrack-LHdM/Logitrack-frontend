@@ -63,7 +63,7 @@ export default function DetalleEnvioPage({
   // MODIFICACIÓN: Le inyectamos 'envio?.estadoActual' al hook
   const { ruta, camionLat, camionLng, errorTracking } = useRastreoTiempoReal(id, envio?.estadoActual);
 
-  const { permisos } = useAuth();
+  const { permisos, usuario } = useAuth();
 
   const [nuevoEstado, setNuevoEstado] = useState<EstadoEnvio | ''>('');
   const [nuevaPrioridad, setNuevaPrioridad] = useState<Prioridad | ''>('');
@@ -98,6 +98,40 @@ export default function DetalleEnvioPage({
     return () => window.removeEventListener('alerta-fatiga-ws', handleFatigaWs);
   }, [id]);
   // =========================================================================
+
+  // =========================================================================
+  // NUEVO: RECUPERACIÓN PERSISTENTE DE FATIGA - FASE 6.2
+  // =========================================================================
+  useEffect(() => {
+    let montado = true;
+
+    const verificarFatigaPendiente = async () => {
+      // Optimizamos para no hacer llamadas a la API si no es un supervisor
+      if (usuario?.rol !== 'ROLE_SUPERVISOR') return;
+
+      try {
+        const evaluacionPendiente = await api.getEvaluacionFatigaPendiente(id);
+
+        // Si el componente sigue montado y hay una evaluación, mostramos el banner
+        if (montado && evaluacionPendiente) {
+          setAlertaFatiga(evaluacionPendiente);
+        }
+      } catch (error) {
+        console.error('[Fatiga] Error al recuperar el estado persistente:', error);
+      }
+    };
+
+    if (id && usuario) {
+      verificarFatigaPendiente();
+    }
+
+    // Cleanup function para evitar fugas de memoria si el usuario sale rápido de la pantalla
+    return () => {
+      montado = false;
+    };
+  }, [id, usuario]);
+  // =========================================================================
+
 
   // =========================================================================
   // FUNCIONES DE RESOLUCIÓN DE FATIGA - FASE 5.4
