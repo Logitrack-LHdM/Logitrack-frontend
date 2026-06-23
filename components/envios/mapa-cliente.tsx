@@ -5,6 +5,8 @@ import L from 'leaflet';
 // 1. Agregamos Polyline a las importaciones de react-leaflet
 import { MapContainer, TileLayer, Marker, Popup, useMap, Polyline } from 'react-leaflet';
 import { fixLeafletIcons } from '@/lib/leaflet-setup';
+import { useClima } from '@/hooks/use-clima';
+import { ClimaBadge } from '@/components/envios/clima-badge';
 
 interface MapaClienteProps {
     origenLat?: number;
@@ -178,8 +180,20 @@ const MapaCliente = memo(function MapaCliente({
 
     const centroInicial = coordsOrigen || centroPorDefecto;
 
+    // Elegimos la coordenada más relevante para consultar el clima:
+    // 1) Si el camión está en movimiento, el clima en su ubicación actual.
+    // 2) Si todavía no salió, el clima en el destino (para anticipar condiciones).
+    // 3) Como último recurso, el clima en el origen.
+    const coordsClima = coordsCamion || coordsDestino || coordsOrigen;
+    const { clima, isLoading: climaCargando, error: climaError } = useClima(
+        coordsClima?.[0],
+        coordsClima?.[1]
+    );
+
     return (
         <div className="h-full w-full rounded-xl overflow-hidden relative z-[1]">
+            <ClimaBadge clima={clima} isLoading={climaCargando} error={climaError} />
+
             <MapContainer
                 center={centroInicial}
                 zoom={11}
