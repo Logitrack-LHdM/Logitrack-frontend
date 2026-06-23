@@ -32,7 +32,7 @@ export default function BusquedaPage() {
           <Search className="h-7 w-7" />
         </div>
         <div>
-          <h4 className="font-bold mb-1 text-xl md:text-2xl flex items-center gap-2 text-gray-900">
+          <h4 className="font-bold mb-1 text-xl md:text-2xl flex items-center gap-2 text-foreground">
             {/* <FileText className="text-blue-600 h-6 w-6" />  */} Ficha Operativa
           </h4>
           <p className="text-muted-foreground text-sm m-0">Detalles del transporte de carga.</p>
@@ -66,7 +66,7 @@ export default function BusquedaPage() {
         {hasSearched && !isLoading && envios.length > 0 && (
           <div>
             <div className="flex items-center justify-between mb-3 px-2">
-              <h5 className="font-bold text-gray-900 m-0 text-lg">Resultados de la consulta</h5>
+              <h5 className="font-bold text-foreground m-0 text-lg">Resultados de la consulta</h5>
             </div>
             <div className="bg-white rounded-2xl shadow-sm border-0 overflow-hidden">
               <EnvioTable envios={envios} onCancelar={cancelarEnvio} />

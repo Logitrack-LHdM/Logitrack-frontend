@@ -1,4 +1,4 @@
-/* styles/globals.css */
+/* app/globals.css */
 
 @import 'tailwindcss';
 @import 'tw-animate-css';
@@ -6,25 +6,45 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  /* LogiTrack Agro - Colores corporativos */
+  --agro-dark: #081c15;
+  --agro-primary: #1b4332;
+  --agro-secondary: #2d6a4f;
+  --agro-light: #40916c;
+
+  /* Estados de envio */
+  --status-pending: #5a6370;
+  --status-transit: #0a58ca;
+  --status-pickup: #c7620e;
+  --status-delivery: #59359a;
+  --status-delivered: #146c43;
+  --status-cancelled: #b02a37;
+
+  /* Prioridades */
+  --priority-high: #dc3545;
+  --priority-medium: #ffc107;
+  --priority-low: #198754;
+
+  /* Base colors - tema agro */
+  --background: oklch(0.985 0.002 120);
+  --foreground: oklch(0.145 0.02 150);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  --card-foreground: oklch(0.145 0.02 150);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.145 0.02 150);
+  --primary: oklch(0.35 0.1 150);
   --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.96 0.01 150);
+  --secondary-foreground: oklch(0.25 0.05 150);
+  --muted: oklch(0.96 0.01 150);
+  --muted-foreground: oklch(0.42 0.02 150);
+  --accent: oklch(0.92 0.02 150);
+  --accent-foreground: oklch(0.25 0.05 150);
   --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: oklch(0.9 0.01 150);
+  --input: oklch(0.9 0.01 150);
+  --ring: oklch(0.45 0.1 150);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -42,38 +62,64 @@
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.145 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.145 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.985 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.396 0.141 25.723);
-  --destructive-foreground: oklch(0.637 0.237 25.331);
-  --border: oklch(0.269 0 0);
-  --input: oklch(0.269 0 0);
-  --ring: oklch(0.439 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(0.269 0 0);
-  --sidebar-ring: oklch(0.439 0 0);
+  /* Fondo general */
+  --background: #232826;
+  --foreground: #f1f5f3;
+
+  /* Cards */
+  --card: #2a302d;
+  --card-foreground: #f1f5f3;
+
+  /* Popovers / Menús */
+  --popover: #2a302d;
+  --popover-foreground: #f1f5f3;
+
+  /* Verde corporativo oscuro */
+  --primary: #5baa78;
+  --primary-foreground: #081c15;
+
+  /* Elementos secundarios */
+  --secondary: #353d39;
+  --secondary-foreground: #f1f5f3;
+
+  /* Texto secundario */
+  --muted: #353d39;
+  --muted-foreground: #b8c2bc;
+
+  /* Hover y destacados */
+  --accent: #3f4a44;
+  --accent-foreground: #f1f5f3;
+
+  /* Errores y alertas */
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+
+  /* Inputs y bordes */
+  --border: #454f49;
+  --input: #454f49;
+
+  /* Focus visible */
+  --ring: #5baa78;
+
+  /* Gráficos */
+  --chart-1: #5baa78;
+  --chart-2: #6bcf97;
+  --chart-3: #4a90e2;
+  --chart-4: #f59e0b;
+  --chart-5: #ef4444;
+
+  /* Sidebar */
+  --sidebar: #2a302d;
+  --sidebar-foreground: #f1f5f3;
+
+  --sidebar-primary: #5baa78;
+  --sidebar-primary-foreground: #081c15;
+
+  --sidebar-accent: #3f4a44;
+  --sidebar-accent-foreground: #f1f5f3;
+
+  --sidebar-border: #454f49;
+  --sidebar-ring: #5baa78;
 }
 
 @theme inline {
@@ -125,24 +171,87 @@
   body {
     @apply bg-background text-foreground;
   }
-}
-
-/* Animación del Timeline de LogiTrack */
-@keyframes pulse-warning {
-  0% {
-    box-shadow: 0 0 0 0 rgba(245, 157, 11, 0.6);
+ 
+  /* #416 Focus en todos los elementos interactivos */
+  :focus-visible {
+    outline: 3px solid var(--ring);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
   }
 
-  /* amber-500 */
-  70% {
-    box-shadow: 0 0 0 10px rgba(245, 157, 11, 0);
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible,
+  [tabindex]:focus-visible {
+    outline: 3px solid var(--ring);
+    outline-offset: 2px;
   }
 
-  100% {
-    box-shadow: 0 0 0 0 rgba(245, 157, 11, 0);
+  .skip-to-content {
+    position: absolute;
+    left: -9999px;
+    top: auto;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    z-index: -999;
   }
-}
+  .skip-to-content:focus {
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    z-index: 9999;
+    background: var(--primary);
+    color: var(--primary-foreground);
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius);
+    font-weight: 600;
+    outline: 3px solid var(--ring);
+    outline-offset: 2px;
+  }
 
-.animate-pulse-warning {
-  animation: pulse-warning 2s infinite;
+  /* #415: Texto sobre fondos claros  */
+  .bg-purple-100 { color: #4c1d95 !important; }
+  .bg-blue-100   { color: #1e3a5f !important; }
+  .bg-teal-100   { color: #134e4a !important; }
+  .bg-orange-100 { color: #7c2d12 !important; }
+  .bg-green-100  { color: #14532d !important; }
+  .bg-red-100    { color: #7f1d1d !important; }
+  .bg-amber-100  { color: #78350f !important; }
+
+  /* US-60 #505: Contraparte oscura de los badges con fondo claro (bg-*-100).
+     Sin esto el badge queda con fondo claro fijo y texto oscuro fijo
+     incluso en modo oscuro, lo que rompe el contraste. */
+  .dark .bg-purple-100 { background-color: oklch(0.32 0.08 305) !important; color: #e9d5ff !important; }
+  .dark .bg-blue-100   { background-color: oklch(0.32 0.08 250) !important; color: #bfdbfe !important; }
+  .dark .bg-teal-100   { background-color: oklch(0.32 0.07 180) !important; color: #99f6e4 !important; }
+  .dark .bg-orange-100 { background-color: oklch(0.32 0.09 50)  !important; color: #fed7aa !important; }
+  .dark .bg-green-100  { background-color: oklch(0.32 0.08 150) !important; color: #bbf7d0 !important; }
+  .dark .bg-red-100    { background-color: oklch(0.32 0.1 25)   !important; color: #fecaca !important; }
+  .dark .bg-amber-100  { background-color: oklch(0.32 0.09 80)  !important; color: #fde68a !important; }
+
+  /* US-60 #505: Esta es la regla que faltaba y causaba los bloques "en blanco"
+     en Auditoría, Búsqueda y Login. Esas pantallas usan clases Tailwind
+     hardcodeadas a modo claro (bg-white, bg-gray-50, text-gray-900, etc.)
+     en lugar de las variables del tema (bg-card, bg-muted, text-foreground).
+     Como esas clases no tienen variante dark: propia, el contenedor se queda
+     blanco fijo mientras el texto interno (que sí usa variables) pasa a un
+     color claro pensado para fondo oscuro -> texto claro sobre fondo blanco,
+     prácticamente invisible. Se traduce aquí de forma centralizada. */
+  .dark .bg-white { background-color: var(--card) !important; }
+  .dark .bg-slate-50,
+  .dark .bg-gray-50 { background-color: var(--muted) !important; }
+  .dark .text-gray-900,
+  .dark .text-gray-800 { color: var(--foreground) !important; }
+  .dark .text-gray-700,
+  .dark .text-gray-600,
+  .dark .text-gray-500 { color: var(--muted-foreground) !important; }
+  .dark .border-gray-100,
+  .dark .border-gray-200,
+  .dark .border-slate-200 { border-color: var(--border) !important; }
 }

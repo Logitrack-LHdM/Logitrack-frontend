@@ -112,7 +112,7 @@ export function UsuarioDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[550px] max-h-[90vh] overflow-y-auto border-t-4 border-t-[#2d6a4f]">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold text-gray-900">
+          <DialogTitle className="text-xl font-bold text-foreground">
             {esEdicion ? 'Editar Cuenta de Usuario' : 'Registrar Nuevo Usuario'}
           </DialogTitle>
           <DialogDescription>

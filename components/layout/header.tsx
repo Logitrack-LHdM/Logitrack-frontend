@@ -18,6 +18,7 @@ import {
 import { useAuth } from '@/contexts/auth-context';
 import { normalizarEnum } from '@/lib/utils';
 import { NotificationBell } from './notification-bell'; // <-- FASE 4.3: Importamos la campana
+import { ThemeToggle } from './theme-toggle';
 
 export function Header() {
   const { usuario, logout } = useAuth();
@@ -36,7 +37,7 @@ export function Header() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
             {/* <div className="p-1.5 bg-white/10 rounded-lg">
-              <Wheat className="h-7 w-7" />
+
             </div> */}
             <div className="relative w-[50px] h-[50px]">
               <Image src="/images/logo-white-100.png" alt="Logo" fill style={{ objectFit: 'contain' }} />
@@ -49,6 +50,7 @@ export function Header() {
 
           {/* Sección Derecha: Campana, Usuario y Logout */}
           <div className="flex items-center gap-2 md:gap-4">
+            <ThemeToggle />
             {/* Info usuario - Desktop */}
             <div className="hidden md:flex items-center gap-2 text-sm ml-1">
               <User className="h-4 w-4 text-white/70" />

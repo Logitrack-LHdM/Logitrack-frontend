@@ -85,7 +85,7 @@ export default function AlertasPage() {
                     <AlertTriangle className="h-7 w-7" />
                 </div>
                 <div>
-                    <h4 className="font-bold text-gray-900 mb-1 text-xl md:text-2xl">
+                    <h4 className="font-bold text-foreground mb-1 text-xl md:text-2xl">
                         Panel de Alertas
                     </h4>
                     <p className="text-muted-foreground text-sm m-0">

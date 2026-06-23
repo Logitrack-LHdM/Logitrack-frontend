@@ -48,7 +48,7 @@ export default function AuditoriaPage() {
           <History className="h-7 w-7" />
         </div>
         <div>
-          <h4 className="font-bold text-gray-900 mb-1 text-xl md:text-2xl">Historial Completo</h4>
+          <h4 className="font-bold text-foreground mb-1 text-xl md:text-2xl">Historial Completo</h4>
           <p className="text-muted-foreground text-sm m-0">
             Registro histórico de modificaciones de estado y prioridad en la red logística.
           </p>
@@ -71,7 +71,7 @@ export default function AuditoriaPage() {
         /* Estado Vacío (Tu "emptyState" original) */
         <div className="bg-white rounded-2xl shadow-sm border-0 p-8 md:p-16 text-center">
           <ClipboardX className="h-16 w-16 mx-auto text-muted-foreground opacity-25 mb-4" strokeWidth={1.5} />
-          <h6 className="font-bold text-gray-900 text-lg">Sin registros de auditoría</h6>
+          <h6 className="font-bold text-foreground text-lg">Sin registros de auditoría</h6>
           <p className="text-muted-foreground text-sm max-w-md mx-auto mt-2">
             Actualmente no se encuentran cambios registrados en los envíos del sistema.
           </p>

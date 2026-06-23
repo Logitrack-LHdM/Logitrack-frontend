@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 import { api } from '@/lib/api';
 import { useAuth } from '@/contexts/auth-context';
 import { useWebSocket } from './use-websockets';
-import { AlertaWebDTO, MensajeGlobalViaje } from '@/types/websockets';
+import { AlertaWebDTO, MensajeGlobalViaje, AlertaFatigaDTO } from '@/types/websockets';
 
 export const useCampanaAlertas = () => {
     const { usuario } = useAuth();
@@ -95,6 +95,25 @@ export const useCampanaAlertas = () => {
         agregarAlertaLocal(mensajeStr);
     }, [agregarAlertaLocal]);
 
+    // Handler para alertas críticas de Fatiga
+    const handleAlertaFatiga = useCallback((alerta: AlertaFatigaDTO) => {
+        const mensajeStr = `ALERTA FATIGA: El chofer ${alerta.nombreChofer} no superó la prueba. Viaje ${alerta.idEnvio} bloqueado.`;
+
+        // 1. Toast global muy llamativo
+        toast.error('¡Fatiga Extrema Detectada!', {
+            description: mensajeStr,
+            duration: 10000, // 10 segundos
+        });
+
+        // 2. Lo agregamos a la campana de notificaciones
+        agregarAlertaLocal(mensajeStr);
+
+        // 3. Emitimos un evento global en el navegador para que page.tsx lo escuche si está abierta
+        if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('alerta-fatiga-ws', { detail: alerta }));
+        }
+    }, [agregarAlertaLocal]);
+
     // FASE 1: Segregación lógica de variables booleanas
     const isSupervisor = usuario?.rol === 'ROLE_SUPERVISOR';
     const isOperador = usuario?.rol === 'ROLE_OPERADOR';
@@ -106,6 +125,7 @@ export const useCampanaAlertas = () => {
         onAlertaPrivada: isSupervisor ? handleNuevaAlerta : undefined,
         // Si NO es operador, pasamos undefined (se ignora)
         onMensajeGlobal: isOperador ? handleNuevoViaje : undefined,
+        onAlertaFatiga: isSupervisor ? handleAlertaFatiga : undefined,
     });
 
     // Marcar como leída (Actualización Optimista)

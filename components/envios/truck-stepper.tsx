@@ -75,14 +75,14 @@ export function TruckStepper({ estadoActual }: TruckStepperProps) {
                 'w-10 h-10 rounded-full border-[3px] flex items-center justify-center transition-all duration-300',
                 isDone && 'bg-[#198754] border-[#198754] text-white',
                 isActive && 'bg-white border-amber-400 text-amber-400 shadow-[0_0_0_4px_rgba(245,158,11,0.15)]',
-                !isDone && !isActive && 'bg-white border-gray-200 text-gray-400'
+                !isDone && !isActive && 'bg-white border-border text-gray-400'
               )}>
                 <Icon className="h-4 w-4" strokeWidth={2.5} />
               </div>
               <span className={cn(
                 'text-[11px] text-center leading-tight max-w-[72px]',
                 isDone && 'text-[#198754] font-medium',
-                isActive && 'text-gray-900 font-medium',
+                isActive && 'text-foreground font-medium',
                 !isDone && !isActive && 'text-gray-400'
               )}>
                 {label}

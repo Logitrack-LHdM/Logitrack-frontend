@@ -141,7 +141,7 @@ export function CartaPorteModal({ idEnvio, open, onOpenChange }: CartaPorteModal
             <div className="flex flex-col items-center justify-center w-full">
 
               {/* CONTENEDOR DE ALTO CONTRASTE (AISLADO DEL MODO OSCURO) */}
-              <div className="bg-white text-black w-full flex flex-col items-center p-8 rounded-xl shadow-sm border-2 border-gray-200">
+              <div className="bg-white text-foreground w-full flex flex-col items-center p-8 rounded-xl shadow-sm border-2 border-border">
 
                 {/* <h3 className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-6 text-center">
                   Documento Electrónico de Transporte
@@ -247,7 +247,7 @@ function InfoField({
       <span className="text-[11px] font-bold uppercase text-gray-500 tracking-wider mb-1">
         {label}
       </span>
-      <span className={`text-sm ${highlight ? 'font-black text-black text-base' : 'font-semibold text-gray-800'}`}>
+      <span className={`text-sm ${highlight ? 'font-black text-foreground text-base' : 'font-semibold text-gray-800'}`}>
         {value}
       </span>
       {subValue && (

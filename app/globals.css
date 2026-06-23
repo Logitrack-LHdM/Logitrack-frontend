@@ -62,38 +62,64 @@
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.145 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.145 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.985 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.396 0.141 25.723);
-  --destructive-foreground: oklch(0.637 0.237 25.331);
-  --border: oklch(0.269 0 0);
-  --input: oklch(0.269 0 0);
-  --ring: oklch(0.439 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(0.269 0 0);
-  --sidebar-ring: oklch(0.439 0 0);
+  /* Fondo general */
+  --background: #232826;
+  --foreground: #f1f5f3;
+
+  /* Cards */
+  --card: #2a302d;
+  --card-foreground: #f1f5f3;
+
+  /* Popovers / Menús */
+  --popover: #2a302d;
+  --popover-foreground: #f1f5f3;
+
+  /* Verde corporativo oscuro */
+  --primary: #5baa78;
+  --primary-foreground: #081c15;
+
+  /* Elementos secundarios */
+  --secondary: #353d39;
+  --secondary-foreground: #f1f5f3;
+
+  /* Texto secundario */
+  --muted: #353d39;
+  --muted-foreground: #b8c2bc;
+
+  /* Hover y destacados */
+  --accent: #3f4a44;
+  --accent-foreground: #f1f5f3;
+
+  /* Errores y alertas */
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+
+  /* Inputs y bordes */
+  --border: #454f49;
+  --input: #454f49;
+
+  /* Focus visible */
+  --ring: #5baa78;
+
+  /* Gráficos */
+  --chart-1: #5baa78;
+  --chart-2: #6bcf97;
+  --chart-3: #4a90e2;
+  --chart-4: #f59e0b;
+  --chart-5: #ef4444;
+
+  /* Sidebar */
+  --sidebar: #2a302d;
+  --sidebar-foreground: #f1f5f3;
+
+  --sidebar-primary: #5baa78;
+  --sidebar-primary-foreground: #081c15;
+
+  --sidebar-accent: #3f4a44;
+  --sidebar-accent-foreground: #f1f5f3;
+
+  --sidebar-border: #454f49;
+  --sidebar-ring: #5baa78;
 }
 
 @theme inline {
@@ -196,5 +222,53 @@
   .bg-orange-100 { color: #7c2d12 !important; }
   .bg-green-100  { color: #14532d !important; }
   .bg-red-100    { color: #7f1d1d !important; }
-  .bg-amber-100  { color: #78350f !important; }  
+  .bg-amber-100  { color: #78350f !important; }
+
+  /* US-60 #505: Contraparte oscura de los badges con fondo claro (bg-*-100).
+     Sin esto el badge queda con fondo claro fijo y texto oscuro fijo
+     incluso en modo oscuro, lo que rompe el contraste. */
+  .dark .bg-purple-100 { background-color: oklch(0.32 0.08 305) !important; color: #e9d5ff !important; }
+  .dark .bg-blue-100   { background-color: oklch(0.32 0.08 250) !important; color: #bfdbfe !important; }
+  .dark .bg-teal-100   { background-color: oklch(0.32 0.07 180) !important; color: #99f6e4 !important; }
+  .dark .bg-orange-100 { background-color: oklch(0.32 0.09 50)  !important; color: #fed7aa !important; }
+  .dark .bg-green-100  { background-color: oklch(0.32 0.08 150) !important; color: #bbf7d0 !important; }
+  .dark .bg-red-100    { background-color: oklch(0.32 0.1 25)   !important; color: #fecaca !important; }
+  .dark .bg-amber-100  { background-color: oklch(0.32 0.09 80)  !important; color: #fde68a !important; }
+
+  /* US-60 #505: Esta es la regla que faltaba y causaba los bloques "en blanco"
+     en Auditoría, Búsqueda y Login. Esas pantallas usan clases Tailwind
+     hardcodeadas a modo claro (bg-white, bg-gray-50, text-gray-900, etc.)
+     en lugar de las variables del tema (bg-card, bg-muted, text-foreground).
+     Como esas clases no tienen variante dark: propia, el contenedor se queda
+     blanco fijo mientras el texto interno (que sí usa variables) pasa a un
+     color claro pensado para fondo oscuro -> texto claro sobre fondo blanco,
+     prácticamente invisible. Se traduce aquí de forma centralizada. */
+  .dark .bg-white { background-color: var(--card) !important; }
+  .dark .bg-slate-50,
+  .dark .bg-gray-50 { background-color: var(--muted) !important; }
+  .dark .text-gray-900,
+  .dark .text-gray-800 { color: var(--foreground) !important; }
+  .dark .text-gray-700,
+  .dark .text-gray-600,
+  .dark .text-gray-500 { color: var(--muted-foreground) !important; }
+  .dark .border-gray-100,
+  .dark .border-gray-200,
+  .dark .border-slate-200 { border-color: var(--border) !important; }
+
+  /* US-60 #505 (parte 2): Variantes con opacidad como sufijo (bg-gray-50/80,
+     bg-white/40, border-gray-200/50, etc). Tailwind genera estas clases con
+     el nombre literal incluyendo la barra, por lo que los selectores de
+     arriba (sin /N) no las alcanzan. Se cubren aparte con atributo CSS
+     genérico por substring, ya que cubrir cada fracción posible (/5, /10,
+     /20... /95) sería interminable. */
+  .dark [class*="bg-white/"] { background-color: var(--card) !important; }
+  .dark [class*="bg-gray-50/"],
+  .dark [class*="bg-slate-50/"] { background-color: var(--muted) !important; }
+  .dark [class*="border-gray-100/"],
+  .dark [class*="border-gray-200/"],
+  .dark [class*="border-slate-200/"] { border-color: var(--border) !important; }
+
+  /* Hover sobre filas de tabla con gray-50 (ej: hover:bg-gray-50/50) */
+  .dark [class*="hover:bg-gray-50/"]:hover,
+  .dark [class*="hover:bg-slate-50/"]:hover { background-color: var(--muted) !important; }
 }

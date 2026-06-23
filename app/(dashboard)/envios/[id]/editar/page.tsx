@@ -50,7 +50,7 @@ export default function EditarEnvioPage({
           <Pencil className="h-7 w-7" />
         </div>
         <div>
-          <h4 className="font-bold mb-1 text-xl md:text-2xl flex items-center gap-2 text-gray-900">
+          <h4 className="font-bold mb-1 text-xl md:text-2xl flex items-center gap-2 text-foreground">
             Editar Envío #{id}
           </h4>
           <p className="text-muted-foreground text-sm m-0">Modificá los datos del envío. Solo podés editar envíos en estado Pendiente.</p>

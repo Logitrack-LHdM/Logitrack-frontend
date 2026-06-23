@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Search, RefreshCw, MapPin, User, Truck, AlertCircle, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -16,9 +16,10 @@ import type { Envio, EstadoEnvio } from '@/types';
 
 interface AsignacionesSearchProps {
   onReasignar: (envio: Envio) => void;
+  refreshKey?: number; // US 67 (#592) — al cambiar, re-ejecuta la búsqueda actual
 }
 
-export function AsignacionesSearch({ onReasignar }: AsignacionesSearchProps) {
+export function AsignacionesSearch({ onReasignar, refreshKey }: AsignacionesSearchProps) {
   // Estado local para la búsqueda (similar al hook useEnvios)
   const [envios, setEnvios] = useState<Envio[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -76,6 +77,15 @@ export function AsignacionesSearch({ onReasignar }: AsignacionesSearchProps) {
     if (currentPage + 1 < totalPages) buscar(currentPage + 1);
   };
 
+  // US 67 (#592) — recarga visual: si ya había una búsqueda activa, la repite
+  // para reflejar el nuevo chofer/camión apenas se confirma una reasignación.
+  useEffect(() => {
+    if (refreshKey && refreshKey > 0 && hasSearched) {
+      buscar(currentPage);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refreshKey]);
+
   return (
     <>
       <div className="py-6 md:py-6">
@@ -84,7 +94,7 @@ export function AsignacionesSearch({ onReasignar }: AsignacionesSearchProps) {
             <Search className="h-6 w-6" />
           </div>
           <div>
-            <h4 className="text-xl md:text-2xl font-bold text-gray-900 flex items-center gap-2 mb-1">
+            <h4 className="text-xl md:text-2xl font-bold text-foreground flex items-center gap-2 mb-1">
               Buscar Envíos Asignados
             </h4>
             <p className="text-muted-foreground text-sm">
@@ -151,7 +161,7 @@ export function AsignacionesSearch({ onReasignar }: AsignacionesSearchProps) {
           {hasSearched && !isLoading && envios.length > 0 && (
             <div>
               <div className="flex items-center justify-between mb-3 px-2">
-                <h5 className="font-bold text-gray-900 text-lg">Resultados</h5>
+                <h5 className="font-bold text-foreground text-lg">Resultados</h5>
                 <span className="text-sm text-muted-foreground">{totalElements} envíos encontrados</span>
               </div>
               <div className="border rounded-xl overflow-hidden">

@@ -167,7 +167,7 @@ export function CumplimientoDashboard() {
                     <Activity className="h-7 w-7" />
                 </div>
                 <div>
-                    <h4 className="font-bold text-gray-900 mb-1 text-xl md:text-2xl">Análisis de Cumplimiento</h4>
+                    <h4 className="font-bold text-foreground mb-1 text-xl md:text-2xl">Análisis de Cumplimiento</h4>
                     {/* Subtítulo dinámico/genérico */}
                     <p className="text-muted-foreground text-sm m-0">
                         Resumen del desempeño de los viajes en el período seleccionado.

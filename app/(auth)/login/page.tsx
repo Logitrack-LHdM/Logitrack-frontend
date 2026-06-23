@@ -21,9 +21,9 @@ export default function LoginPage() {
   if (isAuthenticated) return null;
 
   return (
-    <div className="min-h-screen flex bg-white">
+    <div className="min-h-screen flex bg-background">
       {/* Panel izquierdo - Branding (Fiel al index.html original) */}
-      <div className="hidden lg:flex lg:w-7/12 flex-col justify-between p-12 text-white bg-gradient-to-br from-[#1b4332] to-[#081c15]">
+      <div className="hidden lg:flex lg:w-7/12 flex-col justify-between p-12 text-white bg-gradient-to-br from-[#1b4332] to-[#081c15] dark:from-[#143a29] dark:to-[#040c08]">
 
         {/* Header Logo */}
         <div className="flex items-center gap-3">
@@ -66,7 +66,7 @@ export default function LoginPage() {
       </div>
 
       {/* Panel derecho - Login */}
-      <div className="w-full lg:w-5/12 flex items-center justify-center p-6 lg:p-12 relative">
+      <div className="w-full lg:w-5/12 flex items-center justify-center p-6 lg:p-12 relative bg-gradient-to-br from-background to-muted/30 dark:from-background dark:to-card/40">
         <div className="w-full max-w-[500px]">
 
           <div className="text-center mb-10">
@@ -81,10 +81,10 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">
+            <h2 className="text-3xl font-bold text-foreground mb-2">
               Iniciar Sesión
             </h2>
-            <p className="text-gray-500">
+            <p className="text-muted-foreground">
               Ingrese sus credenciales operativas.
             </p>
           </div>

@@ -4,6 +4,7 @@ import type {
   Envio,
   EnvioRequestDTO,
   EnvioUpdateDTO,
+  ReasignacionViajeRequestDTO,
   IncidenciaDTO,
   BusquedaEnviosParams,
   PaginatedResponse,
@@ -21,6 +22,8 @@ import type {
   AlertaListadoDTO,
   ClienteRequestDTO,
   CartaPorteDTO,
+  EvaluacionFatigaRequestDTO,
+  EvaluacionFatigaResponseDTO,
 } from '@/types';
 
 // Agrega esta importación junto a las demás
@@ -35,6 +38,8 @@ import { adaptarRutaParaLeaflet } from '@/lib/utils';
 import { RespuestaCumplimiento } from '@/types/cumplimiento';
 import { AlertaWebDTO } from '@/types/websockets';
 import { agregarAccionACola } from '@/lib/offline-sync';
+import type { TrackingPublicoRequestDTO, TrackingPublicoResponseDTO } from '@/types/tracking';
+import { MOCK_TRACKING_EN_TRANSITO } from '@/mocks/trackingMock';
 
 // Base URL de la API - usar variable de entorno en produccion
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
@@ -207,6 +212,35 @@ class ApiClient {
     return this.descargarArchivo(`/envios/${idEnvio}/pdf-carta-porte`);
   }
 
+  // === PORTAL PÚBLICO DE SEGUIMIENTO (MOCK) ===
+  // async consultarTrackingPublico(data: TrackingPublicoRequestDTO): Promise<TrackingPublicoResponseDTO> {
+  //   // 1. Simulamos latencia de red para visualizar los estados de carga en el frontend
+  //   await new Promise((resolve) => setTimeout(resolve, 800));
+
+  //   // 2. LÓGICA DE VERIFICACIÓN ESTRICTA (#620)
+  //   // Definimos credenciales hardcodeadas que coincidan con nuestro mock para pruebas locales.
+  //   const trackingIdValido = MOCK_TRACKING_EN_TRANSITO.trackingId; // 'ENV-2026-089'
+  //   const cuitValido = '30-12345678-9'; // CUIT de prueba
+
+  //   if (data.trackingId === trackingIdValido && data.cuit === cuitValido) {
+  //     return MOCK_TRACKING_EN_TRANSITO;
+  //   }
+
+  //   // 3. MANEJO DE ERRORES DE PRIVACIDAD (#623)
+  //   // Si el ID no existe o el CUIT no coincide, lanzamos un error genérico idéntico 
+  //   // para evitar ataques de enumeración.
+  //   throw new Error('No se encontró información para los datos ingresados');
+  // }
+
+  // === PORTAL PÚBLICO DE SEGUIMIENTO ===
+  async consultarTrackingPublico(data: TrackingPublicoRequestDTO): Promise<TrackingPublicoResponseDTO> {
+    // Hacemos un POST al endpoint público enviando el Tracking ID y el CUIT en el body
+    return this.request<TrackingPublicoResponseDTO>('/public/tracking/consulta', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
   // === RASTREO TIEMPO REAL DE ENVIO===
   /**
    * Obtiene la ruta completa planificada para un envío y la 
@@ -325,6 +359,23 @@ class ApiClient {
   ): Promise<Envio> {
     return this.request<Envio>(`/envios/${idEnvio}/asignar-transporte`, {
       method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  // US 67 — Reasignación de viajes (#592)
+  // PUT /api/envios/{idEnvio}/reasignar (backend Tarea #586).
+  // A diferencia de asignarTransporte, este endpoint además:
+  //   - libera el chofer/camión anterior (#587),
+  //   - desvincula los bloqueos de fatiga del chofer viejo para este viaje (#588),
+  //   - registra el evento de auditoría con el motivo ingresado (#589).
+  // El endpoint responde 200 OK con body vacío.
+  async reasignarViaje(
+    idEnvio: string,
+    data: ReasignacionViajeRequestDTO
+  ): Promise<void> {
+    return this.request<void>(`/envios/${idEnvio}/reasignar`, {
+      method: 'PUT',
       body: JSON.stringify(data),
     });
   }
@@ -504,6 +555,71 @@ class ApiClient {
       throw new Error(`Error al marcar alerta como leída: ${response.status}`);
     }
   }
+
+  // === EVALUACIÓN DE FATIGA Y CONTROL PSICOMOTOR (US 68) ===
+
+  /**
+   * Registra el resultado del test psicomotor realizado por el chofer.
+   * Envía el identificador del envío, el tipo de juego, el tiempo en milisegundos y el ID del chofer[cite: 40].
+   * @param dto Datos estructurados de la evaluación realizada en la PWA[cite: 40].
+   */
+  async registrarEvaluacion(dto: EvaluacionFatigaRequestDTO, forceNetwork: boolean = false): Promise<EvaluacionFatigaResponseDTO & { _offlineQueued?: boolean }> {
+
+    // Intercepción Offline (Misma lógica que usas para incidencias)
+    if (!forceNetwork && typeof navigator !== 'undefined' && !navigator.onLine) {
+      await agregarAccionACola('REGISTRAR_EVALUACION', { dto });
+
+      // Aprobación optimista offline: destraba la UI para que inicie el viaje localmente
+      return {
+        idEvaluacion: 0,
+        aprobado: true,
+        mensaje: "Guardado localmente. Se sincronizará con el servidor.",
+        _offlineQueued: true,
+      };
+    }
+
+    return this.request<EvaluacionFatigaResponseDTO>('/evaluaciones', {
+      method: 'POST',
+      body: JSON.stringify(dto),
+    });
+  }
+
+  /**
+   * Cambia el estado de una evaluación a RESETEADO para habilitar un nuevo intento al chofer.
+   * Este endpoint está estrictamente protegido y requiere rol de supervisor.
+   * @param idEvaluacion Identificador único de la evaluación psicomotora a resetear.
+   */
+  async resetearEvaluacion(idEvaluacion: number | string): Promise<void> {
+    return this.request<void>(`/evaluaciones/${idEvaluacion}/resetear`, {
+      method: 'POST',
+    });
+  }
+
+  /**
+   * Forza la autorización de un viaje bloqueado por fatiga extrema bajo escenario de fuerza mayor.
+   * Requiere el ingreso de una justificación escrita obligatoria que quedará auditada con la sesión del supervisor.
+   * @param idEvaluacion Identificador único de la evaluación psicomotora rechazada.
+   * @param motivo Texto explicativo obligatorio que justifica la excepción.
+   */
+  async autorizarFuerzaMayor(idEvaluacion: number | string, motivo: string): Promise<void> {
+    return this.request<void>(`/evaluaciones/${idEvaluacion}/autorizar-fuerza-mayor`, {
+      method: 'POST',
+      body: JSON.stringify({ motivo }),
+    });
+  }
+
+  /**
+   * Mantiene el rechazo del test de fatiga y registra la justificación del supervisor.
+   * @param idEvaluacion Identificador de la evaluación
+   * @param motivo Texto explicativo obligatorio
+   */
+  async rechazarEvaluacion(idEvaluacion: number | string, motivo: string): Promise<void> {
+    return this.request<void>(`/evaluaciones/${idEvaluacion}/rechazar`, {
+      method: 'POST',
+      body: JSON.stringify({ motivo }),
+    });
+  }
+
 }
 
 export const api = new ApiClient();
