@@ -19,7 +19,7 @@ export interface AlertaWebDTO {
 
     // Podríamos agregar un idEnvio si a futuro queremos que al hacer clic 
     // en la notificación te lleve al detalle del envío.
-    // idEnvio?: string;
+    idEnvio?: string;
 }
 
 // 3. Interfaz para la Alerta de Fatiga en tiempo real (US 68)
