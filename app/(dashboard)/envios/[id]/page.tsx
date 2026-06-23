@@ -134,7 +134,7 @@ export default function DetalleEnvioPage({
 
 
   // =========================================================================
-  // FUNCIONES DE RESOLUCIÓN DE FATIGA - FASE 5.4
+  // FUNCIONES DE RESOLUCIÓN DE FATIGA
   // =========================================================================
   const handleResetearFatiga = async () => {
     if (!alertaFatiga) return;
@@ -142,11 +142,17 @@ export default function DetalleEnvioPage({
 
     try {
       await api.resetearEvaluacion(alertaFatiga.idEvaluacion);
+
+      // 1. Limpieza visual inmediata (Feedback instantáneo)
+      setAlertaFatiga(null);
+
+      // 2. Refrescamos la auditoría en segundo plano
+      await recargar();
+
+      // 3. Notificación de éxito
       toast.success('Evaluación reseteada', {
         description: 'Se ha notificado al sistema. El chofer ya puede intentar nuevamente.'
       });
-      setAlertaFatiga(null); // Ocultamos el banner
-      await recargar(); // Refrescamos el historial en pantalla
     } catch (err) {
       toast.error('Error al resetear', {
         description: err instanceof Error ? err.message : 'Error inesperado del servidor'
@@ -162,16 +168,19 @@ export default function DetalleEnvioPage({
 
     try {
       await api.autorizarFuerzaMayor(alertaFatiga.idEvaluacion, motivoFuerzaMayor);
-      toast.success('Autorización forzada aplicada', {
-        description: 'El viaje ha sido desbloqueado exitosamente.'
-      });
 
-      // Limpiamos la UI
+      // 1. Limpieza visual inmediata
       setAlertaFatiga(null);
       setIsFuerzaMayorModalOpen(false);
       setMotivoFuerzaMayor('');
 
-      await recargar(); // Refrescamos la auditoría para ver el registro
+      // 2. Refrescamos la auditoría en segundo plano
+      await recargar();
+
+      // 3. Notificación
+      toast.success('Autorización forzada aplicada', {
+        description: 'El viaje ha sido desbloqueado exitosamente.'
+      });
     } catch (err) {
       toast.error('Error al autorizar', {
         description: err instanceof Error ? err.message : 'Error inesperado del servidor'
@@ -187,16 +196,19 @@ export default function DetalleEnvioPage({
 
     try {
       await api.rechazarEvaluacion(alertaFatiga.idEvaluacion, motivoRechazo);
-      toast.success('Rechazo confirmado', {
-        description: 'El viaje se mantiene bloqueado y se ha registrado su justificación.'
-      });
 
-      // Limpiamos la UI
+      // 1. Limpieza visual inmediata
       setAlertaFatiga(null);
       setIsRechazarModalOpen(false);
       setMotivoRechazo('');
 
-      await recargar(); // Refrescamos la auditoría
+      // 2. Refrescamos la auditoría en segundo plano
+      await recargar();
+
+      // 3. Notificación
+      toast.success('Rechazo confirmado', {
+        description: 'El viaje se mantiene bloqueado y se ha registrado su justificación.'
+      });
     } catch (err) {
       toast.error('Error al rechazar', {
         description: err instanceof Error ? err.message : 'Error inesperado del servidor'
@@ -205,6 +217,8 @@ export default function DetalleEnvioPage({
       setIsProcesandoFatiga(false);
     }
   };
+  // =========================================================================
+
 
   // Sincronizar el estado local cuando se carga el envío
   useEffect(() => {
