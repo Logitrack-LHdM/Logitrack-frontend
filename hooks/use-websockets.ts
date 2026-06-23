@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
-import { MensajeGlobalViaje } from '@/types/websockets';
+import { MensajeGlobalViaje, AlertaFatigaDTO } from '@/types/websockets';
 import { useNetwork } from '@/hooks/use-network';
 
 // En hooks/use-websocket.ts
@@ -34,10 +34,10 @@ interface UseWebSocketProps {
     idUsuario?: number;
     onMensajeGlobal?: (mensaje: MensajeGlobalViaje) => void;
     onAlertaPrivada?: (mensaje: string) => void;
+    onAlertaFatiga?: (alerta: AlertaFatigaDTO) => void;
 }
 
-export const useWebSocket = ({ idUsuario, onMensajeGlobal, onAlertaPrivada }: UseWebSocketProps) => {
-    // Estado interno para saber si estamos conectados
+export const useWebSocket = ({ idUsuario, onMensajeGlobal, onAlertaPrivada, onAlertaFatiga }: UseWebSocketProps) => {    // Estado interno para saber si estamos conectados
     const [isConnected, setIsConnected] = useState(false);
 
     // Usamos una referencia para mantener la instancia del cliente viva
@@ -49,13 +49,16 @@ export const useWebSocket = ({ idUsuario, onMensajeGlobal, onAlertaPrivada }: Us
     const onMensajeGlobalRef = useRef(onMensajeGlobal);
     const onAlertaPrivadaRef = useRef(onAlertaPrivada);
 
+    const onAlertaFatigaRef = useRef(onAlertaFatiga);
+
     // Observamos si hay internet a nivel de aplicación
     const { isOnline } = useNetwork();
 
     useEffect(() => {
         onMensajeGlobalRef.current = onMensajeGlobal;
         onAlertaPrivadaRef.current = onAlertaPrivada;
-    }, [onMensajeGlobal, onAlertaPrivada]);
+        onAlertaFatigaRef.current = onAlertaFatiga;
+    }, [onMensajeGlobal, onAlertaPrivada, onAlertaFatiga]);
 
     // EFECTO PRINCIPAL: Control de ciclo de vida del WebSocket basado en red
     useEffect(() => {
@@ -125,6 +128,24 @@ export const useWebSocket = ({ idUsuario, onMensajeGlobal, onAlertaPrivada }: Us
                     });
                     console.log(`🚨 Suscrito a /queue/alertas-${idUsuario} (Campana Privada)`);
                 }
+
+                // Suscripción exclusiva para el canal de fatiga (US 68)
+                if (onAlertaFatigaRef.current) {
+                    client.subscribe('/topic/alertas-supervisores', (mensaje) => {
+                        if (mensaje.body) {
+                            try {
+                                const data = JSON.parse(mensaje.body) as AlertaFatigaDTO;
+                                if (onAlertaFatigaRef.current) {
+                                    onAlertaFatigaRef.current(data);
+                                }
+                            } catch (error) {
+                                console.error("❌ Error al parsear alerta de fatiga:", error);
+                            }
+                        }
+                    });
+                    console.log('🚨 Suscrito a /topic/alertas-supervisores (Prevención de Fatiga)');
+                }
+
             },
             onStompError: (frame) => {
                 console.error('❌ Error STOMP:', frame.headers['message']);

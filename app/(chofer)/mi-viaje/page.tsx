@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { Loader2, Package, RefreshCw, GlobeX, QrCode } from 'lucide-react'
+import { Loader2, Package, RefreshCw, GlobeX, QrCode } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import {
@@ -14,7 +14,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { ViajeCard } from '@/components/chofer/viaje-card';
 import { ActionButton } from '@/components/chofer/action-button';
@@ -22,7 +21,12 @@ import { IncidenciaDrawer } from '@/components/chofer/incidencia-drawer';
 import { CartaPorteModal } from '@/components/chofer/carta-porte-modal';
 import { useViajeChofer } from '@/hooks/use-viaje-chofer';
 import { FLUJO_LOGISTICO } from '@/lib/constants';
-import type { IncidenciaDTO } from '@/types';
+import type { IncidenciaDTO, TipoJuego } from '@/types';
+import { api } from '@/lib/api';
+import { useAuth } from '@/contexts/auth-context';
+
+// Importamos el contenedor del test de fatiga
+import { FatigueTestContainer } from '@/components/chofer/fatiga/FatigueTestContainer';
 
 export default function MiViajePage() {
   const {
@@ -35,8 +39,65 @@ export default function MiViajePage() {
     reportarIncidencia,
   } = useViajeChofer();
 
-  // Estado para controlar la visibilidad del modal de la Carta de Porte (US 55)
   const [isQrModalOpen, setIsQrModalOpen] = useState(false);
+
+  // NUEVOS ESTADOS PARA INTERCEPCIÓN
+  const [mostrarTestFatiga, setMostrarTestFatiga] = useState(false);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+
+  const { usuario } = useAuth();
+  const [viajeBloqueado, setViajeBloqueado] = useState(false);
+
+  // Intercepta el clic principal según el estado del viaje
+  const handleAccionPrincipal = () => {
+    if (viaje?.estadoActual === 'PENDIENTE') {
+      // Bloqueamos el flujo normal y lanzamos el minijuego
+      setMostrarTestFatiga(true);
+    } else {
+      // Flujo normal para el resto de los estados
+      setIsConfirmOpen(true);
+    }
+  };
+
+  // Para procesar el test
+  const handleTestCompletado = async (resultado: { tipoJuego: TipoJuego; tiempoReaccionMs: number }) => {
+    if (!viaje || !usuario) return;
+
+    try {
+      // Enviamos el resultado a la API que creamos en el Paso 1
+      const response = await api.registrarEvaluacion({
+        idEnvio: viaje.idEnvio.toString(),
+        tipoJuego: resultado.tipoJuego,
+        tiempoReaccionMs: resultado.tiempoReaccionMs,
+        idChofer: usuario.username,
+      });
+
+      setMostrarTestFatiga(false);
+
+      // BLOQUE DE VALIDACIÓN
+      if (response._offlineQueued) {
+        toast.warning('Sin conexión: Test de fatiga guardado localmente', {
+          description: 'El viaje iniciará ahora y el test se enviará cuando recuperes la señal.',
+        });
+        await handleAvanzarEstado();
+      } else if (response.aprobado) {
+        toast.success('Test aprobado. ¡Buen viaje!', { description: response.mensaje });
+        // Si aprueba, forzamos el avance de estado sin pasar por el Dialog
+        await handleAvanzarEstado();
+      } else {
+        toast.error('Test fallido: Fatiga extrema detectada', {
+          description: 'Viaje bloqueado. El supervisor ha sido notificado.',
+        });
+        setViajeBloqueado(true); // Bloqueamos la UI permanentemente
+      }
+    } catch (error) {
+      setMostrarTestFatiga(false);
+      // Aquí dejaremos el espacio preparado para el Paso 4.3 (Manejo Offline)
+      toast.error('Error de conexión', {
+        description: 'No se pudo procesar el test de reflejos.',
+      });
+    }
+  };
 
   const handleAvanzarEstado = async () => {
     try {
@@ -51,6 +112,8 @@ export default function MiViajePage() {
       }
     } catch (err) {
       toast.error('Error al actualizar el estado');
+    } finally {
+      setIsConfirmOpen(false);
     }
   };
 
@@ -144,17 +207,19 @@ export default function MiViajePage() {
         {/* Si aún el viaje no está completado */}
         {!isCompleted && (
           <div className="space-y-3">
-            {/* Boton de accion principal con confirmacion */}
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <div>
-                  <ActionButton
-                    estadoActual={viaje.estadoActual}
-                    onClick={() => { }}
-                    isLoading={isUpdating}
-                  />
-                </div>
-              </AlertDialogTrigger>
+
+            {/* BOTÓN DESACOPLADO DEL DIALOG (PASO 4.1) */}
+            <div>
+              <ActionButton
+                estadoActual={viaje.estadoActual}
+                onClick={handleAccionPrincipal}
+                isLoading={isUpdating}
+                disabled={viajeBloqueado} // Evita que intente abrir el test otra vez si está bloqueado
+              />
+            </div>
+
+            {/* DIALOG CONTROLADO MANUALMENTE POR ESTADO (PASO 4.1) */}
+            <AlertDialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
               <AlertDialogContent>
                 <AlertDialogHeader>
                   <AlertDialogTitle>Confirmar accion</AlertDialogTitle>
@@ -228,6 +293,11 @@ export default function MiViajePage() {
         open={isQrModalOpen}
         onOpenChange={setIsQrModalOpen}
       />
+
+      {/* CONTENEDOR DEL MINIJUEGO INTERCEPTOR (PASO 4.1) */}
+      {mostrarTestFatiga && (
+        <FatigueTestContainer onCompletado={handleTestCompletado} />
+      )}
     </div>
   );
 }

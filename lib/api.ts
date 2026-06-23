@@ -22,6 +22,8 @@ import type {
   AlertaListadoDTO,
   ClienteRequestDTO,
   CartaPorteDTO,
+  EvaluacionFatigaRequestDTO,
+  EvaluacionFatigaResponseDTO,
 } from '@/types';
 
 // Agrega esta importación junto a las demás
@@ -553,6 +555,71 @@ class ApiClient {
       throw new Error(`Error al marcar alerta como leída: ${response.status}`);
     }
   }
+
+  // === EVALUACIÓN DE FATIGA Y CONTROL PSICOMOTOR (US 68) ===
+
+  /**
+   * Registra el resultado del test psicomotor realizado por el chofer.
+   * Envía el identificador del envío, el tipo de juego, el tiempo en milisegundos y el ID del chofer[cite: 40].
+   * @param dto Datos estructurados de la evaluación realizada en la PWA[cite: 40].
+   */
+  async registrarEvaluacion(dto: EvaluacionFatigaRequestDTO, forceNetwork: boolean = false): Promise<EvaluacionFatigaResponseDTO & { _offlineQueued?: boolean }> {
+
+    // Intercepción Offline (Misma lógica que usas para incidencias)
+    if (!forceNetwork && typeof navigator !== 'undefined' && !navigator.onLine) {
+      await agregarAccionACola('REGISTRAR_EVALUACION', { dto });
+
+      // Aprobación optimista offline: destraba la UI para que inicie el viaje localmente
+      return {
+        idEvaluacion: 0,
+        aprobado: true,
+        mensaje: "Guardado localmente. Se sincronizará con el servidor.",
+        _offlineQueued: true,
+      };
+    }
+
+    return this.request<EvaluacionFatigaResponseDTO>('/evaluaciones', {
+      method: 'POST',
+      body: JSON.stringify(dto),
+    });
+  }
+
+  /**
+   * Cambia el estado de una evaluación a RESETEADO para habilitar un nuevo intento al chofer.
+   * Este endpoint está estrictamente protegido y requiere rol de supervisor.
+   * @param idEvaluacion Identificador único de la evaluación psicomotora a resetear.
+   */
+  async resetearEvaluacion(idEvaluacion: number | string): Promise<void> {
+    return this.request<void>(`/evaluaciones/${idEvaluacion}/resetear`, {
+      method: 'POST',
+    });
+  }
+
+  /**
+   * Forza la autorización de un viaje bloqueado por fatiga extrema bajo escenario de fuerza mayor.
+   * Requiere el ingreso de una justificación escrita obligatoria que quedará auditada con la sesión del supervisor.
+   * @param idEvaluacion Identificador único de la evaluación psicomotora rechazada.
+   * @param motivo Texto explicativo obligatorio que justifica la excepción.
+   */
+  async autorizarFuerzaMayor(idEvaluacion: number | string, motivo: string): Promise<void> {
+    return this.request<void>(`/evaluaciones/${idEvaluacion}/autorizar-fuerza-mayor`, {
+      method: 'POST',
+      body: JSON.stringify({ motivo }),
+    });
+  }
+
+  /**
+   * Mantiene el rechazo del test de fatiga y registra la justificación del supervisor.
+   * @param idEvaluacion Identificador de la evaluación
+   * @param motivo Texto explicativo obligatorio
+   */
+  async rechazarEvaluacion(idEvaluacion: number | string, motivo: string): Promise<void> {
+    return this.request<void>(`/evaluaciones/${idEvaluacion}/rechazar`, {
+      method: 'POST',
+      body: JSON.stringify({ motivo }),
+    });
+  }
+
 }
 
 export const api = new ApiClient();

@@ -1,5 +1,5 @@
 import { get, set } from 'idb-keyval';
-import type { AccionOffline, TipoAccionOffline, PayloadCambioEstado, PayloadIncidencia } from '@/types';
+import type { AccionOffline, TipoAccionOffline, PayloadCambioEstado, PayloadIncidencia, PayloadEvaluacionFatiga } from '@/types';
 import type { CartaPorteDTO } from '@/types';
 
 // La clave bajo la cual guardaremos nuestra lista de acciones en IndexedDB
@@ -11,7 +11,7 @@ const OFFLINE_QUEUE_KEY = 'logitrack_offline_queue';
  */
 export async function agregarAccionACola(
     tipo: TipoAccionOffline,
-    payload: PayloadCambioEstado | PayloadIncidencia
+    payload: PayloadCambioEstado | PayloadIncidencia | PayloadEvaluacionFatiga
 ): Promise<void> {
     try {
         // 1. Obtenemos la cola actual (o un array vacío si no existe)
@@ -92,6 +92,11 @@ export async function procesarColaOffline(): Promise<void> {
                 const payload = accion.payload as PayloadIncidencia;
                 await api.reportarIncidencia(payload.idEnvio, payload.incidencia, true);
                 console.log(`[Offline Sync] Éxito: REPORTAR_INCIDENCIA para ID: ${accion.id}`);
+            } else if (accion.tipo === 'REGISTRAR_EVALUACION') {
+                const payload = accion.payload as PayloadEvaluacionFatiga;
+                // forceNetwork = true para que realmente viaje al backend
+                await api.registrarEvaluacion(payload.dto, true);
+                console.log(`[Offline Sync] Éxito: REGISTRAR_EVALUACION para ID: ${accion.id}`);
             }
 
             // 3. Como la petición fue exitosa (no lanzó error), eliminamos la acción local

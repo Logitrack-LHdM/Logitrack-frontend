@@ -307,7 +307,8 @@ export interface ResolverAlertaDTO {
 
 // === PWA & OFFLINE SYNC ===
 
-export type TipoAccionOffline = 'CAMBIAR_ESTADO' | 'REPORTAR_INCIDENCIA';
+// 1. Agrega 'REGISTRAR_EVALUACION' a la unión
+export type TipoAccionOffline = 'CAMBIAR_ESTADO' | 'REPORTAR_INCIDENCIA' | 'REGISTRAR_EVALUACION';
 
 export interface PayloadCambioEstado {
   idEnvio: string | number;
@@ -319,9 +320,60 @@ export interface PayloadIncidencia {
   incidencia: IncidenciaDTO;
 }
 
+// 2. Agrega la nueva interfaz de payload (usando el DTO de la Fase 1)
+export interface PayloadEvaluacionFatiga {
+  dto: EvaluacionFatigaRequestDTO;
+}
+
+// 3. Añade el nuevo payload a la interfaz principal
 export interface AccionOffline {
   id: string; // Identificador único (ej. crypto.randomUUID) para evitar duplicados
   tipo: TipoAccionOffline;
-  payload: PayloadCambioEstado | PayloadIncidencia;
+  payload: PayloadCambioEstado | PayloadIncidencia | PayloadEvaluacionFatiga;
   timestamp: number; // Fecha y hora exacta en la que el chofer presionó el botón en la ruta
+}
+
+// =========================================================================
+// US 68 - EVALUACIÓN PSICOMOTORA Y PREVENCIÓN DE FATIGA
+// =========================================================================
+
+/**
+ * Representa los tipos de minijuegos disponibles en el frontend.
+ * Alineado con las tareas #603, #604 y #605, incluyendo el identificador general del backend.
+ */
+export type TipoJuego =
+  | 'REACCION_SIMPLE'
+  | 'OBJETIVO_MOVIL'
+  | 'REACCION_MULTIPLE'
+  | 'REFLEJOS';
+
+/**
+ * Estados de la evaluación psicomotora y su correspondiente bloqueo.
+ * Basado estrictamente en la lógica transaccional, endpoints de supervisor y data seeds del backend
+ * (Tareas #600, #613 y #614).
+ */
+export type EstadoEvaluacion =
+  | 'APROBADO'
+  | 'RECHAZADO'
+  | 'RESETEADO'
+  | 'OVERRIDE_AUTORIZADO';
+
+/**
+ * DTO para enviar el resultado del test de fatiga al servidor.
+ * Transporta los campos exactos requeridos por EvaluacionFatigaService (Tarea #598).
+ */
+export interface EvaluacionFatigaRequestDTO {
+  idEnvio: string;
+  tipoJuego: TipoJuego;
+  tiempoReaccionMs: number;
+  idChofer: string;
+}
+
+/**
+ * DTO de respuesta que devuelve el servidor tras procesar la evaluación (Tarea #598).
+ */
+export interface EvaluacionFatigaResponseDTO {
+  idEvaluacion: number;
+  aprobado: boolean;
+  mensaje: string;
 }
