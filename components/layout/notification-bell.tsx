@@ -53,7 +53,6 @@ export function NotificationBell() {
     const isOperador = usuario?.rol === 'ROLE_OPERADOR';
 
     const handleNotificacionClick = async (alerta: AlertaWebDTO) => {
-        console.log(alerta);
 
         // 1. Siempre marcamos la alerta como leída primero
         marcarComoLeida(alerta.idAlertaWeb);

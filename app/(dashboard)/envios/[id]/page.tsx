@@ -111,10 +111,16 @@ export default function DetalleEnvioPage({
 
       try {
         const evaluacionPendiente = await api.getEvaluacionFatigaPendiente(id);
+        // console.log("Respuesta API Fatiga:", evaluacionPendiente);
 
-        // Si el componente sigue montado y hay una evaluación, mostramos el banner
-        if (montado && evaluacionPendiente) {
-          setAlertaFatiga(evaluacionPendiente);
+        if (montado) {
+          // Validación estricta: Solo mostramos si existe el objeto Y tiene la propiedad clave
+          if (evaluacionPendiente && evaluacionPendiente.idEvaluacion) {
+            setAlertaFatiga(evaluacionPendiente);
+          } else {
+            // Si viene vacío (ej. 204 No Content), nos aseguramos de apagar el banner
+            setAlertaFatiga(null);
+          }
         }
       } catch (error) {
         console.error('[Fatiga] Error al recuperar el estado persistente:', error);
@@ -218,7 +224,6 @@ export default function DetalleEnvioPage({
     }
   };
   // =========================================================================
-
 
   // Sincronizar el estado local cuando se carga el envío
   useEffect(() => {
