@@ -4,14 +4,16 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Eye, EyeOff, User, Lock, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, User, Lock, Loader2, ShieldAlert } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/contexts/auth-context';
 import { cn } from '@/lib/utils';
-import { api } from '@/lib/api';
+import { api, ApiError } from '@/lib/api';
+import { UnlockAccountDialog } from '@/components/auth/unlock-account-dialog';
 
 const loginSchema = z.object({
   username: z.string().min(1, 'El usuario es requerido'),
@@ -22,6 +24,7 @@ type LoginFormData = z.infer<typeof loginSchema>;
 
 // Agregá esta función arriba del componente LoginForm
 function obtenerMensajeError(error: unknown): string {
+  if (error instanceof ApiError) return error.message;
   if (!(error instanceof Error)) return 'Error de autenticación';
 
   // Sin conexión al servidor
@@ -40,6 +43,9 @@ function obtenerMensajeError(error: unknown): string {
 
 export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
+  const [cuentaBloqueada, setCuentaBloqueada] = useState(false);
+  const [usernameBloqueado, setUsernameBloqueado] = useState('');
+  const [modalDesbloqueoAbierto, setModalDesbloqueoAbierto] = useState(false);
   const { login } = useAuth();
 
   const {
@@ -115,12 +121,28 @@ export function LoginForm() {
   // --- FIN LÓGICA DE PRE-WARMING ---
 
   const onSubmit = async (data: LoginFormData) => {
+    setCuentaBloqueada(false);
+
     try {
       await login(data);
       toast.success('Bienvenido al sistema');
     } catch (error) {
-      // Mostrar el mensaje de error
       const esSinConexion = error instanceof Error && error.message === 'Failed to fetch';
+      const esCuentaBloqueada = error instanceof ApiError && error.status === 403;
+
+      if (esCuentaBloqueada) {
+        // el AuthController ya generó el código y disparó el correo vía Resend
+        setCuentaBloqueada(true);
+        setUsernameBloqueado(data.username);
+        toast.error('Cuenta bloqueada por seguridad', {
+          description: 'Revisá tu correo electrónico para obtener el código de desbloqueo.',
+        });
+
+        // Limpiamos solo la contraseña; el username se mantiene para reintentar tras desbloquear.
+        reset({ username: data.username, password: '' });
+        return;
+      }
+
       toast.error(esSinConexion ? 'Sin conexión con el servidor' : 'Credenciales inválidas', {
         description: obtenerMensajeError(error),
       });
@@ -133,14 +155,35 @@ export function LoginForm() {
         // Limpiar los campos (puedes elegir limpiar ambos o solo la contraseña)
         reset({ username: '', password: '' }, { keepErrors: true });
       }
-
       // Devolver el foco al campo de usuario (como en tu versión original)
       // setTimeout(() => setFocus('username'), 100);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" aria-label="Formulario de inicio de sesión" noValidate>
+    <>
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" aria-label="Formulario de inicio de sesión" noValidate>
+      {cuentaBloqueada && (
+        <Alert variant="destructive" role="alert">
+          <ShieldAlert aria-hidden="true" />
+          <AlertTitle>Cuenta bloqueada por seguridad</AlertTitle>
+          <AlertDescription>
+            <p>
+              Se alcanzó el límite de intentos fallidos. Revisá tu bandeja de
+              entrada: te enviamos un código de seguridad para restaurar el acceso.
+            </p>
+            <Button
+              type="button"
+              variant="link"
+              className="h-auto p-0 text-destructive font-semibold underline"
+              onClick={() => setModalDesbloqueoAbierto(true)}
+            >
+              Ingresar código de desbloqueo
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+
       <div className="space-y-2">
         <Label htmlFor="username" className="text-foreground/80">
           Usuario
@@ -226,6 +269,17 @@ export function LoginForm() {
           'INGRESAR AL SISTEMA'
         )}
       </Button>
-    </form>
+      </form>
+
+      <UnlockAccountDialog
+        open={modalDesbloqueoAbierto}
+        onOpenChange={setModalDesbloqueoAbierto}
+        username={usernameBloqueado}
+        onDesbloqueada={() => {
+          setCuentaBloqueada(false);
+          setFocus('password');
+        }}
+      />
+    </>
   );
 }

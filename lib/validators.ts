@@ -96,3 +96,13 @@ export const clienteSchema = z.object({
 });
 
 export type ClienteFormData = z.infer<typeof clienteSchema>;
+
+// Desbloqueo de cuenta
+export const desbloqueoCuentaSchema = z.object({
+  codigo: z
+    .string()
+    .length(6, 'El código debe tener 6 dígitos')
+    .regex(/^\d{6}$/, 'El código solo debe contener números'),
+});
+
+export type DesbloqueoCuentaFormData = z.infer<typeof desbloqueoCuentaSchema>;
