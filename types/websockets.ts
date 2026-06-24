@@ -1,3 +1,12 @@
+export type EstadoEvaluacionEnum =
+    | 'PENDIENTE'
+    | 'APROBADO'
+    | 'RECHAZADO'
+    | 'RESETEADO'
+    | 'OVERRIDE_AUTORIZADO'
+    | 'DESVINCULADO_POR_REASIGNACION'
+    | 'ACTIVO';
+
 // 1. Interfaz para el Dashboard Global (Suscripción: /topic/viajes)
 // Refleja exactamente la estructura JSON que envía el backend
 export interface MensajeGlobalViaje {
@@ -29,4 +38,5 @@ export interface AlertaFatigaDTO {
     nombreChofer: string;
     motivo: string;
     idEvaluacion: number;
+    estadoBloqueo?: EstadoEvaluacionEnum;
 }
