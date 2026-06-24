@@ -1,3 +1,12 @@
+export type EstadoEvaluacionEnum =
+    | 'PENDIENTE'
+    | 'APROBADO'
+    | 'RECHAZADO'
+    | 'RESETEADO'
+    | 'OVERRIDE_AUTORIZADO'
+    | 'DESVINCULADO_POR_REASIGNACION'
+    | 'ACTIVO';
+
 // 1. Interfaz para el Dashboard Global (Suscripción: /topic/viajes)
 // Refleja exactamente la estructura JSON que envía el backend
 export interface MensajeGlobalViaje {
@@ -19,13 +28,15 @@ export interface AlertaWebDTO {
 
     // Podríamos agregar un idEnvio si a futuro queremos que al hacer clic 
     // en la notificación te lleve al detalle del envío.
-    // idEnvio?: string;
+    idEnvio?: string;
 }
 
 // 3. Interfaz para la Alerta de Fatiga en tiempo real (US 68)
 export interface AlertaFatigaDTO {
-    idEvaluacion: number;
+    idAlertaWeb?: number;
     idEnvio: string;
     nombreChofer: string;
     motivo: string;
+    idEvaluacion: number;
+    estadoBloqueo?: EstadoEvaluacionEnum;
 }

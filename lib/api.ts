@@ -40,6 +40,7 @@ import { AlertaWebDTO } from '@/types/websockets';
 import { agregarAccionACola } from '@/lib/offline-sync';
 import type { TrackingPublicoRequestDTO, TrackingPublicoResponseDTO } from '@/types/tracking';
 import { MOCK_TRACKING_EN_TRANSITO } from '@/mocks/trackingMock';
+import type { AlertaFatigaDTO } from '@/types/websockets';
 
 // Base URL de la API - usar variable de entorno en produccion
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
@@ -618,6 +619,55 @@ class ApiClient {
       method: 'POST',
       body: JSON.stringify({ motivo }),
     });
+  }
+
+  // /**
+  //   * Consulta si existe un bloqueo por fatiga pendiente de resolución para un envío específico.
+  //   * @param idEnvio Identificador del envío (ej. LT-1234 o ID numérico)
+  //   */
+  // async getEvaluacionFatigaPendiente(idEnvio: string | number): Promise<AlertaFatigaDTO | null> {
+  //   try {
+  //     // Usamos 'any' temporalmente en la respuesta cruda para poder inspeccionar su estructura
+  //     const response = await this.request<any>(`/evaluaciones/envio/${idEnvio}/pendiente`);
+
+  //     // Si el backend lo manda envuelto, lo extraemos. Si ya viene plano, lo devolvemos tal cual.
+  //     return response.evaluacionFatigaPendiente
+  //       ? response.evaluacionFatigaPendiente
+  //       : response;
+
+  //   } catch (error: any) {
+  //     const status = error?.status || error?.response?.status;
+  //     const message = error?.message || '';
+
+  //     if (status === 404 || status === 204 || message.includes('404') || message.includes('Not Found')) {
+  //       return null;
+  //     }
+
+  //     throw error;
+  //   }
+  // }
+
+  /**
+   * Consulta si existe un bloqueo por fatiga pendiente de resolución para un envío específico.
+   * @param idEnvio Identificador del envío (ej. LT-1234 o ID numérico)
+   */
+  async getEvaluacionFatigaPendiente(idEnvio: string | number): Promise<AlertaFatigaDTO | null> {
+    try {
+      return await this.request<AlertaFatigaDTO>(`/evaluaciones/envio/${idEnvio}/pendiente`);
+    } catch (error: any) {
+      // Manejo silencioso: Si el backend devuelve 404 (Not Found) o 204 (No Content) 
+      // significa que el chofer está en óptimas condiciones o no ha jugado. 
+      // Devolvemos null para que el banner amarillo no se muestre.
+      const status = error?.status || error?.response?.status;
+      const message = error?.message || '';
+
+      if (status === 404 || status === 204 || message.includes('404') || message.includes('Not Found')) {
+        return null;
+      }
+
+      // Si es un error 500 o de red, sí lo lanzamos para que el sistema lo registre
+      throw error;
+    }
   }
 
 }
