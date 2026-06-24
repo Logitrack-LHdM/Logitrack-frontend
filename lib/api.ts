@@ -1,6 +1,8 @@
 import type {
   LoginRequest,
   LoginResponse,
+  DesbloqueoCuentaRequest,
+  DesbloqueoCuentaResponse,
   Envio,
   EnvioRequestDTO,
   EnvioUpdateDTO,
@@ -40,9 +42,21 @@ import { AlertaWebDTO } from '@/types/websockets';
 import { agregarAccionACola } from '@/lib/offline-sync';
 import type { TrackingPublicoRequestDTO, TrackingPublicoResponseDTO } from '@/types/tracking';
 import { MOCK_TRACKING_EN_TRANSITO } from '@/mocks/trackingMock';
+import type { AlertaFatigaDTO } from '@/types/websockets';
 
 // Base URL de la API - usar variable de entorno en produccion
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
+
+// Error enriquecido con el status HTTP (403 = cuenta bloqueada)
+export class ApiError extends Error {
+  status: number;
+
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+  }
+}
 
 // === CLIENTE HTTP ===
 class ApiClient {
@@ -74,8 +88,17 @@ class ApiClient {
     if (response.status === 401) {
       // 1. Si el 401 viene del intento de login, no recargamos. 
       // Solo lanzamos el error para que el formulario lo atrape y muestre el toast rojo.
+      // y mostramos el mensaje del backend ("Credenciales incorrectas. Te quedan X intentos")
       if (endpoint === '/auth/login') {
-        throw new Error('Credenciales incorrectas o usuario inactivo');
+        const errorText = await response.text().catch(() => '');
+        let mensaje = 'Credenciales incorrectas o usuario inactivo';
+        try {
+          const errorData = JSON.parse(errorText);
+          mensaje = errorData.error || errorData.message || mensaje;
+        } catch {
+          // Si no vino JSON, nos quedamos con el mensaje genérico de fallback
+        }
+        throw new ApiError(mensaje, 401);
       }
 
       // 2. Si el 401 viene de CUALQUIER otra ruta, el token expiró. Limpiamos y redirigimos.
@@ -88,7 +111,7 @@ class ApiClient {
           window.location.href = '/login';
         }
       }
-      throw new Error('Sesión expirada');
+      throw new ApiError('Sesión expirada', 401);
     }
 
     // Forma superadora de capturar errores que comnbina las dos anteriores
@@ -111,7 +134,7 @@ class ApiClient {
         errorMessage = errorText || errorMessage;
       }
 
-      throw new Error(errorMessage);
+      throw new ApiError(errorMessage, response.status);
     }
 
     // Verificar si hay contenido para parsear
@@ -128,6 +151,15 @@ class ApiClient {
     return this.request<LoginResponse>('/auth/login', {
       method: 'POST',
       body: JSON.stringify(credentials),
+    });
+  }
+
+  // Consume el endpoint /desbloquear del AuthController para validar
+  // el código de seguridad de 6 dígitos
+  async desbloquearCuenta(payload: DesbloqueoCuentaRequest): Promise<DesbloqueoCuentaResponse> {
+    return this.request<DesbloqueoCuentaResponse>('/auth/desbloquear', {
+      method: 'POST',
+      body: JSON.stringify(payload),
     });
   }
 
@@ -618,6 +650,55 @@ class ApiClient {
       method: 'POST',
       body: JSON.stringify({ motivo }),
     });
+  }
+
+  // /**
+  //   * Consulta si existe un bloqueo por fatiga pendiente de resolución para un envío específico.
+  //   * @param idEnvio Identificador del envío (ej. LT-1234 o ID numérico)
+  //   */
+  // async getEvaluacionFatigaPendiente(idEnvio: string | number): Promise<AlertaFatigaDTO | null> {
+  //   try {
+  //     // Usamos 'any' temporalmente en la respuesta cruda para poder inspeccionar su estructura
+  //     const response = await this.request<any>(`/evaluaciones/envio/${idEnvio}/pendiente`);
+
+  //     // Si el backend lo manda envuelto, lo extraemos. Si ya viene plano, lo devolvemos tal cual.
+  //     return response.evaluacionFatigaPendiente
+  //       ? response.evaluacionFatigaPendiente
+  //       : response;
+
+  //   } catch (error: any) {
+  //     const status = error?.status || error?.response?.status;
+  //     const message = error?.message || '';
+
+  //     if (status === 404 || status === 204 || message.includes('404') || message.includes('Not Found')) {
+  //       return null;
+  //     }
+
+  //     throw error;
+  //   }
+  // }
+
+  /**
+   * Consulta si existe un bloqueo por fatiga pendiente de resolución para un envío específico.
+   * @param idEnvio Identificador del envío (ej. LT-1234 o ID numérico)
+   */
+  async getEvaluacionFatigaPendiente(idEnvio: string | number): Promise<AlertaFatigaDTO | null> {
+    try {
+      return await this.request<AlertaFatigaDTO>(`/evaluaciones/envio/${idEnvio}/pendiente`);
+    } catch (error: any) {
+      // Manejo silencioso: Si el backend devuelve 404 (Not Found) o 204 (No Content) 
+      // significa que el chofer está en óptimas condiciones o no ha jugado. 
+      // Devolvemos null para que el banner amarillo no se muestre.
+      const status = error?.status || error?.response?.status;
+      const message = error?.message || '';
+
+      if (status === 404 || status === 204 || message.includes('404') || message.includes('Not Found')) {
+        return null;
+      }
+
+      // Si es un error 500 o de red, sí lo lanzamos para que el sistema lo registre
+      throw error;
+    }
   }
 
 }

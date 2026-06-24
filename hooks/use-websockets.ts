@@ -3,6 +3,7 @@ import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import { MensajeGlobalViaje, AlertaFatigaDTO } from '@/types/websockets';
 import { useNetwork } from '@/hooks/use-network';
+import { useAuth } from '@/contexts/auth-context';
 
 // En hooks/use-websocket.ts
 
@@ -38,6 +39,8 @@ interface UseWebSocketProps {
 }
 
 export const useWebSocket = ({ idUsuario, onMensajeGlobal, onAlertaPrivada, onAlertaFatiga }: UseWebSocketProps) => {    // Estado interno para saber si estamos conectados
+    const { usuario } = useAuth();
+
     const [isConnected, setIsConnected] = useState(false);
 
     // Usamos una referencia para mantener la instancia del cliente viva
@@ -117,7 +120,7 @@ export const useWebSocket = ({ idUsuario, onMensajeGlobal, onAlertaPrivada, onAl
                 }
 
                 // Suscripción condicionada para SUPERVISOR
-                if (idUsuario && onAlertaPrivadaRef.current) {
+                if (usuario?.rol === 'ROLE_SUPERVISOR' && onAlertaPrivadaRef.current) {
                     client.subscribe(`/queue/alertas-${idUsuario}`, (mensaje) => {
                         if (mensaje.body) {
                             // El backend manda un String (texto plano) en este tópico
@@ -133,18 +136,49 @@ export const useWebSocket = ({ idUsuario, onMensajeGlobal, onAlertaPrivada, onAl
                 if (onAlertaFatigaRef.current) {
                     client.subscribe('/topic/alertas-supervisores', (mensaje) => {
                         if (mensaje.body) {
-                            try {
-                                const data = JSON.parse(mensaje.body) as AlertaFatigaDTO;
-                                if (onAlertaFatigaRef.current) {
-                                    onAlertaFatigaRef.current(data);
+                            // 1. Obtenemos el content-type directamente de las cabeceras STOMP
+                            const contentType = mensaje.headers['content-type'] || '';
+
+                            // 2. Si es JSON (Mensaje de FALLO con el DTO)
+                            if (contentType.includes('application/json')) {
+                                try {
+                                    const data = JSON.parse(mensaje.body) as AlertaFatigaDTO;
+                                    if (onAlertaFatigaRef.current) {
+                                        onAlertaFatigaRef.current(data);
+                                    }
+                                } catch (error) {
+                                    console.error("❌ Error al parsear alerta de fatiga:", error);
                                 }
-                            } catch (error) {
-                                console.error("❌ Error al parsear alerta de fatiga:", error);
+                            }
+                            // 3. Si es Texto Plano (Mensaje de ÉXITO)
+                            else if (contentType.includes('text/plain')) {
+                                // Como el chofer aprobó, no necesitamos desplegar el banner amarillo de bloqueo.
+                                // Lo registramos silenciosamente en consola para fines de depuración.
+                                console.log("✅ Test de fatiga superado:", mensaje.body);
                             }
                         }
                     });
                     console.log('🚨 Suscrito a /topic/alertas-supervisores (Prevención de Fatiga)');
                 }
+
+                // // Suscripción exclusiva para el canal de fatiga (US 68)
+                // if (usuario?.rol === 'ROLE_SUPERVISOR' && onAlertaPrivadaRef.current) {
+                //     client.subscribe('/topic/alertas-supervisores', (mensaje) => {
+                //         if (mensaje.body) {
+                //             if (onAlertaPrivadaRef.current) {
+                //                 try {
+                //                     // Intentamos parsear como JSON (para la alerta de Fatiga)
+                //                     const dataJSON = JSON.parse(mensaje.body);
+                //                     onAlertaPrivadaRef.current(dataJSON);
+                //                 } catch (error) {
+                //                     // Si falla el parseo, asumimos que es texto plano (MENSAJE simple)
+                //                     onAlertaPrivadaRef.current(mensaje.body);
+                //                 }
+                //             }
+                //         }
+                //     });
+                //     console.log('🚨 Suscrito a /topic/alertas-supervisores (Prevención de Fatiga)');
+                // }
 
             },
             onStompError: (frame) => {

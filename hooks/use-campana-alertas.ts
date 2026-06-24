@@ -44,25 +44,32 @@ export const useCampanaAlertas = () => {
     }, [cargarHistorial]);
 
     // Función Helper: Añade notificaciones al estado local (reutilizable)
-    const agregarAlertaLocal = useCallback((mensaje: string) => {
+    // Modificamos el parámetro para que acepte un objeto con los datos
+    const agregarAlertaLocal = useCallback((datosAlerta: Partial<AlertaWebDTO> & { mensaje: string }) => {
         const timestamp = Date.now();
-        // 🔥 SOLUCIÓN 2: Generación de ID verdaderamente irrepetible usando Random.
-        const idTemporal = timestamp + Math.floor(Math.random() * 1000000);
+
+        // Si el JSON trae un ID real de la BD, lo usamos. Si no, creamos uno temporal.
+        const idFinal = datosAlerta.idAlertaWeb || (timestamp + Math.floor(Math.random() * 1000000));
+
+        // Si el JSON trae su propia fecha, la usamos. Si no, tomamos la actual.
+        const fechaFinal = datosAlerta.fechaHora || new Date(timestamp).toISOString();
 
         const nuevaAlerta: AlertaWebDTO = {
-            idAlertaWeb: idTemporal,
-            mensaje: mensaje,
-            fechaHora: new Date(timestamp).toISOString(), // Actualizado
-            leido: false,
-            tipo: 'INFO', // Valor por defecto para las que se crean en vivo
+            idAlertaWeb: idFinal,
+            mensaje: datosAlerta.mensaje,
+            fechaHora: fechaFinal,
+            leido: datosAlerta.leido ?? false,
+            tipo: datosAlerta.tipo || 'INFO', // Extraemos el tipo del JSON si viene (ej: 'FATIGA')
+            idEnvio: datosAlerta.idEnvio,     // Extraemos el idEnvio del JSON
         };
 
         setAlertas((prev) => {
             // 🔥 SOLUCIÓN 3: Buscar duplicados en TODA la lista reciente (ventana de 1.5 seg),
             // no solamente en la primera posición.
             const esDuplicado = prev.some(a =>
-                a.mensaje === mensaje &&
-                (timestamp - new Date(a.fechaHora).getTime()) < 1500 // Actualizado
+                a.idAlertaWeb === idFinal || // Defensa 1: Coincidencia exacta de ID del backend
+                (a.mensaje === nuevaAlerta.mensaje &&
+                    (timestamp - new Date(a.fechaHora).getTime()) < 1500) // Defensa 2: Por tiempo
             );
 
             if (esDuplicado) {
@@ -73,17 +80,44 @@ export const useCampanaAlertas = () => {
         });
     }, []);
 
-    // FASE 1: Handler para alertas de Supervisor (Cola Privada)
-    const handleNuevaAlerta = useCallback((mensaje: string) => {
-        toast.error('Atención Requerida (Supervisor)', {
-            description: mensaje,
+    // Handler para alertas estructuradas de Supervisor
+    // FASE 2: Handler para alertas de Supervisor (soporta String y JSON dinámicamente)
+    const handleNuevaAlerta = useCallback((payload: any) => {
+
+        // CASO 1: Es texto plano
+        if (typeof payload === 'string') {
+            toast.error('Atención Requerida (Supervisor)', {
+                description: payload,
+                duration: 8000,
+            });
+            agregarAlertaLocal({ mensaje: payload, tipo: 'INFO' });
+            return;
+        }
+
+        // CASO 2: Es un JSON estructurado (Ej. AlertaFatigaDTO)
+        // Extraemos los datos basándonos en tu JSON de ejemplo
+        const esFatiga = !!payload.motivo;
+        const mensajeStr = payload.mensaje || payload.motivo || 'Nueva alerta detectada';
+        const tipoAlerta = payload.tipo || (esFatiga ? 'FATIGA' : 'CRITICA');
+
+        toast.error(`Atención Requerida (${tipoAlerta})`, {
+            description: mensajeStr,
             duration: 8000,
             // style: { backgroundColor: 'var(--destructive)', color: 'white' } // Opcional: forzar colores
         });
-        agregarAlertaLocal(mensaje);
+
+        // Pasamos los datos extraídos a agregarAlertaLocal
+        agregarAlertaLocal({
+            mensaje: mensajeStr,
+            tipo: tipoAlerta,
+            idEnvio: payload.idEnvio,
+            // Si el backend no envía idAlertaWeb en el JSON, usamos idEvaluacion como base para el fallback
+            idAlertaWeb: payload.idAlertaWeb || payload.idEvaluacion
+        });
+
     }, [agregarAlertaLocal]);
 
-    // FASE 2: Handler para viajes de Operador (Dashboard Global)
+    // Handler para viajes de Operador (sigue armando el string manualmente)
     const handleNuevoViaje = useCallback((data: MensajeGlobalViaje) => {
         // Transformamos el JSON complejo en un mensaje amigable para la campana
         const mensajeStr = `El envío ${data.idEnvio} cambió al estado ${data.estadoNuevo.replace('_', ' ')} (Chofer: ${data.choferNombre})`;
@@ -92,7 +126,12 @@ export const useCampanaAlertas = () => {
             description: mensajeStr,
             duration: 5000,
         });
-        agregarAlertaLocal(mensajeStr);
+
+        // Le pasamos un objeto especificando el mensaje y, opcionalmente, otros datos
+        agregarAlertaLocal({
+            mensaje: mensajeStr,
+            idEnvio: data.idEnvio
+        });
     }, [agregarAlertaLocal]);
 
     // Handler para alertas críticas de Fatiga
@@ -106,7 +145,12 @@ export const useCampanaAlertas = () => {
         });
 
         // 2. Lo agregamos a la campana de notificaciones
-        agregarAlertaLocal(mensajeStr);
+        agregarAlertaLocal({
+            mensaje: mensajeStr,
+            tipo: 'FATIGA',
+            idEnvio: alerta.idEnvio,
+            idAlertaWeb: alerta.idAlertaWeb || alerta.idEvaluacion,
+        });
 
         // 3. Emitimos un evento global en el navegador para que page.tsx lo escuche si está abierta
         if (typeof window !== 'undefined') {

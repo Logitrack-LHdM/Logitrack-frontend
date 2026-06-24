@@ -90,6 +90,15 @@ export interface LoginResponse {
   rol: string;
 }
 
+export interface DesbloqueoCuentaRequest {
+  username: string;
+  codigo: string;
+}
+
+export interface DesbloqueoCuentaResponse {
+  mensaje: string;
+}
+
 // === ENTIDADES ===
 export interface Empresa {
   cuit: string;
@@ -289,7 +298,7 @@ export interface AlertaListadoDTO {
   idEnvio: string; // Referencia al código de viaje (ej. "ENV-2026-001")
   chofer: {
     id: number;
-    nombreCompleto: string; // Ya concatenado para facilitar el frontend
+    nombreCompleto?: string; // Ya concatenado para facilitar el frontend
     telefono?: string; // Útil para que el supervisor llame directamente
   };
   tipoIncidencia: TipoIncidencia;

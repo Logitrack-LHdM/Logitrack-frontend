@@ -63,7 +63,7 @@ export default function DetalleEnvioPage({
   // MODIFICACIÓN: Le inyectamos 'envio?.estadoActual' al hook
   const { ruta, camionLat, camionLng, errorTracking } = useRastreoTiempoReal(id, envio?.estadoActual);
 
-  const { permisos } = useAuth();
+  const { permisos, usuario } = useAuth();
 
   const [nuevoEstado, setNuevoEstado] = useState<EstadoEnvio | ''>('');
   const [nuevaPrioridad, setNuevaPrioridad] = useState<Prioridad | ''>('');
@@ -100,7 +100,47 @@ export default function DetalleEnvioPage({
   // =========================================================================
 
   // =========================================================================
-  // FUNCIONES DE RESOLUCIÓN DE FATIGA - FASE 5.4
+  // NUEVO: RECUPERACIÓN PERSISTENTE DE FATIGA - FASE 6.2
+  // =========================================================================
+  useEffect(() => {
+    let montado = true;
+
+    const verificarFatigaPendiente = async () => {
+      // Optimizamos para no hacer llamadas a la API si no es un supervisor
+      if (usuario?.rol !== 'ROLE_SUPERVISOR') return;
+
+      try {
+        const evaluacionPendiente = await api.getEvaluacionFatigaPendiente(id);
+        // console.log("Respuesta API Fatiga:", evaluacionPendiente);
+
+        if (montado) {
+          // Validación estricta: Solo mostramos si existe el objeto Y tiene la propiedad clave
+          if (evaluacionPendiente && evaluacionPendiente.idEvaluacion) {
+            setAlertaFatiga(evaluacionPendiente);
+          } else {
+            // Si viene vacío (ej. 204 No Content), nos aseguramos de apagar el banner
+            setAlertaFatiga(null);
+          }
+        }
+      } catch (error) {
+        console.error('[Fatiga] Error al recuperar el estado persistente:', error);
+      }
+    };
+
+    if (id && usuario) {
+      verificarFatigaPendiente();
+    }
+
+    // Cleanup function para evitar fugas de memoria si el usuario sale rápido de la pantalla
+    return () => {
+      montado = false;
+    };
+  }, [id, usuario]);
+  // =========================================================================
+
+
+  // =========================================================================
+  // FUNCIONES DE RESOLUCIÓN DE FATIGA
   // =========================================================================
   const handleResetearFatiga = async () => {
     if (!alertaFatiga) return;
@@ -108,11 +148,17 @@ export default function DetalleEnvioPage({
 
     try {
       await api.resetearEvaluacion(alertaFatiga.idEvaluacion);
+
+      // 1. Limpieza visual inmediata (Feedback instantáneo)
+      setAlertaFatiga(null);
+
+      // 2. Refrescamos la auditoría en segundo plano
+      await recargar();
+
+      // 3. Notificación de éxito
       toast.success('Evaluación reseteada', {
         description: 'Se ha notificado al sistema. El chofer ya puede intentar nuevamente.'
       });
-      setAlertaFatiga(null); // Ocultamos el banner
-      await recargar(); // Refrescamos el historial en pantalla
     } catch (err) {
       toast.error('Error al resetear', {
         description: err instanceof Error ? err.message : 'Error inesperado del servidor'
@@ -128,16 +174,19 @@ export default function DetalleEnvioPage({
 
     try {
       await api.autorizarFuerzaMayor(alertaFatiga.idEvaluacion, motivoFuerzaMayor);
-      toast.success('Autorización forzada aplicada', {
-        description: 'El viaje ha sido desbloqueado exitosamente.'
-      });
 
-      // Limpiamos la UI
+      // 1. Limpieza visual inmediata
       setAlertaFatiga(null);
       setIsFuerzaMayorModalOpen(false);
       setMotivoFuerzaMayor('');
 
-      await recargar(); // Refrescamos la auditoría para ver el registro
+      // 2. Refrescamos la auditoría en segundo plano
+      await recargar();
+
+      // 3. Notificación
+      toast.success('Autorización forzada aplicada', {
+        description: 'El viaje ha sido desbloqueado exitosamente.'
+      });
     } catch (err) {
       toast.error('Error al autorizar', {
         description: err instanceof Error ? err.message : 'Error inesperado del servidor'
@@ -153,16 +202,19 @@ export default function DetalleEnvioPage({
 
     try {
       await api.rechazarEvaluacion(alertaFatiga.idEvaluacion, motivoRechazo);
-      toast.success('Rechazo confirmado', {
-        description: 'El viaje se mantiene bloqueado y se ha registrado su justificación.'
-      });
 
-      // Limpiamos la UI
+      // 1. Limpieza visual inmediata
       setAlertaFatiga(null);
       setIsRechazarModalOpen(false);
       setMotivoRechazo('');
 
-      await recargar(); // Refrescamos la auditoría
+      // 2. Refrescamos la auditoría en segundo plano
+      await recargar();
+
+      // 3. Notificación
+      toast.success('Rechazo confirmado', {
+        description: 'El viaje se mantiene bloqueado y se ha registrado su justificación.'
+      });
     } catch (err) {
       toast.error('Error al rechazar', {
         description: err instanceof Error ? err.message : 'Error inesperado del servidor'
@@ -171,6 +223,7 @@ export default function DetalleEnvioPage({
       setIsProcesandoFatiga(false);
     }
   };
+  // =========================================================================
 
   // Sincronizar el estado local cuando se carga el envío
   useEffect(() => {
