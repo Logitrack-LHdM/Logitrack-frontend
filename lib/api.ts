@@ -1,6 +1,8 @@
 import type {
   LoginRequest,
   LoginResponse,
+  DesbloqueoCuentaRequest,
+  DesbloqueoCuentaResponse,
   Envio,
   EnvioRequestDTO,
   EnvioUpdateDTO,
@@ -44,6 +46,17 @@ import { MOCK_TRACKING_EN_TRANSITO } from '@/mocks/trackingMock';
 // Base URL de la API - usar variable de entorno en produccion
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
 
+// Error enriquecido con el status HTTP (403 = cuenta bloqueada)
+export class ApiError extends Error {
+  status: number;
+
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+  }
+}
+
 // === CLIENTE HTTP ===
 class ApiClient {
   private getToken(): string | null {
@@ -74,8 +87,17 @@ class ApiClient {
     if (response.status === 401) {
       // 1. Si el 401 viene del intento de login, no recargamos. 
       // Solo lanzamos el error para que el formulario lo atrape y muestre el toast rojo.
+      // y mostramos el mensaje del backend ("Credenciales incorrectas. Te quedan X intentos")
       if (endpoint === '/auth/login') {
-        throw new Error('Credenciales incorrectas o usuario inactivo');
+        const errorText = await response.text().catch(() => '');
+        let mensaje = 'Credenciales incorrectas o usuario inactivo';
+        try {
+          const errorData = JSON.parse(errorText);
+          mensaje = errorData.error || errorData.message || mensaje;
+        } catch {
+          // Si no vino JSON, nos quedamos con el mensaje genérico de fallback
+        }
+        throw new ApiError(mensaje, 401);
       }
 
       // 2. Si el 401 viene de CUALQUIER otra ruta, el token expiró. Limpiamos y redirigimos.
@@ -88,7 +110,7 @@ class ApiClient {
           window.location.href = '/login';
         }
       }
-      throw new Error('Sesión expirada');
+      throw new ApiError('Sesión expirada', 401);
     }
 
     // Forma superadora de capturar errores que comnbina las dos anteriores
@@ -111,7 +133,7 @@ class ApiClient {
         errorMessage = errorText || errorMessage;
       }
 
-      throw new Error(errorMessage);
+      throw new ApiError(errorMessage, response.status);
     }
 
     // Verificar si hay contenido para parsear
@@ -128,6 +150,15 @@ class ApiClient {
     return this.request<LoginResponse>('/auth/login', {
       method: 'POST',
       body: JSON.stringify(credentials),
+    });
+  }
+
+  // Consume el endpoint /desbloquear del AuthController para validar
+  // el código de seguridad de 6 dígitos
+  async desbloquearCuenta(payload: DesbloqueoCuentaRequest): Promise<DesbloqueoCuentaResponse> {
+    return this.request<DesbloqueoCuentaResponse>('/auth/desbloquear', {
+      method: 'POST',
+      body: JSON.stringify(payload),
     });
   }
 
