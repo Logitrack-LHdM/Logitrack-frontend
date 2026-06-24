@@ -621,21 +621,43 @@ class ApiClient {
     });
   }
 
+  // /**
+  //   * Consulta si existe un bloqueo por fatiga pendiente de resolución para un envío específico.
+  //   * @param idEnvio Identificador del envío (ej. LT-1234 o ID numérico)
+  //   */
+  // async getEvaluacionFatigaPendiente(idEnvio: string | number): Promise<AlertaFatigaDTO | null> {
+  //   try {
+  //     // Usamos 'any' temporalmente en la respuesta cruda para poder inspeccionar su estructura
+  //     const response = await this.request<any>(`/evaluaciones/envio/${idEnvio}/pendiente`);
+
+  //     // Si el backend lo manda envuelto, lo extraemos. Si ya viene plano, lo devolvemos tal cual.
+  //     return response.evaluacionFatigaPendiente
+  //       ? response.evaluacionFatigaPendiente
+  //       : response;
+
+  //   } catch (error: any) {
+  //     const status = error?.status || error?.response?.status;
+  //     const message = error?.message || '';
+
+  //     if (status === 404 || status === 204 || message.includes('404') || message.includes('Not Found')) {
+  //       return null;
+  //     }
+
+  //     throw error;
+  //   }
+  // }
+
   /**
    * Consulta si existe un bloqueo por fatiga pendiente de resolución para un envío específico.
    * @param idEnvio Identificador del envío (ej. LT-1234 o ID numérico)
    */
   async getEvaluacionFatigaPendiente(idEnvio: string | number): Promise<AlertaFatigaDTO | null> {
     try {
-      // Usamos 'any' temporalmente en la respuesta cruda para poder inspeccionar su estructura
-      const response = await this.request<any>(`/evaluaciones/envio/${idEnvio}/pendiente`);
-
-      // Si el backend lo manda envuelto, lo extraemos. Si ya viene plano, lo devolvemos tal cual.
-      return response.evaluacionFatigaPendiente
-        ? response.evaluacionFatigaPendiente
-        : response;
-
+      return await this.request<AlertaFatigaDTO>(`/evaluaciones/envio/${idEnvio}/pendiente`);
     } catch (error: any) {
+      // Manejo silencioso: Si el backend devuelve 404 (Not Found) o 204 (No Content) 
+      // significa que el chofer está en óptimas condiciones o no ha jugado. 
+      // Devolvemos null para que el banner amarillo no se muestre.
       const status = error?.status || error?.response?.status;
       const message = error?.message || '';
 
@@ -643,6 +665,7 @@ class ApiClient {
         return null;
       }
 
+      // Si es un error 500 o de red, sí lo lanzamos para que el sistema lo registre
       throw error;
     }
   }
