@@ -3,6 +3,7 @@ import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import { MensajeGlobalViaje, AlertaFatigaDTO } from '@/types/websockets';
 import { useNetwork } from '@/hooks/use-network';
+import { useAuth } from '@/contexts/auth-context';
 
 // En hooks/use-websocket.ts
 
@@ -38,6 +39,8 @@ interface UseWebSocketProps {
 }
 
 export const useWebSocket = ({ idUsuario, onMensajeGlobal, onAlertaPrivada, onAlertaFatiga }: UseWebSocketProps) => {    // Estado interno para saber si estamos conectados
+    const { usuario } = useAuth();
+
     const [isConnected, setIsConnected] = useState(false);
 
     // Usamos una referencia para mantener la instancia del cliente viva
@@ -117,7 +120,7 @@ export const useWebSocket = ({ idUsuario, onMensajeGlobal, onAlertaPrivada, onAl
                 }
 
                 // Suscripción condicionada para SUPERVISOR
-                if (idUsuario && onAlertaPrivadaRef.current) {
+                if (usuario?.rol === 'ROLE_SUPERVISOR' && onAlertaPrivadaRef.current) {
                     client.subscribe(`/queue/alertas-${idUsuario}`, (mensaje) => {
                         if (mensaje.body) {
                             // El backend manda un String (texto plano) en este tópico
@@ -157,6 +160,25 @@ export const useWebSocket = ({ idUsuario, onMensajeGlobal, onAlertaPrivada, onAl
                     });
                     console.log('🚨 Suscrito a /topic/alertas-supervisores (Prevención de Fatiga)');
                 }
+
+                // // Suscripción exclusiva para el canal de fatiga (US 68)
+                // if (usuario?.rol === 'ROLE_SUPERVISOR' && onAlertaPrivadaRef.current) {
+                //     client.subscribe('/topic/alertas-supervisores', (mensaje) => {
+                //         if (mensaje.body) {
+                //             if (onAlertaPrivadaRef.current) {
+                //                 try {
+                //                     // Intentamos parsear como JSON (para la alerta de Fatiga)
+                //                     const dataJSON = JSON.parse(mensaje.body);
+                //                     onAlertaPrivadaRef.current(dataJSON);
+                //                 } catch (error) {
+                //                     // Si falla el parseo, asumimos que es texto plano (MENSAJE simple)
+                //                     onAlertaPrivadaRef.current(mensaje.body);
+                //                 }
+                //             }
+                //         }
+                //     });
+                //     console.log('🚨 Suscrito a /topic/alertas-supervisores (Prevención de Fatiga)');
+                // }
 
             },
             onStompError: (frame) => {
