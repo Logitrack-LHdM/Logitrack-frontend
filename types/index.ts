@@ -90,6 +90,15 @@ export interface LoginResponse {
   rol: string;
 }
 
+export interface DesbloqueoCuentaRequest {
+  username: string;
+  codigo: string;
+}
+
+export interface DesbloqueoCuentaResponse {
+  mensaje: string;
+}
+
 // === ENTIDADES ===
 export interface Empresa {
   cuit: string;
