@@ -81,7 +81,7 @@ export const useCampanaAlertas = () => {
     }, []);
 
     // Handler para alertas estructuradas de Supervisor
-    // FASE 2: Handler para alertas de Supervisor (soporta String y JSON dinámicamente)
+    // Handler para alertas de Supervisor (soporta String y JSON dinámicamente)
     const handleNuevaAlerta = useCallback((payload: any) => {
 
         // CASO 1: Es texto plano
@@ -158,11 +158,11 @@ export const useCampanaAlertas = () => {
         }
     }, [agregarAlertaLocal]);
 
-    // FASE 1: Segregación lógica de variables booleanas
+    // Segregación lógica de variables booleanas
     const isSupervisor = usuario?.rol === 'ROLE_SUPERVISOR';
     const isOperador = usuario?.rol === 'ROLE_OPERADOR';
 
-    // FASE 1 y 2: Pasamos los handlers condicionalmente según el rol
+    // Pasamos los handlers condicionalmente según el rol
     const { isConnected } = useWebSocket({
         idUsuario: usuario?.id,
         // Si NO es supervisor, pasamos undefined (se ignora)

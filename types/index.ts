@@ -329,7 +329,7 @@ export interface PayloadIncidencia {
   incidencia: IncidenciaDTO;
 }
 
-// 2. Agrega la nueva interfaz de payload (usando el DTO de la Fase 1)
+// 2. Agrega la nueva interfaz de payload 
 export interface PayloadEvaluacionFatiga {
   dto: EvaluacionFatigaRequestDTO;
 }

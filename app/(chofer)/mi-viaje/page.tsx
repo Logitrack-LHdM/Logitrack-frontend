@@ -46,13 +46,36 @@ export default function MiViajePage() {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
   const { usuario } = useAuth();
-  const [viajeBloqueado, setViajeBloqueado] = useState(false);
+  const [isVerificando, setIsVerificando] = useState(false);
 
   // Intercepta el clic principal según el estado del viaje
-  const handleAccionPrincipal = () => {
-    if (viaje?.estadoActual === 'PENDIENTE') {
-      // Bloqueamos el flujo normal y lanzamos el minijuego
-      setMostrarTestFatiga(true);
+  const handleAccionPrincipal = async () => {
+    if (!viaje) return;
+
+    if (viaje.estadoActual === 'PENDIENTE') {
+      setIsVerificando(true);
+      try {
+        // Consultamos al backend si hay un bloqueo vigente para este viaje
+        const evaluacionPendiente = await api.getEvaluacionFatigaPendiente(viaje.idEnvio);
+
+        // Validación estricta: si hay un bloqueo, mostramos la alerta y cortamos el flujo
+        if (evaluacionPendiente && evaluacionPendiente.idEvaluacion) {
+          toast.warning('Bloqueo activo', {
+            description: 'Tienes un bloqueo preventivo por fatiga. Espera la resolución de un supervisor.',
+            duration: 5000,
+          });
+          return;
+        }
+
+        // Si no hay bloqueo, lanzamos el minijuego
+        setMostrarTestFatiga(true);
+      } catch (error) {
+        toast.error('Error de validación', {
+          description: 'No pudimos verificar tu estado operativo. Verifica tu conexión e intenta de nuevo.',
+        });
+      } finally {
+        setIsVerificando(false);
+      }
     } else {
       // Flujo normal para el resto de los estados
       setIsConfirmOpen(true);
@@ -64,7 +87,7 @@ export default function MiViajePage() {
     if (!viaje || !usuario) return;
 
     try {
-      // Enviamos el resultado a la API que creamos en el Paso 1
+      // Enviamos el resultado a la API
       const response = await api.registrarEvaluacion({
         idEnvio: viaje.idEnvio.toString(),
         tipoJuego: resultado.tipoJuego,
@@ -88,11 +111,11 @@ export default function MiViajePage() {
         toast.error('Test fallido: Fatiga extrema detectada', {
           description: 'Viaje bloqueado. El supervisor ha sido notificado.',
         });
-        setViajeBloqueado(true); // Bloqueamos la UI permanentemente
+        // setViajeBloqueado(true); // Bloqueamos la UI permanentemente
       }
     } catch (error) {
       setMostrarTestFatiga(false);
-      // Aquí dejaremos el espacio preparado para el Paso 4.3 (Manejo Offline)
+      // Manejo Offline
       toast.error('Error de conexión', {
         description: 'No se pudo procesar el test de reflejos.',
       });
@@ -208,17 +231,18 @@ export default function MiViajePage() {
         {!isCompleted && (
           <div className="space-y-3">
 
-            {/* BOTÓN DESACOPLADO DEL DIALOG (PASO 4.1) */}
+            {/* BOTÓN DESACOPLADO DEL DIALOG */}
             <div>
               <ActionButton
                 estadoActual={viaje.estadoActual}
                 onClick={handleAccionPrincipal}
-                isLoading={isUpdating}
-                disabled={viajeBloqueado} // Evita que intente abrir el test otra vez si está bloqueado
+                // Sumamos isVerificando al isLoading para que muestre el spinner al consultar
+                isLoading={isUpdating || isVerificando}
+              // Elimina la propiedad disabled={viajeBloqueado}
               />
             </div>
 
-            {/* DIALOG CONTROLADO MANUALMENTE POR ESTADO (PASO 4.1) */}
+            {/* DIALOG CONTROLADO MANUALMENTE POR ESTADO */}
             <AlertDialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
               <AlertDialogContent>
                 <AlertDialogHeader>
@@ -294,7 +318,7 @@ export default function MiViajePage() {
         onOpenChange={setIsQrModalOpen}
       />
 
-      {/* CONTENEDOR DEL MINIJUEGO INTERCEPTOR (PASO 4.1) */}
+      {/* CONTENEDOR DEL MINIJUEGO INTERCEPTOR */}
       {mostrarTestFatiga && (
         <FatigueTestContainer onCompletado={handleTestCompletado} />
       )}

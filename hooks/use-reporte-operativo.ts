@@ -39,7 +39,7 @@ export const useReporteOperativo = () => {
                 return;
             }
 
-            // Gracias a la Fase 1, ahora todos los endpoints consumen fechaInicio y fechaFin
+            // Todos los endpoints consumen fechaInicio y fechaFin
             const reqOperativo = api.getReporteOperativo(fechaInicio, fechaFin);
             const reqEstados = api.getReporteEstados(fechaInicio, fechaFin);
             const reqGranos = api.getReporteGranos(fechaInicio, fechaFin);

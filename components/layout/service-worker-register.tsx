@@ -11,7 +11,7 @@ export function ServiceWorkerRegister() {
             navigator.serviceWorker
                 .register('/service-worker.js')
                 .then((registration) => {
-                    console.log('[Service Worker] Registrado exitosamente en:', registration.scope);
+                    // console.log('[Service Worker] Registrado exitosamente en:', registration.scope);
                 })
                 .catch((error) => {
                     console.error('[Service Worker] Error de registro:', error);

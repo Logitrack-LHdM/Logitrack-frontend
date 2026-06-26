@@ -1,7 +1,6 @@
 'use client';
 
-import { Wheat, MapPin, TrendingUp } from 'lucide-react';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { MapPin, TrendingUp } from 'lucide-react';
 import { LoginForm } from '@/components/auth/login-form';
 import { useAuth } from '@/contexts/auth-context';
 import { Spinner } from '@/components/ui/spinner';
@@ -22,7 +21,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex bg-background">
-      {/* Panel izquierdo - Branding (Fiel al index.html original) */}
+      {/* Panel izquierdo - Branding */}
       <div className="hidden lg:flex lg:w-7/12 flex-col justify-between p-12 text-white bg-gradient-to-br from-[#1b4332] to-[#081c15] dark:from-[#143a29] dark:to-[#040c08]">
 
         {/* Header Logo */}
@@ -31,9 +30,6 @@ export default function LoginPage() {
           <div className="relative w-[70px] h-[70px]">
             <Image src="/images/logo-white-100.png" alt="Logo" fill style={{ objectFit: 'contain' }} />
           </div>
-          {/* <div className="p-2 bg-white/10 rounded-xl backdrop-blur-sm">
-            <Wheat className="h-8 w-8 text-warning" />
-          </div> */}
           <span className="text-3xl font-bold tracking-tight">LogiTrack Agro</span>
         </div>
 
@@ -72,9 +68,6 @@ export default function LoginPage() {
           <div className="text-center mb-10">
             {/* Logo móvil (visible solo en pantallas chicas) */}
             <div className="lg:hidden flex justify-center mb-6">
-              {/* <div className="flex items-center gap-3 p-3 bg-gradient-to-br from-[#1b4332] to-[#2d6a4f] rounded-2xl shadow-lg">
-                <Wheat className="h-10 w-10 text-white" />
-              </div> */}
               <div className="relative w-[150px] h-[150px]">
                 {/* Se agregó el atributo priority para resolver el LCP */}
                 <Image src="/images/logo-logitrack-150.png" alt="Logo Logitrack" fill style={{ objectFit: 'contain' }} priority />

@@ -30,7 +30,7 @@ export function useTrackingPublico() {
         }
     };
 
-    // Función de apoyo que usaremos en la Fase 4.2 para limpiar completamente la vista
+    // Función de apoyo que se usa para limpiar completamente la vista
     const resetBusqueda = () => {
         setTrackingData(null);
         setTrackingId('');

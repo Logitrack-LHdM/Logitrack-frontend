@@ -326,7 +326,7 @@ export default function ReporteOperativoPage() {
                                 </CardContent>
                             </Card>
 
-                            {/* Tarjeta 5: Incidencias (Paso 3) */}
+                            {/* Tarjeta 5: Incidencias */}
                             <Card className="shadow-sm hover:shadow-md transition-shadow">
                                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                                     <CardTitle className="text-sm font-medium text-muted-foreground">Incidencias</CardTitle>
@@ -350,7 +350,7 @@ export default function ReporteOperativoPage() {
                                 </CardContent>
                             </Card>
 
-                            {/* Tarjeta 6: Porcentaje a Tiempo / Efectividad (Paso 4) */}
+                            {/* Tarjeta 6: Porcentaje a Tiempo / Efectividad */}
                             <Card className="shadow-sm hover:shadow-md transition-shadow">
                                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                                     <CardTitle className="text-sm font-medium text-muted-foreground">Efectividad de Entrega</CardTitle>

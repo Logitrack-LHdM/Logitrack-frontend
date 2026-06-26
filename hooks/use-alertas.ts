@@ -14,7 +14,7 @@ export function useAlertas() {
         try {
             setIsLoading(true);
             setError(null);
-            // Consumimos el método mock que creamos en api.ts en la Fase 2.4
+            // Consumimos el método para obtener las alertas
             const data = (await api.getAlertas()) as unknown as AlertaListadoDTO[];
             setAlertas(data);
         } catch (err) {

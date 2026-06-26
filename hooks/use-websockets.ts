@@ -26,7 +26,7 @@ const getSocketUrl = () => {
 };
 
 const SOCKET_URL = getSocketUrl();
-console.log("🔗 URL del WebSocket que se va a usar:", SOCKET_URL); // Esto te dirá la verdad en DevTools
+// console.log("🔗 URL del WebSocket que se va a usar:", SOCKET_URL); // Esto te dirá la verdad en DevTools
 
 // // Leemos la URL desde las variables de entorno o usamos la de la guía por defecto
 // const SOCKET_URL = process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:8080/ws-logistica';
@@ -75,7 +75,7 @@ export const useWebSocket = ({ idUsuario, onMensajeGlobal, onAlertaPrivada, onAl
 
         // Bloqueo de conexión con el doble candado
         if (!tieneInternetReal) {
-            console.log('📶 Sin internet: Bloqueando intentos de WebSocket.');
+            // console.log('📶 Sin internet: Bloqueando intentos de WebSocket.');
 
             if (clientRef.current?.active) {
                 clientRef.current.deactivate();
@@ -98,7 +98,7 @@ export const useWebSocket = ({ idUsuario, onMensajeGlobal, onAlertaPrivada, onAl
             },
 
             onConnect: () => {
-                console.log('✅ Conectado a WebSockets LogiTrack');
+                // console.log('✅ Conectado a WebSockets LogiTrack');
                 setIsConnected(true);
 
                 // Suscripción condicionada para OPERADOR
@@ -116,7 +116,7 @@ export const useWebSocket = ({ idUsuario, onMensajeGlobal, onAlertaPrivada, onAl
                             }
                         }
                     });
-                    console.log('📡 Suscrito a /topic/viajes (Dashboard Global)');
+                    // console.log('📡 Suscrito a /topic/viajes (Dashboard Global)');
                 }
 
                 // Suscripción condicionada para SUPERVISOR
@@ -129,7 +129,7 @@ export const useWebSocket = ({ idUsuario, onMensajeGlobal, onAlertaPrivada, onAl
                             }
                         }
                     });
-                    console.log(`🚨 Suscrito a /queue/alertas-${idUsuario} (Campana Privada)`);
+                    // console.log(`🚨 Suscrito a /queue/alertas-${idUsuario} (Campana Privada)`);
                 }
 
                 // Suscripción exclusiva para el canal de fatiga (US 68)
@@ -154,11 +154,11 @@ export const useWebSocket = ({ idUsuario, onMensajeGlobal, onAlertaPrivada, onAl
                             else if (contentType.includes('text/plain')) {
                                 // Como el chofer aprobó, no necesitamos desplegar el banner amarillo de bloqueo.
                                 // Lo registramos silenciosamente en consola para fines de depuración.
-                                console.log("✅ Test de fatiga superado:", mensaje.body);
+                                // console.log("✅ Test de fatiga superado:", mensaje.body);
                             }
                         }
                     });
-                    console.log('🚨 Suscrito a /topic/alertas-supervisores (Prevención de Fatiga)');
+                    // console.log('🚨 Suscrito a /topic/alertas-supervisores (Prevención de Fatiga)');
                 }
 
                 // // Suscripción exclusiva para el canal de fatiga (US 68)
