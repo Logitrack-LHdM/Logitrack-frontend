@@ -318,7 +318,7 @@ class ApiClient {
       await agregarAccionACola('CAMBIAR_ESTADO', { idEnvio: id, nuevoEstado });
 
       // Devolvemos una estructura mínima simulada para no romper la UI.
-      // La bandera '_offlineQueued' le indicará a nuestro hook de React (Fase 4.2)
+      // La bandera '_offlineQueued' le indicará a nuestro hook de React
       // que la acción no llegó al backend, sino que se guardó localmente.
       return {
         idEnvio: id,

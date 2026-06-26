@@ -52,7 +52,7 @@ export function useViajeChofer() {
           const pdfBlob = await api.descargarCartaPortePdf(viajeActivo.idEnvio);
           await guardarPdfCache(viajeActivo.idEnvio, pdfBlob);
 
-          console.log(`[Cache Offline] Datos y PDF sincronizados con éxito para el viaje: ${viajeActivo.idEnvio}`);
+          // console.log(`[Cache Offline] Datos y PDF sincronizados con éxito para el viaje: ${viajeActivo.idEnvio}`);
         } catch (cacheError) {
           // Captura de error silenciosa: Si el endpoint falla o el chofer tiene una señal
           // intermitente que corta esta petición secundaria, no bloqueamos la renderización 

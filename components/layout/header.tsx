@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useAuth } from '@/contexts/auth-context';
 import { normalizarEnum } from '@/lib/utils';
-import { NotificationBell } from './notification-bell'; // <-- FASE 4.3: Importamos la campana
+import { NotificationBell } from './notification-bell';
 import { ThemeToggle } from './theme-toggle';
 
 export function Header() {
@@ -27,7 +27,7 @@ export function Header() {
     ? normalizarEnum(usuario.rol.replace('ROLE_', ''))
     : '';
 
-  // FASE 4.3: Validamos que la campana no se muestre para los choferes
+  // Validamos que la campana no se muestre para los choferes
   const mostrarCampana = usuario && usuario.rol !== 'ROLE_CHOFER';
 
   return (
@@ -65,7 +65,7 @@ export function Header() {
               <p className="text-xs text-white/70">{rolFormateado}</p>
             </div>
 
-            {/* FASE 4.3: Renderizamos la campana condicionalmente */}
+            {/* Renderizamos la campana condicionalmente */}
             {mostrarCampana && (
               <>
                 {/* Un pequeño separador visual opcional */}

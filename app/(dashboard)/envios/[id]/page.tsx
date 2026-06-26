@@ -71,9 +71,7 @@ export default function DetalleEnvioPage({
   // Estado para la exportación
   const [isExporting, setIsExporting] = useState(false);
 
-  // =========================================================================
-  // NUEVOS ESTADOS Y ESCUCHA DE EVENTOS LOCALES - FASE 5 (US 68)
-  // =========================================================================
+  // NUEVOS ESTADOS Y ESCUCHA DE EVENTOS LOCALES (US 68)
   const [alertaFatiga, setAlertaFatiga] = useState<AlertaFatigaDTO | null>(null);
   const [isFuerzaMayorModalOpen, setIsFuerzaMayorModalOpen] = useState(false);
   const [motivoFuerzaMayor, setMotivoFuerzaMayor] = useState('');
@@ -97,11 +95,9 @@ export default function DetalleEnvioPage({
     window.addEventListener('alerta-fatiga-ws', handleFatigaWs);
     return () => window.removeEventListener('alerta-fatiga-ws', handleFatigaWs);
   }, [id]);
-  // =========================================================================
 
-  // =========================================================================
-  // NUEVO: RECUPERACIÓN PERSISTENTE DE FATIGA - FASE 6.2
-  // =========================================================================
+
+  // RECUPERACIÓN PERSISTENTE DE FATIGA
   useEffect(() => {
     let montado = true;
 
@@ -136,10 +132,7 @@ export default function DetalleEnvioPage({
       montado = false;
     };
   }, [id, usuario]);
-  // =========================================================================
 
-
-  // =========================================================================
   // FUNCIONES DE RESOLUCIÓN DE FATIGA
   // =========================================================================
   const handleResetearFatiga = async () => {
@@ -242,22 +235,6 @@ export default function DetalleEnvioPage({
       // });
     }
   }, [errorTracking]);
-
-  // Código original (comentado por ahora)
-  /*
-  const porcentajeTiempo = useProgresoEnvio(
-     envio?.estadoActual || 'PENDIENTE',
-     envio?.fechaSalida,
-     envio?.fechaEstimadaLlegada
-  );
-  */
-
-  // Mock activo:
-  // const porcentajeTiempo = useProgresoEnvio(
-  //   envio?.estadoActual || 'PENDIENTE',
-  //   '2026-05-17T23:20:00', // fechaSalida
-  //   '2026-05-19T23:40:00'  // fechaEstimadaLlegada
-  // );
 
   // Verificar si hay cambios reales para habilitar el botón de guardado
   const hayCambios = envio && (nuevoEstado !== envio.estadoActual || nuevaPrioridad !== envio.prioridadIa);
@@ -376,9 +353,7 @@ export default function DetalleEnvioPage({
         <ArrowLeftCircle className="h-5 w-5" /> Volver a Rastreo
       </Link>
 
-      {/* ======================================================================= */}
-      {/* NUEVO: BANNER AMARILLO DE ALERTA DE FATIGA (FASE 5.3)                   */}
-      {/* ======================================================================= */}
+      {/* BANNER AMARILLO DE ALERTA DE FATIGA */}
       {alertaFatiga && (
         <div className="mb-6 mt-2 rounded-2xl border-2 border-amber-500 bg-amber-50 p-5 md:p-6 shadow-md animate-in slide-in-from-top-4">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
@@ -846,9 +821,7 @@ export default function DetalleEnvioPage({
         </div >
       </div >
 
-      {/* ======================================================================= */}
-      {/* NUEVO: MODAL DE FUERZA MAYOR (FASE 5.3)                                 */}
-      {/* ======================================================================= */}
+      {/* MODAL DE FUERZA MAYOR */}
       <Dialog open={isFuerzaMayorModalOpen} onOpenChange={setIsFuerzaMayorModalOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>

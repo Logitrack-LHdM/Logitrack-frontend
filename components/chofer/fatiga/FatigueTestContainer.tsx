@@ -17,7 +17,7 @@ export function FatigueTestContainer({ onCompletado }: FatigueTestContainerProps
     const [juegoSeleccionado, setJuegoSeleccionado] = useState<TipoJuego | null>(null);
     const [cuentaRegresiva, setCuentaRegresiva] = useState(5); // Temporizador de 5 segundos
 
-    // Paso 3.1: Selección aleatoria del minijuego al montar el componente
+    // Selección aleatoria del minijuego al montar el componente
     useEffect(() => {
         const juegosDisponibles: TipoJuego[] = [
             'REACCION_SIMPLE',
@@ -29,7 +29,7 @@ export function FatigueTestContainer({ onCompletado }: FatigueTestContainerProps
         setJuegoSeleccionado(juegosDisponibles[indiceAleatorio]);
     }, []);
 
-    // Paso 3.2: Temporizador para la pantalla de Onboarding (Instrucciones gigantes)
+    // Temporizador para la pantalla de Onboarding (Instrucciones gigantes)
     useEffect(() => {
         if (fase !== 'ONBOARDING' || !juegoSeleccionado) return;
 
@@ -42,7 +42,7 @@ export function FatigueTestContainer({ onCompletado }: FatigueTestContainerProps
         }
     }, [cuentaRegresiva, fase, juegoSeleccionado]);
 
-    // Paso 3.3: Recepción del tiempo medido y envío al componente padre
+    // Recepción del tiempo medido y envío al componente padre
     const handleMinijuegoFinalizado = (tiempoReaccionMs: number) => {
         setFase('PROCESANDO'); // Bloqueamos la UI mientras el padre envía al backend
 

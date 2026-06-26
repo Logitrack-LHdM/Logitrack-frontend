@@ -28,7 +28,7 @@ export async function agregarAccionACola(
         // 3. Guardamos la cola actualizada
         await set(OFFLINE_QUEUE_KEY, [...colaActual, nuevaAccion]);
 
-        console.log(`[Offline Sync] Acción guardada en cola: ${tipo}`);
+        // console.log(`[Offline Sync] Acción guardada en cola: ${tipo}`);
     } catch (error) {
         console.error('[Offline Sync] Error al guardar acción:', error);
         throw new Error('No se pudo guardar la acción localmente.');
@@ -72,7 +72,7 @@ export async function procesarColaOffline(): Promise<void> {
         return; // No hay nada que sincronizar
     }
 
-    console.log(`[Offline Sync] Iniciando sincronización de ${pendientes.length} acciones pendientes...`);
+    // console.log(`[Offline Sync] Iniciando sincronización de ${pendientes.length} acciones pendientes...`);
 
     // Importación dinámica para evitar la dependencia circular con lib/api.ts
     const { api } = await import('./api');
@@ -80,23 +80,22 @@ export async function procesarColaOffline(): Promise<void> {
     // 2. Iteramos sobre cada acción guardada
     for (const accion of pendientes) {
         try {
-            // Aquí evaluaremos el tipo de acción y llamaremos al endpoint correspondiente
-            // (Esta lógica de enrutamiento a la API la implementaremos en el Paso 4)
+            // Aquí evaluaremos el tipo de acción y llamaremos al endpoint correspondiente (Lógica de enrutamiento a la API)
             if (accion.tipo === 'CAMBIAR_ESTADO') {
                 const payload = accion.payload as PayloadCambioEstado;
                 // Pasamos `true` al final para forzar la red y evitar que se vuelva a interceptar
                 await api.cambiarEstadoChofer(payload.idEnvio, payload.nuevoEstado, true);
-                console.log(`[Offline Sync] Éxito: CAMBIAR_ESTADO para ID: ${accion.id}`);
+                // console.log(`[Offline Sync] Éxito: CAMBIAR_ESTADO para ID: ${accion.id}`);
 
             } else if (accion.tipo === 'REPORTAR_INCIDENCIA') {
                 const payload = accion.payload as PayloadIncidencia;
                 await api.reportarIncidencia(payload.idEnvio, payload.incidencia, true);
-                console.log(`[Offline Sync] Éxito: REPORTAR_INCIDENCIA para ID: ${accion.id}`);
+                // console.log(`[Offline Sync] Éxito: REPORTAR_INCIDENCIA para ID: ${accion.id}`);
             } else if (accion.tipo === 'REGISTRAR_EVALUACION') {
                 const payload = accion.payload as PayloadEvaluacionFatiga;
                 // forceNetwork = true para que realmente viaje al backend
                 await api.registrarEvaluacion(payload.dto, true);
-                console.log(`[Offline Sync] Éxito: REGISTRAR_EVALUACION para ID: ${accion.id}`);
+                // console.log(`[Offline Sync] Éxito: REGISTRAR_EVALUACION para ID: ${accion.id}`);
             }
 
             // 3. Como la petición fue exitosa (no lanzó error), eliminamos la acción local
@@ -114,7 +113,7 @@ export async function procesarColaOffline(): Promise<void> {
         }
     }
 
-    console.log('[Offline Sync] Proceso de sincronización finalizado.');
+    // console.log('[Offline Sync] Proceso de sincronización finalizado.');
 }
 
 // === CACHÉ DE CARTA DE PORTE (IDB-KEYVAL) ===
@@ -154,7 +153,7 @@ const PDF_PREFIX = 'logitrack_pdf_';
 export async function guardarPdfCache(idEnvio: string, pdfBlob: Blob): Promise<void> {
     try {
         await set(`${PDF_PREFIX}${idEnvio}`, pdfBlob);
-        console.log(`[Offline Sync] PDF guardado en caché para el envío ${idEnvio}`);
+        // console.log(`[Offline Sync] PDF guardado en caché para el envío ${idEnvio}`);
     } catch (error) {
         console.error(`[Offline Sync] Error al guardar PDF en caché para el envío ${idEnvio}:`, error);
     }
