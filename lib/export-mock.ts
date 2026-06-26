@@ -91,7 +91,7 @@ const formatearDesvio = (horas: number | null, esRetrasado: boolean | null) => {
 };
 
 export const exportCumplimientoCsvMock = async (): Promise<void> => {
-    // Simulamos latencia de red para la experiencia de usuario (Fase 1.3)
+    // Simulamos latencia de red para la experiencia de usuario
     await new Promise(resolve => setTimeout(resolve, 1500));
     // Obtenemos los datos mockeados
     const data = cumplimientoMockData;

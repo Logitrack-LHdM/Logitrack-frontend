@@ -2,7 +2,7 @@
 const CACHE_NAME = 'logitrack-cache-v1';
 const FALLBACK_HTML_URL = '/offline.html';
 
-// FASE 1: Instalación
+// Instalación
 self.addEventListener('install', (event) => {
     // Obligamos al navegador a esperar a que esta promesa se cumpla antes de considerar instalado el Service Worker
     event.waitUntil(
@@ -78,7 +78,7 @@ self.addEventListener('fetch', (event) => {
                         return cachedResponse; // Devolvemos la vista/recurso guardado
                     }
 
-                    // FASE 3: Intercepción de Navegación
+                    // Intercepción de Navegación
                     // Si la petición es de navegación (ej. un F5 o entrar a una ruta nueva)
                     // y no está en caché, sacamos nuestra pantalla de contingencia de la bóveda.
                     if (request.mode === 'navigate') {

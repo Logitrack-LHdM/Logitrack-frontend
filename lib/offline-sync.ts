@@ -80,8 +80,7 @@ export async function procesarColaOffline(): Promise<void> {
     // 2. Iteramos sobre cada acción guardada
     for (const accion of pendientes) {
         try {
-            // Aquí evaluaremos el tipo de acción y llamaremos al endpoint correspondiente
-            // (Esta lógica de enrutamiento a la API la implementaremos en el Paso 4)
+            // Aquí evaluaremos el tipo de acción y llamaremos al endpoint correspondiente (Lógica de enrutamiento a la API)
             if (accion.tipo === 'CAMBIAR_ESTADO') {
                 const payload = accion.payload as PayloadCambioEstado;
                 // Pasamos `true` al final para forzar la red y evitar que se vuelva a interceptar

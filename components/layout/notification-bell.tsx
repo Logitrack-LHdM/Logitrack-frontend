@@ -72,10 +72,10 @@ export function NotificationBell() {
     };
 
     return (
-        // FASE 4.2: Popover para el menú desplegable
+        // Popover para el menú desplegable
         <Popover open={isOpen} onOpenChange={setIsOpen}>
             <PopoverTrigger asChild>
-                {/* FASE 4.1: Botón de la Campana */}
+                {/* Botón de la Campana */}
                 <Button
                     variant="ghost"
                     size="icon"
@@ -111,7 +111,7 @@ export function NotificationBell() {
                     </Badge>
                 </div>
 
-                {/* FASE 4.2: Listado de Alertas con Scroll */}
+                {/* Listado de Alertas con Scroll */}
                 <ScrollArea className="h-[300px]" aria-labelledby="notifications-title">
                     {alertas.length === 0 ? (
                         <div className="p-6 text-center text-sm text-muted-foreground flex flex-col items-center gap-2" role="status">
