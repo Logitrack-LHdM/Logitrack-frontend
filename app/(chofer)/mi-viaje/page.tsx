@@ -87,7 +87,7 @@ export default function MiViajePage() {
     if (!viaje || !usuario) return;
 
     try {
-      // Enviamos el resultado a la API que creamos en el Paso 1
+      // Enviamos el resultado a la API
       const response = await api.registrarEvaluacion({
         idEnvio: viaje.idEnvio.toString(),
         tipoJuego: resultado.tipoJuego,
@@ -115,7 +115,7 @@ export default function MiViajePage() {
       }
     } catch (error) {
       setMostrarTestFatiga(false);
-      // Aquí dejaremos el espacio preparado para el Paso 4.3 (Manejo Offline)
+      // Manejo Offline
       toast.error('Error de conexión', {
         description: 'No se pudo procesar el test de reflejos.',
       });
@@ -231,7 +231,7 @@ export default function MiViajePage() {
         {!isCompleted && (
           <div className="space-y-3">
 
-            {/* BOTÓN DESACOPLADO DEL DIALOG (PASO 4.1) */}
+            {/* BOTÓN DESACOPLADO DEL DIALOG */}
             <div>
               <ActionButton
                 estadoActual={viaje.estadoActual}
@@ -242,7 +242,7 @@ export default function MiViajePage() {
               />
             </div>
 
-            {/* DIALOG CONTROLADO MANUALMENTE POR ESTADO (PASO 4.1) */}
+            {/* DIALOG CONTROLADO MANUALMENTE POR ESTADO */}
             <AlertDialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
               <AlertDialogContent>
                 <AlertDialogHeader>
@@ -318,7 +318,7 @@ export default function MiViajePage() {
         onOpenChange={setIsQrModalOpen}
       />
 
-      {/* CONTENEDOR DEL MINIJUEGO INTERCEPTOR (PASO 4.1) */}
+      {/* CONTENEDOR DEL MINIJUEGO INTERCEPTOR */}
       {mostrarTestFatiga && (
         <FatigueTestContainer onCompletado={handleTestCompletado} />
       )}
