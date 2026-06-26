@@ -18,7 +18,7 @@ self.addEventListener('install', (event) => {
 
 // Activación y Limpieza
 self.addEventListener('activate', (event) => {
-    console.log('[Service Worker] Activado y listo para interceptar red.');
+    // console.log('[Service Worker] Activado y listo para interceptar red.');
 
     event.waitUntil(
         caches.keys().then((cacheNames) => {
@@ -26,7 +26,7 @@ self.addEventListener('activate', (event) => {
                 cacheNames.map((cacheName) => {
                     // Si encontramos un caché que pertenece a Logitrack pero no es la versión actual, lo eliminamos.
                     if (cacheName.startsWith('logitrack-cache-') && cacheName !== CACHE_NAME) {
-                        console.log(`[Service Worker] Borrando caché antiguo: ${cacheName}`);
+                        // console.log(`[Service Worker] Borrando caché antiguo: ${cacheName}`);
                         return caches.delete(cacheName);
                     }
                 })
@@ -71,7 +71,7 @@ self.addEventListener('fetch', (event) => {
             })
             .catch(() => {
                 // Si el fetch falla (NO HAY INTERNET), buscamos en nuestro almacenamiento local
-                console.log(`[Service Worker] Modo Offline: Falló la red para -> ${request.url}`);
+                // console.log(`[Service Worker] Modo Offline: Falló la red para -> ${request.url}`);
 
                 return caches.match(request).then((cachedResponse) => {
                     if (cachedResponse) {
@@ -82,7 +82,7 @@ self.addEventListener('fetch', (event) => {
                     // Si la petición es de navegación (ej. un F5 o entrar a una ruta nueva)
                     // y no está en caché, sacamos nuestra pantalla de contingencia de la bóveda.
                     if (request.mode === 'navigate') {
-                        console.log('[Service Worker] Sirviendo pantalla de contingencia (offline.html)');
+                        // console.log('[Service Worker] Sirviendo pantalla de contingencia (offline.html)');
                         return caches.match(FALLBACK_HTML_URL);
                     }
 
